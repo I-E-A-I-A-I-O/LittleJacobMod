@@ -67,6 +67,11 @@ namespace LittleJacobMod.Utils
             JacobSpawnpoint.CarModel.MarkAsNoLongerNeeded();
         }
 
+        public bool IsPlayerInArea()
+        {
+            return Game.Player.Character.IsInRange(jacobSpawnpoint.JacobPosition, 80);
+        }
+
         public bool IsNearby()
         {
             return jacob.IsInRange(Game.Player.Character.Position, 50);

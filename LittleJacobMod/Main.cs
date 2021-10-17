@@ -46,10 +46,10 @@ public class Main : Script
     {
         if (jacobActive)
         {
-            LittleJacob.DeleteJacob();
             LittleJacob.DeleteBlip();
             Game.Player.Character.CanSwitchWeapons = true;
             Game.Player.Character.Task.ClearAll();
+            LittleJacob.DeleteJacob();
         }
     }
 
@@ -60,10 +60,10 @@ public class Main : Script
             return;
         }
 
-        if (!LittleJacob.Spawned && LittleJacob.IsNearby())
+        if (!LittleJacob.Spawned && LittleJacob.IsPlayerInArea())
         {
             LittleJacob.Spawn();
-        } else if (LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !menuOpened && !LittleJacob.Left)
+        } else if (LittleJacob.Spawned && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !menuOpened && !LittleJacob.Left)
         {
             if (Game.LastInputMethod == InputMethod.MouseAndKeyboard)
             {
@@ -77,6 +77,7 @@ public class Main : Script
             menuOpened = false;
             Game.Player.Character.Task.ClearAll();
             Game.Player.Character.CanSwitchWeapons = true;
+            LittleJacob.ToggleTrunk();
             LittleJacob.DriveAway();
             LittleJacob.DeleteBlip();
         } else if (LittleJacob.Left && !LittleJacob.IsNearby())
@@ -88,9 +89,14 @@ public class Main : Script
 
     void KeyboardControls(object o, KeyEventArgs e)
     {
+        if (!jacobActive)
+        {
+            return;
+        }
+
         if (e.KeyCode == openMenuKey)
         {
-            if (jacobActive && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !menuOpened)
+            if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !menuOpened)
             {
                 LittleJacob.ToggleTrunk();
                 menuOpened = true;

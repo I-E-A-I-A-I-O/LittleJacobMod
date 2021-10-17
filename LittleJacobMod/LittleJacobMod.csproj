@@ -60,6 +60,16 @@
     <Compile Include="Utils\LittleJacob.cs" />
     <Compile Include="Utils\WeaponComponent.cs" />
     <Compile Include="Utils\WeaponHashes.cs" />
+    <Compile Include="Utils\Weapons\Carbine.cs" />
+    <Compile Include="Utils\Weapons\CarbineRifleMk2.cs" />
+    <Compile Include="Utils\Weapons\HeavySniperMk2.cs" />
+    <Compile Include="Utils\Weapons\Pistol.cs" />
+    <Compile Include="Utils\Weapons\Pistol50.cs" />
+    <Compile Include="Utils\Weapons\PistolMk2.cs" />
+    <Compile Include="Utils\Weapons\RevolverMk2.cs" />
+    <Compile Include="Utils\Weapons\UpNAtomizer.cs" />
+    <Compile Include="Utils\Weapons\Weapon.cs" />
+    <Compile Include="Utils\Weapons\WeaponsList.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Saving\" />

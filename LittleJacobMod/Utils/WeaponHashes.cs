@@ -21,11 +21,7 @@ namespace LittleJacobMod.Utils
 
         public readonly static List<WeaponHash> pistolHashes = new List<WeaponHash>()
         {
-            WeaponHash.Pistol,
-            WeaponHash.Pistol50,
-            WeaponHash.PistolMk2,
             WeaponHash.APPistol,
-            WeaponHash.CeramicPistol,
             WeaponHash.CombatPistol,
             WeaponHash.HeavyPistol,
             WeaponHash.MachinePistol,
@@ -35,10 +31,8 @@ namespace LittleJacobMod.Utils
             WeaponHash.SNSPistolMk2,
             WeaponHash.VintagePistol,
             WeaponHash.Revolver,
-            WeaponHash.RevolverMk2,
             WeaponHash.DoubleActionRevolver,
             WeaponHash.NavyRevolver,
-            WeaponHash.UpNAtomizer
         };
 
         public readonly static List<WeaponHash> mgHashes = new List<WeaponHash>()
@@ -85,8 +79,6 @@ namespace LittleJacobMod.Utils
             WeaponHash.AssaultRifle,
             WeaponHash.BullpupRifle,
             WeaponHash.BullpupRifleMk2,
-            WeaponHash.CarbineRifle,
-            WeaponHash.CarbineRifleMk2,
             WeaponHash.CompactRifle,
             WeaponHash.MilitaryRifle,
             WeaponHash.AssaultrifleMk2
@@ -95,7 +87,6 @@ namespace LittleJacobMod.Utils
         public readonly static List<WeaponHash> sniperHashes = new List<WeaponHash>()
         {
             WeaponHash.HeavySniper,
-            WeaponHash.HeavySniperMk2,
             WeaponHash.SniperRifle,
             WeaponHash.MarksmanRifle,
             WeaponHash.MarksmanRifleMk2

@@ -1,18 +1,19 @@
 ﻿using System;
+using GTA;
 
 namespace LittleJacobMod.Utils
 {
     internal class WeaponComponentItem
     {
-        int index;
-        string displayName;
-        public int Index => index;
-        public string DisplayName => displayName;
+        public int Index { get; }
+        public string DisplayName { get; }
+        public WeaponComponentHash WeaponComponentHash { get; }
 
-        public WeaponComponentItem(int index, string displayName)
+        public WeaponComponentItem(int index, string displayName, WeaponComponentHash componentHash)
         {
-            this.index = index;
-            this.displayName = displayName;
+            Index = index;
+            DisplayName = displayName;
+            WeaponComponentHash = componentHash;
         }
     }
 }
