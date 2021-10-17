@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="iFruitAddon2">
+      <HintPath>..\..\..\..\..\..\Program Files\Epic Games\GTAV\scripts\iFruitAddon2.dll</HintPath>
+    </Reference>
     <Reference Include="LemonUI.SHVDN3">
       <HintPath>..\..\..\..\Downloads\c49285-LemonUI\SHVDN3\LemonUI.SHVDN3.dll</HintPath>
     </Reference>
@@ -48,14 +51,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interface\Menu.cs" />
+    <Compile Include="Interface\PhoneContact.cs" />
     <Compile Include="Loading\Initialize.cs" />
     <Compile Include="Loading\JacobSpawnpoint.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\LittleJacob.cs" />
+    <Compile Include="Utils\WeaponComponent.cs" />
+    <Compile Include="Utils\WeaponHashes.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Interface\" />
     <Folder Include="Saving\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -36,29 +36,10 @@ namespace LittleJacobMod.Loading
             new JacobSpawnpoint(new Vector3(1724.354f, 4804.543f, 41.67359f), 117.8686f, new Vector3(1725.49f, 4802.246f, 41.17456f), -108.6089f)
         };
 
-        public static LittleJacob SpawnJacob()
-        {
-            var spawnpoint = GetClosestSpawnpoint();
-            JacobSpawnpoint.JacobModel.Request();
-            JacobSpawnpoint.CarModel.Request();
-            var modelsLoaded = false;
-            while(!modelsLoaded)
-            {
-                Script.Wait(0);
-                modelsLoaded = JacobSpawnpoint.JacobModel.IsLoaded && JacobSpawnpoint.CarModel.IsLoaded;
-            }
-            return new LittleJacob(spawnpoint.JacobPosition, spawnpoint.JacobHeading, spawnpoint.CarPosition, spawnpoint.CarHeading);
-        }
+        static JacobSpawnpoint currentSpawnpoint;
+        public static JacobSpawnpoint CurrentSpawnpoint => currentSpawnpoint;
 
-        public static void DeleteJacob(LittleJacob jacob)
-        {
-            jacob.Jacob.MarkAsNoLongerNeeded();
-            jacob.Vehicle.MarkAsNoLongerNeeded();
-            JacobSpawnpoint.JacobModel.MarkAsNoLongerNeeded();
-            JacobSpawnpoint.CarModel.MarkAsNoLongerNeeded();
-        }
-
-        static JacobSpawnpoint GetClosestSpawnpoint()
+        public static LittleJacob CalculateClosestSpawnpoint()
         {
             var closestPoint = jacobSpawnpoints[0];
             var currentDistance = Game.Player.Character.Position.DistanceTo2D(closestPoint.CarPosition);
@@ -70,7 +51,8 @@ namespace LittleJacobMod.Loading
                     closestPoint = spawnpoint;
                 }
             }
-            return closestPoint;
+            currentSpawnpoint = closestPoint;
+            return new LittleJacob(CurrentSpawnpoint);
         }
     }
 }

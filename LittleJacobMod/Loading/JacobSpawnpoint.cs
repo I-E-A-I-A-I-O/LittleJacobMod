@@ -5,7 +5,7 @@ using GTA.Math;
 
 namespace LittleJacobMod.Loading
 {
-    internal class JacobSpawnpoint
+    public class JacobSpawnpoint
     {
         Vector3 jacobPosition;
         Vector3 carPosition;
