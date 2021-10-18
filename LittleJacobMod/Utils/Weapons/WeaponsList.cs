@@ -30,7 +30,13 @@ namespace LittleJacobMod.Utils.Weapons
         public static List<Weapon> Rifles => new List<Weapon>()
         {
             new Carbine(),
-            new CarbineRifleMk2()
+            new CarbineRifleMk2(),
+            new AdvancedRifle(),
+            new AssaultRifle(),
+            new BullpupRifle(),
+            new BullPupMk2(),
+            new MilitaryRifle(),
+            new AssaultRifleMk2(),
         };
 
         public static List<Weapon> Snipers => new List<Weapon>()

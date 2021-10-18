@@ -100,8 +100,8 @@ public class Main : Script
             {
                 LittleJacob.ToggleTrunk();
                 menuOpened = true;
-                Game.Player.Character.Task.StandStill(1800000000);
-                Game.Player.Character.CanSwitchWeapons = false;
+                //Game.Player.Character.Task.StandStill(1800000000);
+                //Game.Player.Character.CanSwitchWeapons = false;
                 menu.ShowMainMenu();
             }
         }

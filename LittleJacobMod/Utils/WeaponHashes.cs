@@ -57,17 +57,6 @@ namespace LittleJacobMod.Utils
             WeaponHash.Widowmaker
         };
 
-        public readonly static List<WeaponHash> rifleHashes = new List<WeaponHash>()
-        {
-            WeaponHash.AdvancedRifle,
-            WeaponHash.AssaultRifle,
-            WeaponHash.BullpupRifle,
-            WeaponHash.BullpupRifleMk2,
-            WeaponHash.CompactRifle,
-            WeaponHash.MilitaryRifle,
-            WeaponHash.AssaultrifleMk2
-        };
-
         public readonly static List<WeaponHash> sniperHashes = new List<WeaponHash>()
         {
             WeaponHash.HeavySniper,
