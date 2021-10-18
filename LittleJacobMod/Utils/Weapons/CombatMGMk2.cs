@@ -4,15 +4,15 @@ using GTA;
 
 namespace LittleJacobMod.Utils.Weapons
 {
-    internal class CarbineRifleMk2 : Weapon
+    internal class CombatMGMk2 : Weapon
     {
         public override bool SaveFileWeapon => true;
 
-        public override WeaponHash WeaponHash => WeaponHash.CarbineRifleMk2;
+        public override WeaponHash WeaponHash => WeaponHash.CombatMGMk2;
 
         public override int Price => 100000;
 
-        public override string Name => "Carbine Rifle Mk2";
+        public override string Name => "Combat MG Mk2";
 
         public override bool HasMuzzleOrSupp => true;
 
@@ -26,12 +26,11 @@ namespace LittleJacobMod.Utils.Weapons
 
         public override bool HasCamo => true;
 
-        public override bool HasFlaslight => true;
+        public override bool HasFlaslight => false;
 
         public override Dictionary<string, WeaponComponentHash> MuzzlesAndSupps => new Dictionary<string, WeaponComponentHash>()
         {
             { "None - $199", WeaponComponentHash.Invalid },
-            { "Suppressor - $40000", WeaponComponentHash.AtArSupp },
             { "Flat Muzzle - $29000", WeaponComponentHash.AtMuzzle01 },
             { "Tactical Muzzle - $31000", WeaponComponentHash.AtMuzzle02 },
             { "Fat-End Muzzle - $32000", WeaponComponentHash.AtMuzzle03 },
@@ -43,18 +42,18 @@ namespace LittleJacobMod.Utils.Weapons
 
         public override Dictionary<string, WeaponComponentHash> Clips => new Dictionary<string, WeaponComponentHash>()
         {
-            { "Normal - $199", WeaponComponentHash.CarbineRifleMk2Clip01 },
-            { "Extended - $25000", WeaponComponentHash.CarbineRifleMk2Clip02 },
-            { "Tracer - $44000", WeaponComponentHash.CarbineRifleMk2ClipTracer },
-            { "Incendiary - $51000", WeaponComponentHash.CarbineRifleMk2ClipIncendiary },
-            { "Armor piercing - $66000", WeaponComponentHash.CarbineRifleMk2ClipArmorPiercing },
-            { "FMJ - $76000", WeaponComponentHash.CarbineRifleMk2ClipFMJ },
+            { "Normal - $199", WeaponComponentHash.CombatMGMk2Clip01 },
+            { "Extended - $25000", WeaponComponentHash.CombatMGMk2Clip02 },
+            { "Tracer - $44000", WeaponComponentHash.CombatMGMk2ClipTracer },
+            { "Incendiary - $51000", WeaponComponentHash.CombatMGMk2ClipIncendiary },
+            { "Armor piercing - $66000", WeaponComponentHash.CombatMGMk2ClipArmorPiercing },
+            { "FMJ - $76000", WeaponComponentHash.CombatMGMk2ClipFMJ },
         };
 
         public override Dictionary<string, WeaponComponentHash> Barrels => new Dictionary<string, WeaponComponentHash>()
         {
-            { "Standard - $199", WeaponComponentHash.AtCrBarrel01 },
-            { "Heavy - $49000", WeaponComponentHash.AtCrBarrel02 },
+            { "Standard - $199", WeaponComponentHash.AtMGBarrel01 },
+            { "Heavy - $49000", WeaponComponentHash.AtMGBarrel02 },
         };
 
         public override Dictionary<string, WeaponComponentHash> Grips => new Dictionary<string, WeaponComponentHash>()
@@ -67,31 +66,27 @@ namespace LittleJacobMod.Utils.Weapons
         {
             { "None - $199", WeaponComponentHash.Invalid },
             { "Holographic - $19000", WeaponComponentHash.AtSights },
-            { "Small - $23000", WeaponComponentHash.AtScopeMacroMk2 },
+            { "Medium - $23000", WeaponComponentHash.AtScopeSmallMk2 },
             { "Large - $34000", WeaponComponentHash.AtScopeMediumMk2 },
         };
 
         public override Dictionary<string, WeaponComponentHash> Camos => new Dictionary<string, WeaponComponentHash>()
         {
             { "None", WeaponComponentHash.Invalid },
-            { "Digital", WeaponComponentHash.CarbineRifleMk2Camo },
-            { "Brushstroke", WeaponComponentHash.CarbineRifleMk2Camo02 },
-            { "Woodland", WeaponComponentHash.CarbineRifleMk2Camo03 },
-            { "Skull", WeaponComponentHash.CarbineRifleMk2Camo04 },
-            { "Sessanta Nove", WeaponComponentHash.CarbineRifleMk2Camo05 },
-            { "Perseus", WeaponComponentHash.CarbineRifleMk2Camo06 },
-            { "Leopard", WeaponComponentHash.CarbineRifleMk2Camo07 },
-            { "Zebra", WeaponComponentHash.CarbineRifleMk2Camo08 },
-            { "Geometric", WeaponComponentHash.CarbineRifleMk2Camo09 },
-            { "Boom!", WeaponComponentHash.CarbineRifleMk2Camo10 },
-            { "Patriotic", WeaponComponentHash.CarbineRifleMk2CamoIndependence01 },
+            { "Digital", WeaponComponentHash.CombatMGMk2Camo },
+            { "Brushstroke", WeaponComponentHash.CombatMGMk2Camo02 },
+            { "Woodland", WeaponComponentHash.CombatMGMk2Camo03 },
+            { "Skull", WeaponComponentHash.CombatMGMk2Camo04 },
+            { "Sessanta Nove", WeaponComponentHash.CombatMGMk2Camo05 },
+            { "Perseus", WeaponComponentHash.CombatMGMk2Camo06 },
+            { "Leopard", WeaponComponentHash.CombatMGMk2Camo07 },
+            { "Zebra", WeaponComponentHash.CombatMGMk2Camo08 },
+            { "Geometric", WeaponComponentHash.CombatMGMk2Camo09 },
+            { "Boom!", WeaponComponentHash.CombatMGMk2Camo10 },
+            { "Patriotic", WeaponComponentHash.CombatMGMk2CamoIndependence01 },
 
         };
 
-        public override Dictionary<string, WeaponComponentHash> FlashLight => new Dictionary<string, WeaponComponentHash>()
-        {
-            { "None - $199", WeaponComponentHash.Invalid },
-            { "Flashlight - $10000", WeaponComponentHash.AtArFlsh }
-        };
+        public override Dictionary<string, WeaponComponentHash> FlashLight => throw new NotImplementedException();
     }
 }

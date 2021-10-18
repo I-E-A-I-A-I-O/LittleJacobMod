@@ -27,6 +27,13 @@ namespace LittleJacobMod.Utils.Weapons
             new NavyRevolver()
         };
 
+        public static List<Weapon> SMGs => new List<Weapon>()
+        {
+            new SMGMk2(),
+            new CombatMGMk2(),
+            new UnholyHellbringer(),
+        };
+
         public static List<Weapon> Rifles => new List<Weapon>()
         {
             new Carbine(),
@@ -39,9 +46,22 @@ namespace LittleJacobMod.Utils.Weapons
             new AssaultRifleMk2(),
         };
 
+        public static List<Weapon> Shotguns => new List<Weapon>()
+        {
+            new CombatShotgun(),
+            new PumpShotgunMk2(),
+        };
+
         public static List<Weapon> Snipers => new List<Weapon>()
         {
-            new HeavySniperMk2()
+            new HeavySniperMk2(),
+            new MarksmanRifleMk2()
+        };
+
+        public static List<Weapon> Heavy = new List<Weapon>()
+        {
+            new Widowmaker(),
+            new Firework()
         };
     }
 }

@@ -71,7 +71,21 @@ namespace LittleJacobMod.Utils.Weapons
             { "Medium - $34000", WeaponComponentHash.AtScopeSmallMk2 }
         };
 
-        public override Dictionary<string, WeaponComponentHash> Camos => throw new NotImplementedException();
+        public override Dictionary<string, WeaponComponentHash> Camos => new Dictionary<string, WeaponComponentHash>()
+        {
+            { "None", WeaponComponentHash.Invalid },
+            { "Digital", WeaponComponentHash.BullpupRifleMk2Camo },
+            { "Brushstroke", WeaponComponentHash.BullpupRifleMk2Camo02 },
+            { "Woodland", WeaponComponentHash.BullpupRifleMk2Camo03 },
+            { "Skull", WeaponComponentHash.BullpupRifleMk2Camo04 },
+            { "Sessanta Nove", WeaponComponentHash.BullpupRifleMk2Camo05 },
+            { "Perseus", WeaponComponentHash.BullpupRifleMk2Camo06 },
+            { "Leopard", WeaponComponentHash.BullpupRifleMk2Camo07 },
+            { "Zebra", WeaponComponentHash.BullpupRifleMk2Camo08 },
+            { "Geometric", WeaponComponentHash.BullpupRifleMk2Camo09 },
+            { "Boom!", WeaponComponentHash.BullpupRifleMk2Camo10 },
+            { "Patriotic", WeaponComponentHash.BullpupRifleMk2CamoIndependence01 },
+        };
 
         public override Dictionary<string, WeaponComponentHash> FlashLight => new Dictionary<string, WeaponComponentHash>()
         {

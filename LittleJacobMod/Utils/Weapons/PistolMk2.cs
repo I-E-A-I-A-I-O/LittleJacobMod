@@ -24,7 +24,7 @@ namespace LittleJacobMod.Utils.Weapons
 
         public override bool HasScope => true;
 
-        public override bool HasCamo => false;
+        public override bool HasCamo => true;
 
         public override bool HasFlaslight => true;
 
@@ -55,7 +55,31 @@ namespace LittleJacobMod.Utils.Weapons
             { "Mounted Scope - $16000", WeaponComponentHash.AtPiRail }
         };
 
-        public override Dictionary<string, WeaponComponentHash> Camos => throw new NotImplementedException();
+        public override Dictionary<string, WeaponComponentHash> Camos => new Dictionary<string, WeaponComponentHash>()
+        {
+            { "None", WeaponComponentHash.Invalid },
+            { "Digital", WeaponComponentHash.PistolMk2Camo },
+            { "Brushstroke", WeaponComponentHash.PistolMk2Camo02 },
+            { "Woodland", WeaponComponentHash.PistolMk2Camo03 },
+            { "Skull", WeaponComponentHash.PistolMk2Camo04 },
+            { "Sessanta Nove", WeaponComponentHash.PistolMk2Camo05 },
+            { "Perseus", WeaponComponentHash.PistolMk2Camo06 },
+            { "Leopard", WeaponComponentHash.PistolMk2Camo07 },
+            { "Zebra", WeaponComponentHash.PistolMk2Camo08 },
+            { "Geometric", WeaponComponentHash.PistolMk2Camo09 },
+            { "Boom!", WeaponComponentHash.PistolMk2Camo10 },
+            { "Patriotic", WeaponComponentHash.PistolMk2CamoIndependence01 },
+            { "Digital 2", WeaponComponentHash.PistolMk2CamoSlide },
+            { "Digital 3", WeaponComponentHash.PistolMk2Camo02Slide },
+            { "Digital 4", WeaponComponentHash.PistolMk2Camo03Slide },
+            { "Digital 5", WeaponComponentHash.PistolMk2Camo04Slide },
+            { "Digital 6", WeaponComponentHash.PistolMk2Camo05Slide },
+            { "Digital 7", WeaponComponentHash.PistolMk2Camo06Slide },
+            { "Digital 8", WeaponComponentHash.PistolMk2Camo07Slide },
+            { "Digital 9", WeaponComponentHash.PistolMk2Camo08Slide },
+            { "Digital 10", WeaponComponentHash.PistolMk2Camo09Slide },
+            { "Patriotic 2", WeaponComponentHash.PistolMk2CamoIndependence01Slide }
+        };
 
         public override Dictionary<string, WeaponComponentHash> FlashLight => new Dictionary<string, WeaponComponentHash>()
         {

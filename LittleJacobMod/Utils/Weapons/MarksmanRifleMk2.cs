@@ -4,15 +4,15 @@ using GTA;
 
 namespace LittleJacobMod.Utils.Weapons
 {
-    internal class CarbineRifleMk2 : Weapon
+    internal class MarksmanRifleMk2 : Weapon
     {
         public override bool SaveFileWeapon => true;
 
-        public override WeaponHash WeaponHash => WeaponHash.CarbineRifleMk2;
+        public override WeaponHash WeaponHash => WeaponHash.MarksmanRifleMk2;
 
-        public override int Price => 100000;
+        public override int Price => 120000;
 
-        public override string Name => "Carbine Rifle Mk2";
+        public override string Name => "Marksman Rifle Mk2";
 
         public override bool HasMuzzleOrSupp => true;
 
@@ -43,18 +43,18 @@ namespace LittleJacobMod.Utils.Weapons
 
         public override Dictionary<string, WeaponComponentHash> Clips => new Dictionary<string, WeaponComponentHash>()
         {
-            { "Normal - $199", WeaponComponentHash.CarbineRifleMk2Clip01 },
-            { "Extended - $25000", WeaponComponentHash.CarbineRifleMk2Clip02 },
-            { "Tracer - $44000", WeaponComponentHash.CarbineRifleMk2ClipTracer },
-            { "Incendiary - $51000", WeaponComponentHash.CarbineRifleMk2ClipIncendiary },
-            { "Armor piercing - $66000", WeaponComponentHash.CarbineRifleMk2ClipArmorPiercing },
-            { "FMJ - $76000", WeaponComponentHash.CarbineRifleMk2ClipFMJ },
+            { "Normal - $199", WeaponComponentHash.MarksmanRifleMk2Clip01 },
+            { "Extended - $25000", WeaponComponentHash.MarksmanRifleMk2Clip02 },
+            { "Tracer - $44000", WeaponComponentHash.MarksmanRifleMk2ClipTracer },
+            { "Incendiary - $51000", WeaponComponentHash.MarksmanRifleMk2ClipIncendiary },
+            { "Armor piercing - $66000", WeaponComponentHash.MarksmanRifleMk2ClipArmorPiercing },
+            { "FMJ - $76000", WeaponComponentHash.MarksmanRifleMk2ClipFMJ },
         };
 
         public override Dictionary<string, WeaponComponentHash> Barrels => new Dictionary<string, WeaponComponentHash>()
         {
-            { "Standard - $199", WeaponComponentHash.AtCrBarrel01 },
-            { "Heavy - $49000", WeaponComponentHash.AtCrBarrel02 },
+            { "Standard - $199", WeaponComponentHash.AtMrFlBarrel01 },
+            { "Heavy - $49000", WeaponComponentHash.AtMrFlBarrel02 },
         };
 
         public override Dictionary<string, WeaponComponentHash> Grips => new Dictionary<string, WeaponComponentHash>()
@@ -65,26 +65,25 @@ namespace LittleJacobMod.Utils.Weapons
 
         public override Dictionary<string, WeaponComponentHash> Scopes => new Dictionary<string, WeaponComponentHash>()
         {
-            { "None - $199", WeaponComponentHash.Invalid },
-            { "Holographic - $19000", WeaponComponentHash.AtSights },
-            { "Small - $23000", WeaponComponentHash.AtScopeMacroMk2 },
-            { "Large - $34000", WeaponComponentHash.AtScopeMediumMk2 },
+            { "Default - $199", WeaponComponentHash.AtScopeLargeFixedZoomMk2 },
+            { "Large - $15000", WeaponComponentHash.AtScopeMediumMk2 },
+            { "Holographic - $8000", WeaponComponentHash.AtSights }
         };
 
         public override Dictionary<string, WeaponComponentHash> Camos => new Dictionary<string, WeaponComponentHash>()
         {
             { "None", WeaponComponentHash.Invalid },
-            { "Digital", WeaponComponentHash.CarbineRifleMk2Camo },
-            { "Brushstroke", WeaponComponentHash.CarbineRifleMk2Camo02 },
-            { "Woodland", WeaponComponentHash.CarbineRifleMk2Camo03 },
-            { "Skull", WeaponComponentHash.CarbineRifleMk2Camo04 },
-            { "Sessanta Nove", WeaponComponentHash.CarbineRifleMk2Camo05 },
-            { "Perseus", WeaponComponentHash.CarbineRifleMk2Camo06 },
-            { "Leopard", WeaponComponentHash.CarbineRifleMk2Camo07 },
-            { "Zebra", WeaponComponentHash.CarbineRifleMk2Camo08 },
-            { "Geometric", WeaponComponentHash.CarbineRifleMk2Camo09 },
-            { "Boom!", WeaponComponentHash.CarbineRifleMk2Camo10 },
-            { "Patriotic", WeaponComponentHash.CarbineRifleMk2CamoIndependence01 },
+            { "Digital", WeaponComponentHash.MarksmanRifleMk2Camo },
+            { "Brushstroke", WeaponComponentHash.MarksmanRifleMk2Camo02 },
+            { "Woodland", WeaponComponentHash.MarksmanRifleMk2Camo03 },
+            { "Skull", WeaponComponentHash.MarksmanRifleMk2Camo04 },
+            { "Sessanta Nove", WeaponComponentHash.MarksmanRifleMk2Camo05 },
+            { "Perseus", WeaponComponentHash.MarksmanRifleMk2Camo06 },
+            { "Leopard", WeaponComponentHash.MarksmanRifleMk2Camo07 },
+            { "Zebra", WeaponComponentHash.MarksmanRifleMk2Camo08 },
+            { "Geometric", WeaponComponentHash.MarksmanRifleMk2Camo09 },
+            { "Boom!", WeaponComponentHash.MarksmanRifleMk2Camo10 },
+            { "Patriotic", WeaponComponentHash.MarksmanRifleMk2CamoIndependence01 },
 
         };
 

@@ -22,26 +22,21 @@ namespace LittleJacobMod.Utils
         public readonly static List<WeaponHash> mgHashes = new List<WeaponHash>()
         {
             WeaponHash.SMG,
-            WeaponHash.SMGMk2,
             WeaponHash.AssaultSMG,
             WeaponHash.MicroSMG,
             WeaponHash.MiniSMG,
             WeaponHash.MG,
             WeaponHash.CombatMG,
-            WeaponHash.CombatMGMk2,
             WeaponHash.CombatPDW,
-            WeaponHash.UnholyHellbringer
         };
 
         public readonly static List<WeaponHash> shotgunHashes = new List<WeaponHash>()
         {
             WeaponHash.AssaultShotgun,
             WeaponHash.BullpupShotgun,
-            WeaponHash.CombatShotgun,
             WeaponHash.DoubleBarrelShotgun,
             WeaponHash.HeavyShotgun,
             WeaponHash.PumpShotgun,
-            WeaponHash.PumpShotgunMk2,
             WeaponHash.SawnOffShotgun,
             WeaponHash.SweeperShotgun
         };
@@ -52,9 +47,7 @@ namespace LittleJacobMod.Utils
             WeaponHash.Minigun,
             WeaponHash.GrenadeLauncher,
             WeaponHash.CompactGrenadeLauncher,
-            WeaponHash.Firework,
             WeaponHash.Railgun,
-            WeaponHash.Widowmaker
         };
 
         public readonly static List<WeaponHash> sniperHashes = new List<WeaponHash>()
@@ -62,7 +55,6 @@ namespace LittleJacobMod.Utils
             WeaponHash.HeavySniper,
             WeaponHash.SniperRifle,
             WeaponHash.MarksmanRifle,
-            WeaponHash.MarksmanRifleMk2
         };
 
         public readonly static List<WeaponHash> explosiveHashes = new List<WeaponHash>()
