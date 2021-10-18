@@ -77,9 +77,9 @@ public class Main : Script
             menuOpened = false;
             Game.Player.Character.Task.ClearAll();
             Game.Player.Character.CanSwitchWeapons = true;
-            LittleJacob.ToggleTrunk();
-            LittleJacob.DriveAway();
-            LittleJacob.DeleteBlip();
+            //LittleJacob.ToggleTrunk();
+            //LittleJacob.DriveAway();
+            //LittleJacob.DeleteBlip();
         } else if (LittleJacob.Left && !LittleJacob.IsNearby())
         {
             LittleJacob.DeleteJacob();

@@ -14,7 +14,17 @@ namespace LittleJacobMod.Utils.Weapons
             new Pistol50(),
             new PistolMk2(),
             new UpNAtomizer(),
-            new RevolverMk2()
+            new RevolverMk2(),
+            new ApPistol(),
+            new CombatPistol(),
+            new HeavyPistol(),
+            new MarksmanPistol(),
+            new PericoPistol(),
+            new SNSPistol(),
+            new SNSPistolMk2(),
+            new HeavyRevolver(),
+            new DoubleActionRevolver(),
+            new NavyRevolver()
         };
 
         public static List<Weapon> Rifles => new List<Weapon>()

@@ -19,22 +19,6 @@ namespace LittleJacobMod.Utils
             WeaponHash.Nightstick
         };
 
-        public readonly static List<WeaponHash> pistolHashes = new List<WeaponHash>()
-        {
-            WeaponHash.APPistol,
-            WeaponHash.CombatPistol,
-            WeaponHash.HeavyPistol,
-            WeaponHash.MachinePistol,
-            WeaponHash.MarksmanPistol,
-            WeaponHash.PericoPistol,
-            WeaponHash.SNSPistol,
-            WeaponHash.SNSPistolMk2,
-            WeaponHash.VintagePistol,
-            WeaponHash.Revolver,
-            WeaponHash.DoubleActionRevolver,
-            WeaponHash.NavyRevolver,
-        };
-
         public readonly static List<WeaponHash> mgHashes = new List<WeaponHash>()
         {
             WeaponHash.SMG,

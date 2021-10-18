@@ -134,13 +134,16 @@ namespace LittleJacobMod.Interface
             ammoOptionItem.Activated += (o, e) => AmmoPurchased(currentWeapon, ammoOptionItem.Value);
             menu.Add(ammoOptionItem);
 
-            var tintSlider = new NativeListItem<string>("Tints");
-            for(int i = 0; i < Utils.Weapons.Weapon.WeaponTints.Count; i++)
+            if (weapon.WeaponHash != WeaponHash.PericoPistol && weapon.WeaponHash != WeaponHash.DoubleActionRevolver && weapon.WeaponHash != WeaponHash.NavyRevolver)
             {
-                tintSlider.Add(Utils.Weapons.Weapon.WeaponTints[i].ToString());
+                var tintSlider = new NativeListItem<string>("Tints");
+                for (int i = 0; i < Utils.Weapons.Weapon.WeaponTints.Count; i++)
+                {
+                    tintSlider.Add(Utils.Weapons.Weapon.WeaponTints[i].ToString());
+                }
+                tintSlider.Activated += (o, e) => TintPurchased(currentWeapon, tintSlider.SelectedIndex);
+                menu.Add(tintSlider);
             }
-            tintSlider.Activated += (o, e) => TintPurchased(currentWeapon, tintSlider.SelectedIndex);
-            menu.Add(tintSlider);
 
             if (weapon.HasClip)
             {
