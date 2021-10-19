@@ -334,7 +334,6 @@ namespace LittleJacobMod.Interface
         void MuzzlePurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, List<WeaponComponentHash> components, bool saveFileWeapon)
         {
             var price = int.Parse(weaponComponent.Key.Split('$')[1]);
-            GTA.UI.Screen.ShowSubtitle($"{price} {weaponComponent.Key.Split('$')[1]}");
             if (Game.Player.Money < price)
             {
                 GTA.UI.Notification.Show("Couldn't purchase the muzzle attachment. Not enough money!");
