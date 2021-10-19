@@ -23,7 +23,6 @@ namespace LittleJacobMod.Interface
         NativeMenu heavy;
         NativeMenu shotguns;
         NativeMenu explosives;
-        NativeMenu weapon;
         public ObjectPool Pool => pool;
 
         public Menu()
@@ -295,6 +294,7 @@ namespace LittleJacobMod.Interface
             Game.Player.Money -= ammoPrice;
             var ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weapon.Hash);
             Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Game.Player.Character.Handle, ammoType, ammoToPurchase);
+            LadoutSaving.SetAmmo(weapon.Hash, weapon.Ammo);
         }
 
         void TintPurchased(GTA.Weapon weapon, int index, bool saveFileWeapon)
@@ -322,7 +322,7 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show("Couldn't purchase the clip. Not enough money!");
                 return;
             }
-            Game.Player.Character.Money -= price;
+            Game.Player.Money -= price;
             GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
             if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
@@ -334,12 +334,13 @@ namespace LittleJacobMod.Interface
         void MuzzlePurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, List<WeaponComponentHash> components, bool saveFileWeapon)
         {
             var price = int.Parse(weaponComponent.Key.Split('$')[1]);
+            GTA.UI.Screen.ShowSubtitle($"{price} {weaponComponent.Key.Split('$')[1]}");
             if (Game.Player.Money < price)
             {
                 GTA.UI.Notification.Show("Couldn't purchase the muzzle attachment. Not enough money!");
                 return;
             }
-            Game.Player.Character.Money -= price;
+            Game.Player.Money -= price;
             if (weaponComponent.Key.Contains("None"))
             {
                 foreach (WeaponComponentHash component in components)
@@ -373,7 +374,7 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show("Couldn't purchase flashlight. Not enough money!");
                 return;
             }
-            Game.Player.Character.Money -= price;
+            Game.Player.Money -= price;
             if (weaponComponent.Key.Contains("None"))
             {
                 foreach (WeaponComponentHash component in components)
@@ -408,7 +409,7 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show("Couldn't purchase scope. Not enough money!");
                 return;
             }
-            Game.Player.Character.Money -= price;
+            Game.Player.Money -= price;
             if (weaponComponent.Key.Contains("None"))
             {
                 foreach (WeaponComponentHash component in components)
@@ -443,7 +444,7 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show("Couldn't purchase grip. Not enough money!");
                 return;
             }
-            Game.Player.Character.Money -= price;
+            Game.Player.Money -= price;
             if (weaponComponent.Key.Contains("None"))
             {
                 foreach (WeaponComponentHash component in components)
@@ -478,7 +479,7 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show("Couldn't purchase barrel. Not enough money!");
                 return;
             }
-            Game.Player.Character.Money -= price;
+            Game.Player.Money -= price;
             if (weaponComponent.Key.Contains("None"))
             {
                 foreach (WeaponComponentHash component in components)
@@ -501,13 +502,13 @@ namespace LittleJacobMod.Interface
 
         void CamoPurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, List<WeaponComponentHash> components)
         {
-            var price = 10000;
+            var price = 20000;
             if (Game.Player.Money < price)
             {
                 GTA.UI.Notification.Show("Couldn't purchase camo. Not enough money!");
                 return;
             }
-            Game.Player.Character.Money -= price;
+            Game.Player.Money -= price;
             if (weaponComponent.Key.Contains("None"))
             {
                 foreach (WeaponComponentHash component in components)
@@ -536,7 +537,7 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show("Couldn't purchase camo color. Not enough money!");
                 return;
             }
-            Game.Player.Character.Money -= price;
+            Game.Player.Money -= price;
             if (!LadoutSaving.HasCamo(weapon.Hash))
             {
                 GTA.UI.Notification.Show("Buy a camo first!");

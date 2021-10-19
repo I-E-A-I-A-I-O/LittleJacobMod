@@ -25,17 +25,34 @@ namespace LittleJacobMod.Interface
 
         private void JacobContact_Answered(iFruitContact contact)
         {
-            ifruit.Close();
-
             if (Main.jacobActive)
             {
-                GTA.UI.Notification.Show(GTA.UI.NotificationIcon.AllPlayersConf, "Little Jacob", "Meetin", "Breden, i be waitin for u already");
+                if (Main.LittleJacob.Spawned)
+                {
+                    GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "Im busy, call me later");
+                } else
+                {
+                    GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "alrite my brenden. Call me again if you need more weapons");
+                    Main.LittleJacob.DeleteBlip();
+                    Main.jacobActive = false;
+                    Main.TimerStarted = false;
+                }
+                ifruit.Close();
                 return;
             }
 
-            GTA.UI.Notification.Show(GTA.UI.NotificationIcon.AllPlayersConf, "Little Jacob", "Meetin", "No problem man, just meet me at the location i sent you");
+            if (Game.Player.WantedLevel > 0)
+            {
+                GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "my friend told me the police is after u. we cant meet like this, call me again when you lose them. Peace");
+                ifruit.Close();
+                return;
+            }
+
+            GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "No problem man, just meet me at the location i sent you");
             Main.LittleJacob = Initialize.CalculateClosestSpawnpoint();
             Main.jacobActive = true;
+
+            ifruit.Close();
         }
     }
 }

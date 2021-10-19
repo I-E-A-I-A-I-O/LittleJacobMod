@@ -42,12 +42,18 @@ namespace LittleJacobMod.Loading
         public static LittleJacob CalculateClosestSpawnpoint()
         {
             var closestPoint = jacobSpawnpoints[0];
-            var currentDistance = Game.Player.Character.Position.DistanceTo2D(closestPoint.CarPosition);
+            var currentDistance = World.CalculateTravelDistance(Game.Player.Character.Position, closestPoint.CarPosition);
             foreach (JacobSpawnpoint spawnpoint in jacobSpawnpoints)
             {
-                var distance = Game.Player.Character.Position.DistanceTo2D(spawnpoint.CarPosition);
+                if (Game.Player.Character.IsInRange(spawnpoint.CarPosition, 30))
+                {
+                    continue;
+                }
+
+                var distance = World.CalculateTravelDistance(Game.Player.Character.Position, spawnpoint.CarPosition);
                 if (distance < currentDistance)
                 {
+                    currentDistance = distance;
                     closestPoint = spawnpoint;
                 }
             }

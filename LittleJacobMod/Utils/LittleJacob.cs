@@ -22,8 +22,8 @@ namespace LittleJacobMod.Utils
         {
             this.jacobSpawnpoint = jacobSpawnpoint;
             Blip = World.CreateBlip(jacobSpawnpoint.JacobPosition);
-            Blip.Sprite = BlipSprite.Pistol;
-            Blip.Color = BlipColor.GreyLight;
+            Blip.Sprite = BlipSprite.Lester;
+            Blip.Color = BlipColor.Green;
             Blip.Name = "Little Jacob";
             Blip.IsShortRange = false;
         }

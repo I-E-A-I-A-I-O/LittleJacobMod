@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using GTA;
 using LittleJacobMod.Saving.Utils;
+using System.IO;
+using GTA.Native;
 
 namespace LittleJacobMod.Saving
 {
@@ -26,13 +28,13 @@ namespace LittleJacobMod.Saving
             StoredWeapons.Add(storedWeapon);
         }
 
-        public static void AddAmmo(WeaponHash hash, int ammo)
+        public static void SetAmmo(WeaponHash hash, int ammo)
         {
             foreach (var weapon in StoredWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
-                    weapon.Ammo += ammo;
+                    weapon.Ammo = ammo;
                     return;
                 }
             }
@@ -173,6 +175,166 @@ namespace LittleJacobMod.Saving
         public static bool IsPedMainPlayer(Ped ped)
         {
             return ped.Model.Hash == unchecked((int)PedHash.Michael) || ped.Model.Hash == unchecked((int)PedHash.Franklin) || ped.Model.Hash == unchecked((int)PedHash.Trevor);
+        }
+
+        public static void PerformSave()
+        {
+            GTA.UI.LoadingPrompt.Show("Saving weapon ladout...");
+            try
+            {
+                var dir = Directory.GetCurrentDirectory();
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Ladouts\\{Game.Player.Character.Model.Hash}.data";
+                
+                if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Ladouts"))
+                {
+                    Directory.CreateDirectory($"{dir}\\scripts\\LittleJacobMod\\Ladouts");
+                }
+
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+
+                using (var writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
+                {
+                    writer.Write(StoredWeapons.Count);
+                    foreach (var weapon in StoredWeapons)
+                    {
+                        writer.Write(weapon.Ammo);
+                        writer.Write(weapon.Barrel.ToString());
+                        writer.Write(weapon.Camo.ToString());
+                        writer.Write(weapon.CamoColor);
+                        writer.Write(weapon.Clip.ToString());
+                        writer.Write(weapon.Flashlight.ToString());
+                        writer.Write(weapon.Grip.ToString());
+                        writer.Write(weapon.Muzzle.ToString());
+                        writer.Write(weapon.Scope.ToString());
+                        writer.Write(weapon.Tint);
+                        writer.Write(weapon.WeaponHash.ToString());
+                    }
+                }
+            } catch (Exception)
+            {
+                GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error saving weapon ladout!");
+            } finally
+            {
+                Script.Wait(2500);
+                GTA.UI.LoadingPrompt.Hide();
+                Game.DoAutoSave();
+            }
+        }
+
+        public static void PerformLoad()
+        {
+            StoredWeapons.Clear();
+            GTA.UI.LoadingPrompt.Show("Loading weapon ladout...");
+            var characterHandle = Game.Player.Character.Handle;
+            try
+            {
+                var dir = Directory.GetCurrentDirectory();
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Ladouts\\{Game.Player.Character.Model.Hash}.data";
+                if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Ladouts"))
+                {
+                    return;
+                } else if (!File.Exists(filePath))
+                {
+                    GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ No weapon ladouts saved for this ped!");
+                    return;
+                }
+
+                using (var reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
+                {
+                    var count = reader.ReadInt32();
+                    for (var i = 0; i < count; i++)
+                    {
+                        var ammo = reader.ReadInt32();
+                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var barrel);
+                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var camo);
+                        var camoColor = reader.ReadInt32();
+                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var clip);
+                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var flash);
+                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var grip);
+                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var muzzle);
+                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var scope);
+                        var tint = reader.ReadInt32();
+                        Enum.TryParse<WeaponHash>(reader.ReadString(), out var weaponHash);
+                        Game.Player.Character.Weapons.Give(weaponHash, ammo, false, false);
+                        var storedWeapon = new StoredWeapon(weaponHash);
+                        storedWeapon.Ammo = ammo;
+                        if (barrel != WeaponComponentHash.Invalid)
+                        {
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, barrel);
+                            storedWeapon.Barrel = barrel;
+                        }
+                        if (camo != WeaponComponentHash.Invalid)
+                        {
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, camo);
+                            storedWeapon.Camo = camo;
+                            if (camoColor != -1)
+                            {
+                                Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, characterHandle, weaponHash, camo, camoColor);
+                                storedWeapon.CamoColor = camoColor;
+                            }
+                        }
+                        if (clip != WeaponComponentHash.Invalid)
+                        {
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, clip);
+                            storedWeapon.Clip = clip;
+                        }
+                        if (flash != WeaponComponentHash.Invalid)
+                        {
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, flash);
+                            storedWeapon.Flashlight = flash;
+                        }
+                        if (grip != WeaponComponentHash.Invalid)
+                        {
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, grip);
+                            storedWeapon.Grip = grip;
+                        }
+                        if (muzzle != WeaponComponentHash.Invalid)
+                        {
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, muzzle);
+                            storedWeapon.Muzzle = muzzle;
+                        }
+                        if (scope != WeaponComponentHash.Invalid)
+                        {
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, scope);
+                            storedWeapon.Scope = scope;
+                        }
+                        if (tint != -1)
+                        {
+                            Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, characterHandle, weaponHash, tint);
+                            storedWeapon.Tint = tint;
+                        }
+                        var ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weaponHash);
+                        Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Game.Player.Character.Handle, ammoType, ammo);
+                        StoredWeapons.Add(storedWeapon);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error loading weapon ladout!");
+            }
+            finally
+            {
+                Script.Wait(2500);
+                GTA.UI.LoadingPrompt.Hide();
+            }
+        }
+
+        public static void RemoveWeapons(bool all = false)
+        {
+            if (all)
+            {
+                Game.Player.Character.Weapons.RemoveAll();
+            } else
+            {
+                foreach (var weapon in StoredWeapons)
+                {
+                    Game.Player.Character.Weapons.Remove(weapon.WeaponHash);
+                }
+            }
         }
     }
 }
