@@ -7,7 +7,7 @@ using GTA.Native;
 
 namespace LittleJacobMod.Saving
 {
-    static internal class LadoutSaving
+    static internal class LoadoutSaving
     {
         static readonly List<StoredWeapon> StoredWeapons = new List<StoredWeapon>();
 
@@ -191,15 +191,15 @@ namespace LittleJacobMod.Saving
 
         public static void PerformSave(PedHash ped)
         {
-            GTA.UI.LoadingPrompt.Show("Saving weapon ladout...");
+            GTA.UI.LoadingPrompt.Show("Saving weapon loadout...");
             try
             {
                 var dir = Directory.GetCurrentDirectory();
-                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Ladouts\\{((int)ped)}.data";
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{((int)ped)}.data";
                 
-                if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Ladouts"))
+                if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
                 {
-                    Directory.CreateDirectory($"{dir}\\scripts\\LittleJacobMod\\Ladouts");
+                    Directory.CreateDirectory($"{dir}\\scripts\\LittleJacobMod\\Loadouts");
                 }
 
                 if (File.Exists(filePath))
@@ -227,7 +227,7 @@ namespace LittleJacobMod.Saving
                 }
             } catch (Exception)
             {
-                GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error saving weapon ladout!");
+                GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error saving weapon loadout!");
             } finally
             {
                 Script.Wait(2500);
@@ -239,18 +239,18 @@ namespace LittleJacobMod.Saving
         public static void PerformLoad()
         {
             StoredWeapons.Clear();
-            GTA.UI.LoadingPrompt.Show("Loading weapon ladout...");
+            GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
             var characterHandle = Game.Player.Character.Handle;
             try
             {
                 var dir = Directory.GetCurrentDirectory();
-                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Ladouts\\{Game.Player.Character.Model.Hash}.data";
-                if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Ladouts"))
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{Game.Player.Character.Model.Hash}.data";
+                if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
                 {
                     return;
                 } else if (!File.Exists(filePath))
                 {
-                    GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ No weapon ladouts saved for this ped!");
+                    GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ No weapon loadouts saved for this ped!");
                     return;
                 }
 
@@ -334,7 +334,7 @@ namespace LittleJacobMod.Saving
             }
             catch (Exception)
             {
-                GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error loading weapon ladout!");
+                GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error loading weapon loadout!");
             }
             finally
             {

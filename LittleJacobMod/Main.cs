@@ -4,7 +4,9 @@ using System.Windows.Forms;
 using LittleJacobMod.Interface;
 using LittleJacobMod.Utils;
 using LittleJacobMod.Saving;
+using LittleJacobMod.Saving.Utils;
 using GTA.Native;
+using System.Collections.Generic;
 
 public class Main : Script
 {
@@ -19,9 +21,14 @@ public class Main : Script
     public static bool jacobActive;
     public static LittleJacob LittleJacob { get; set; }
     public static bool TimerStarted { get { return timerStarted; } set { timerStarted = value; } }
-
+    Dictionary<string, string> animsDic = new Dictionary<string, string>()
+    {
+        { "anim@mp_bedmid@left_var_01",  }
+    };
     public Main()
     {
+        Migrator.Migrate();
+
         var settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
         openMenuControl = settings.GetValue("Controls", "OpenMenu", "E");
 
@@ -74,7 +81,7 @@ public class Main : Script
         {
             if (!saveTriggered)
             {
-                LadoutSaving.PerformSave(currentPed);
+                LoadoutSaving.PerformSave(currentPed);
                 saveTriggered = true;
             }
             return;
@@ -91,9 +98,9 @@ public class Main : Script
         if (Game.Player.Character.IsShooting)
         {
             var currentWeapon = Game.Player.Character.Weapons.Current;
-            if (LadoutSaving.IsWeaponInStore(currentWeapon.Hash))
+            if (LoadoutSaving.IsWeaponInStore(currentWeapon.Hash))
             {
-                LadoutSaving.SetAmmo(currentWeapon.Hash, currentWeapon.Ammo);
+                LoadoutSaving.SetAmmo(currentWeapon.Hash, currentWeapon.Ammo);
             }
         }
     }
@@ -105,7 +112,7 @@ public class Main : Script
             return;
         }
         currentPed = (PedHash)Game.Player.Character.Model.Hash;
-        LadoutSaving.PerformLoad();
+        LoadoutSaving.PerformLoad();
         Tick -= WaitForGameLoad;
         Tick += ModelWatcher;
     }
@@ -117,11 +124,11 @@ public class Main : Script
             return;
         }
 
-        LadoutSaving.PerformSave(currentPed);
+        LoadoutSaving.PerformSave(currentPed);
 
         currentPed = (PedHash)Game.Player.Character.Model.Hash;
-        LadoutSaving.RemoveWeapons(!LadoutSaving.IsPedMainPlayer(Game.Player.Character));
-        LadoutSaving.PerformLoad();
+        LoadoutSaving.RemoveWeapons(!LoadoutSaving.IsPedMainPlayer(Game.Player.Character));
+        LoadoutSaving.PerformLoad();
     }
 
     void OnTick(object o, EventArgs e)
