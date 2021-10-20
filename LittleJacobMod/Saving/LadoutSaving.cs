@@ -11,6 +11,18 @@ namespace LittleJacobMod.Saving
     {
         static readonly List<StoredWeapon> StoredWeapons = new List<StoredWeapon>();
 
+        public static bool IsWeaponInStore(WeaponHash weapon)
+        {
+            foreach (var storedWeapon in StoredWeapons)
+            {
+                if (storedWeapon.WeaponHash == weapon)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static void AddWeapon (Weapon weapon)
         {
             foreach(var weaponInStore in StoredWeapons)
@@ -177,13 +189,13 @@ namespace LittleJacobMod.Saving
             return ped.Model.Hash == unchecked((int)PedHash.Michael) || ped.Model.Hash == unchecked((int)PedHash.Franklin) || ped.Model.Hash == unchecked((int)PedHash.Trevor);
         }
 
-        public static void PerformSave()
+        public static void PerformSave(PedHash ped)
         {
             GTA.UI.LoadingPrompt.Show("Saving weapon ladout...");
             try
             {
                 var dir = Directory.GetCurrentDirectory();
-                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Ladouts\\{Game.Player.Character.Model.Hash}.data";
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Ladouts\\{((int)ped)}.data";
                 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Ladouts"))
                 {
@@ -258,9 +270,17 @@ namespace LittleJacobMod.Saving
                         Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var scope);
                         var tint = reader.ReadInt32();
                         Enum.TryParse<WeaponHash>(reader.ReadString(), out var weaponHash);
-                        Game.Player.Character.Weapons.Give(weaponHash, ammo, false, false);
-                        var storedWeapon = new StoredWeapon(weaponHash);
-                        storedWeapon.Ammo = ammo;
+
+                        if (IsPedMainPlayer(Game.Player.Character) && Game.Player.Character.Weapons.HasWeapon(weaponHash))
+                        {
+                            continue;
+                        }
+
+                        Game.Player.Character.Weapons.Give(weaponHash, 0, false, false);
+                        var storedWeapon = new StoredWeapon(weaponHash)
+                        {
+                            Ammo = ammo
+                        };
                         if (barrel != WeaponComponentHash.Invalid)
                         {
                             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, barrel);
@@ -323,17 +343,11 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void RemoveWeapons(bool all = false)
+        public static void RemoveWeapons(bool customPed = false)
         {
-            if (all)
+            if (customPed)
             {
                 Game.Player.Character.Weapons.RemoveAll();
-            } else
-            {
-                foreach (var weapon in StoredWeapons)
-                {
-                    Game.Player.Character.Weapons.Remove(weapon.WeaponHash);
-                }
             }
         }
     }

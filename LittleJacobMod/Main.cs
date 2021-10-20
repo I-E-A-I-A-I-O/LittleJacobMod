@@ -4,13 +4,14 @@ using System.Windows.Forms;
 using LittleJacobMod.Interface;
 using LittleJacobMod.Utils;
 using LittleJacobMod.Saving;
+using GTA.Native;
 
 public class Main : Script
 {
     string openMenuControl;
     Keys openMenuKey;
     PhoneContact ifruit;
-    bool menuOpened;
+    bool menuOpened, saveTriggered;
     static bool timerStarted;
     LittleJacobMod.Interface.Menu menu;
     int timerCurrent, timerStart;
@@ -39,11 +40,14 @@ public class Main : Script
             Tick += WaitForGameLoad;
         } else
         {
+            currentPed = (PedHash)Game.Player.Character.Model.Hash;
             Tick += ModelWatcher;
         }
 
         KeyUp += KeyboardControls;
         Tick += GamepadControls;
+        Tick += WeaponUse;
+        Tick += AutoSaveWatch;
         Tick += (o, e) =>
         {
             ifruit.Phone.Update();
@@ -61,6 +65,36 @@ public class Main : Script
             Game.Player.Character.CanSwitchWeapons = true;
             Game.Player.Character.Task.ClearAll();
             LittleJacob.DeleteJacob();
+        }
+    }
+
+    void AutoSaveWatch(object o, EventArgs e)
+    {
+        if (Function.Call<bool>(Hash.IS_AUTO_SAVE_IN_PROGRESS))
+        {
+            if (!saveTriggered)
+            {
+                LadoutSaving.PerformSave(currentPed);
+                saveTriggered = true;
+            }
+            return;
+        }
+
+        if (saveTriggered)
+        {
+            saveTriggered = false;
+        }
+    }
+
+    void WeaponUse(object o, EventArgs e)
+    {
+        if (Game.Player.Character.IsShooting)
+        {
+            var currentWeapon = Game.Player.Character.Weapons.Current;
+            if (LadoutSaving.IsWeaponInStore(currentWeapon.Hash))
+            {
+                LadoutSaving.SetAmmo(currentWeapon.Hash, currentWeapon.Ammo);
+            }
         }
     }
 
@@ -82,6 +116,9 @@ public class Main : Script
         {
             return;
         }
+
+        LadoutSaving.PerformSave(currentPed);
+
         currentPed = (PedHash)Game.Player.Character.Model.Hash;
         LadoutSaving.RemoveWeapons(!LadoutSaving.IsPedMainPlayer(Game.Player.Character));
         LadoutSaving.PerformLoad();
@@ -104,7 +141,7 @@ public class Main : Script
                 LittleJacob.ToggleTrunk();
                 LittleJacob.DriveAway();
                 LittleJacob.DeleteBlip();
-                LadoutSaving.PerformSave();
+                Game.DoAutoSave();
                 LittleJacob.DeleteJacob();
             } else if (!LittleJacob.Spawned)
             {
@@ -123,7 +160,7 @@ public class Main : Script
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
             LittleJacob.DeleteBlip();
-            LadoutSaving.PerformSave();
+            Game.DoAutoSave();
             LittleJacob.DeleteJacob();
             return;
         }
@@ -169,7 +206,7 @@ public class Main : Script
             LittleJacob.ToggleTrunk();
             LittleJacob.DriveAway();
             LittleJacob.DeleteBlip();
-            LadoutSaving.PerformSave();
+            Game.DoAutoSave();
         } else if (LittleJacob.Left && !LittleJacob.IsNearby())
         {
             LittleJacob.DeleteJacob();
@@ -190,7 +227,6 @@ public class Main : Script
             {
                 LittleJacob.ToggleTrunk();
                 menuOpened = true;
-                //Game.Player.Character.Task.StandStill(1800000000);
                 Game.Player.Character.CanSwitchWeapons = false;
                 menu.ShowMainMenu();
             }
@@ -215,7 +251,6 @@ public class Main : Script
             {
                 LittleJacob.ToggleTrunk();
                 menuOpened = true;
-                //Game.Player.Character.Task.StandStill(1800000000);
                 Game.Player.Character.CanSwitchWeapons = false;
                 menu.ShowMainMenu();
             }
