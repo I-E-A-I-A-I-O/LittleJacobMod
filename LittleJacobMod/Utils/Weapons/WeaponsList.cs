@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LittleJacobMod.Utils.Weapons
 {
@@ -32,6 +29,8 @@ namespace LittleJacobMod.Utils.Weapons
             new SMGMk2(),
             new CombatMGMk2(),
             new UnholyHellbringer(),
+            //new SMG(),
+            //new AssaultSMG(),
         };
 
         public static List<Weapon> Rifles => new List<Weapon>()
@@ -50,6 +49,8 @@ namespace LittleJacobMod.Utils.Weapons
         {
             new CombatShotgun(),
             new PumpShotgunMk2(),
+            new DoubleBarrelShotgun(),
+            new SweeperShotgun()
         };
 
         public static List<Weapon> Snipers => new List<Weapon>()
@@ -61,7 +62,18 @@ namespace LittleJacobMod.Utils.Weapons
         public static List<Weapon> Heavy = new List<Weapon>()
         {
             new Widowmaker(),
-            new Firework()
+            new Firework(),
+            new CompactGrenadeLauncher(),
+            new RPG(),
+            new Minigun()
+        };
+
+        public static List<Weapon> Explosives => new List<Weapon>()
+        {
+            new Grenade(),
+            new StickyBomb(),
+            new ProximityMine(),
+            new Snowball()
         };
     }
 }

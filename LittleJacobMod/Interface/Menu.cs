@@ -142,6 +142,19 @@ namespace LittleJacobMod.Interface
                 pool.Add(heavyMenu);
                 heavy.AddSubMenu(heavyMenu);
             }
+
+            for (var i = 0; i < WeaponsList.Explosives.Count; i++)
+            {
+                var index = i;
+                var displayName = WeaponsList.Explosives[i].Name;
+                var expMenu = new NativeMenu(displayName, displayName);
+
+                expMenu.Shown += (o, e) => WeaponSelected(WeaponsList.Explosives[index], WeaponsList.Explosives[index].Price, expMenu, true);
+                expMenu.Closed += (o, e) => expMenu.Clear();
+
+                pool.Add(expMenu);
+                explosives.AddSubMenu(expMenu);
+            }
         }
 
         public void ShowMainMenu()
@@ -149,7 +162,7 @@ namespace LittleJacobMod.Interface
             mainMenu.Visible = true;
         }
 
-        void WeaponSelected(Utils.Weapons.Weapon weapon, int price, NativeMenu menu)
+        void WeaponSelected(Utils.Weapons.Weapon weapon, int price, NativeMenu menu, bool isExplosive = false)
         {
             var hasWeapon = Game.Player.Character.Weapons.HasWeapon(weapon.WeaponHash);
             if (!hasWeapon)
@@ -169,16 +182,16 @@ namespace LittleJacobMod.Interface
             Script.Wait(1);
             var currentWeapon = Game.Player.Character.Weapons.Current;
 
-            if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || weapon.SaveFileWeapon)
+            if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || weapon.SaveFileWeapon)
             {
-                LadoutSaving.AddWeapon(currentWeapon);
+                LoadoutSaving.AddWeapon(currentWeapon);
             }
 
             var ammoOptionItem = new NativeSliderItem("Ammo", currentWeapon.MaxAmmo, 1);
             ammoOptionItem.Activated += (o, e) => AmmoPurchased(currentWeapon, ammoOptionItem.Value);
             menu.Add(ammoOptionItem);
 
-            if (weapon.WeaponHash != WeaponHash.PericoPistol && weapon.WeaponHash != WeaponHash.DoubleActionRevolver && weapon.WeaponHash != WeaponHash.NavyRevolver)
+            if (!isExplosive && weapon.WeaponHash != WeaponHash.PericoPistol && weapon.WeaponHash != WeaponHash.DoubleActionRevolver && weapon.WeaponHash != WeaponHash.NavyRevolver)
             {
                 var tintSlider = new NativeListItem<string>("Tints");
                 for (int i = 0; i < Function.Call<int>(Hash.GET_WEAPON_TINT_COUNT, currentWeapon.Hash); i++)
@@ -294,7 +307,7 @@ namespace LittleJacobMod.Interface
             Game.Player.Money -= ammoPrice;
             var ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weapon.Hash);
             Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Game.Player.Character.Handle, ammoType, ammoToPurchase);
-            LadoutSaving.SetAmmo(weapon.Hash, weapon.Ammo);
+            LoadoutSaving.SetAmmo(weapon.Hash, weapon.Ammo);
         }
 
         void TintPurchased(GTA.Weapon weapon, int index, bool saveFileWeapon)
@@ -308,9 +321,9 @@ namespace LittleJacobMod.Interface
             Game.Player.Money -= price;
             Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, Game.Player.Character.Handle, weapon.Hash, index);
             GTA.UI.Notification.Show($"Tint purchased!");
-            if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
+            if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
             {
-                LadoutSaving.SetTint(weapon.Hash, index);
+                LoadoutSaving.SetTint(weapon.Hash, index);
             }
         }
 
@@ -325,9 +338,9 @@ namespace LittleJacobMod.Interface
             Game.Player.Money -= price;
             GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
-            if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
+            if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
             {
-                LadoutSaving.SetClip(weapon.Hash, weaponComponent.Value);
+                LoadoutSaving.SetClip(weapon.Hash, weaponComponent.Value);
             }
         }
 
@@ -350,17 +363,17 @@ namespace LittleJacobMod.Interface
                     }
                 }
                 GTA.UI.Notification.Show("Muzzle attachments removed!");
-                if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
+                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
                 {
-                    LadoutSaving.SetMuzzle(weapon.Hash, WeaponComponentHash.Invalid);
+                    LoadoutSaving.SetMuzzle(weapon.Hash, WeaponComponentHash.Invalid);
                 }
             } else
             {
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
+                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
                 {
-                    LadoutSaving.SetMuzzle(weapon.Hash, weaponComponent.Value);
+                    LoadoutSaving.SetMuzzle(weapon.Hash, weaponComponent.Value);
                 }
             }
         }
@@ -384,18 +397,18 @@ namespace LittleJacobMod.Interface
                     }
                 }
                 GTA.UI.Notification.Show("Flashlight removed!");
-                if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
+                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
                 {
-                    LadoutSaving.SetFlashlight(weapon.Hash, WeaponComponentHash.Invalid);
+                    LoadoutSaving.SetFlashlight(weapon.Hash, WeaponComponentHash.Invalid);
                 }
             }
             else
             {
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
+                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
                 {
-                    LadoutSaving.SetFlashlight(weapon.Hash, weaponComponent.Value);
+                    LoadoutSaving.SetFlashlight(weapon.Hash, weaponComponent.Value);
                 }
             }
         }
@@ -419,18 +432,18 @@ namespace LittleJacobMod.Interface
                     }
                 }
                 GTA.UI.Notification.Show("Scope removed!");
-                if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
+                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
                 {
-                    LadoutSaving.SetScope(weapon.Hash, WeaponComponentHash.Invalid);
+                    LoadoutSaving.SetScope(weapon.Hash, WeaponComponentHash.Invalid);
                 }
             }
             else
             {
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
+                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
                 {
-                    LadoutSaving.SetScope(weapon.Hash, weaponComponent.Value);
+                    LoadoutSaving.SetScope(weapon.Hash, weaponComponent.Value);
                 }
             }
         }
@@ -454,18 +467,18 @@ namespace LittleJacobMod.Interface
                     }
                 }
                 GTA.UI.Notification.Show("Grip removed!");
-                if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
+                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
                 {
-                    LadoutSaving.SetGrip(weapon.Hash, WeaponComponentHash.Invalid);
+                    LoadoutSaving.SetGrip(weapon.Hash, WeaponComponentHash.Invalid);
                 }
             }
             else
             {
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                if (!LadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
+                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
                 {
-                    LadoutSaving.SetGrip(weapon.Hash, weaponComponent.Value);
+                    LoadoutSaving.SetGrip(weapon.Hash, weaponComponent.Value);
                 }
             }
         }
@@ -489,13 +502,13 @@ namespace LittleJacobMod.Interface
                     }
                 }
                 GTA.UI.Notification.Show("Custom Barrel removed!");
-                LadoutSaving.SetBarrel(weapon.Hash, WeaponComponentHash.Invalid);
+                LoadoutSaving.SetBarrel(weapon.Hash, WeaponComponentHash.Invalid);
             }
             else
             {
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                LadoutSaving.SetBarrel(weapon.Hash, weaponComponent.Value);
+                LoadoutSaving.SetBarrel(weapon.Hash, weaponComponent.Value);
             }
         }
 
@@ -518,13 +531,13 @@ namespace LittleJacobMod.Interface
                     }
                 }
                 GTA.UI.Notification.Show("Camo removed!");
-                LadoutSaving.SetCamo(weapon.Hash, WeaponComponentHash.Invalid);
+                LoadoutSaving.SetCamo(weapon.Hash, WeaponComponentHash.Invalid);
             }
             else
             {
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                LadoutSaving.SetCamo(weapon.Hash, weaponComponent.Value);
+                LoadoutSaving.SetCamo(weapon.Hash, weaponComponent.Value);
             }
         }
 
@@ -537,17 +550,17 @@ namespace LittleJacobMod.Interface
                 return;
             }
             Game.Player.Money -= price;
-            if (!LadoutSaving.HasCamo(weapon.Hash))
+            if (!LoadoutSaving.HasCamo(weapon.Hash))
             {
                 GTA.UI.Notification.Show("Buy a camo first!");
                 return;
             }
             else
             {
-                var storedWeapon = LadoutSaving.GetStoreReference(weapon.Hash);
+                var storedWeapon = LoadoutSaving.GetStoreReference(weapon.Hash);
                 Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Game.Player.Character.Handle, weapon.Hash, storedWeapon.Camo, index);
                 GTA.UI.Notification.Show("Camo color purchased!");
-                LadoutSaving.SetCamoColor(weapon.Hash, index);
+                LoadoutSaving.SetCamoColor(weapon.Hash, index);
             }
         }
 

@@ -42,18 +42,11 @@ namespace LittleJacobMod.Saving
 
         public static void SetAmmo(WeaponHash hash, int ammo)
         {
-            for (var i = 0; i < StoredWeapons.Count; i++)
+            foreach (var weapon in StoredWeapons)
             {
-                if (StoredWeapons[i].WeaponHash == hash)
+                if (weapon.WeaponHash == hash)
                 {
-                    if (hash == WeaponHash.Snowball && ammo == 0)
-                    {
-                        StoredWeapons.RemoveAt(i);
-                    } else
-                    {
-                        StoredWeapons[i].Ammo = ammo;
-                    }
-
+                    weapon.Ammo = ammo;
                     return;
                 }
             }
@@ -198,11 +191,6 @@ namespace LittleJacobMod.Saving
 
         public static void PerformSave(PedHash ped)
         {
-            if (!Main.SavingEnabled)
-            {
-                return;
-            }
-
             GTA.UI.LoadingPrompt.Show("Saving weapon loadout...");
             try
             {
@@ -250,11 +238,6 @@ namespace LittleJacobMod.Saving
 
         public static void PerformLoad()
         {
-            if (!Main.SavingEnabled)
-            {
-                return;
-            }
-
             StoredWeapons.Clear();
             GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
             var characterHandle = Game.Player.Character.Handle;

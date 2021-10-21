@@ -15,14 +15,11 @@ namespace LittleJacobMod.Utils
             WeaponHash.Dagger,
             WeaponHash.Crowbar,
             WeaponHash.Hatchet,
-            WeaponHash.Snowball,
             WeaponHash.Nightstick
         };
 
         public readonly static List<WeaponHash> mgHashes = new List<WeaponHash>()
         {
-            WeaponHash.SMG,
-            WeaponHash.AssaultSMG,
             WeaponHash.MicroSMG,
             WeaponHash.MiniSMG,
             WeaponHash.MG,
@@ -34,19 +31,14 @@ namespace LittleJacobMod.Utils
         {
             WeaponHash.AssaultShotgun,
             WeaponHash.BullpupShotgun,
-            WeaponHash.DoubleBarrelShotgun,
             WeaponHash.HeavyShotgun,
             WeaponHash.PumpShotgun,
             WeaponHash.SawnOffShotgun,
-            WeaponHash.SweeperShotgun
         };
 
         public readonly static List<WeaponHash> heavyWeaponHashes = new List<WeaponHash>()
         {
-            WeaponHash.RPG,
-            WeaponHash.Minigun,
             WeaponHash.GrenadeLauncher,
-            WeaponHash.CompactGrenadeLauncher,
             WeaponHash.Railgun,
         };
 
@@ -59,10 +51,7 @@ namespace LittleJacobMod.Utils
 
         public readonly static List<WeaponHash> explosiveHashes = new List<WeaponHash>()
         {
-            WeaponHash.Grenade,
             WeaponHash.BZGas,
-            WeaponHash.StickyBomb,
-            WeaponHash.ProximityMine
         };
     }
 }

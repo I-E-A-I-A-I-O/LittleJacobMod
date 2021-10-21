@@ -25,7 +25,7 @@ namespace LittleJacobMod.Interface
 
         private void JacobContact_Answered(iFruitContact contact)
         {
-            if (Main.jacobActive)
+            if (Main.JacobActive)
             {
                 if (Main.LittleJacob.Spawned)
                 {
@@ -34,7 +34,7 @@ namespace LittleJacobMod.Interface
                 {
                     GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "alrite my brenden. Call me again if you need more weapons");
                     Main.LittleJacob.DeleteBlip();
-                    Main.jacobActive = false;
+                    Main.JacobActive = false;
                     Main.TimerStarted = false;
                 }
                 ifruit.Close();
@@ -50,7 +50,7 @@ namespace LittleJacobMod.Interface
 
             GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "No problem man, just meet me at the location i sent you");
             Main.LittleJacob = Initialize.CalculateClosestSpawnpoint();
-            Main.jacobActive = true;
+            Main.JacobActive = true;
 
             ifruit.Close();
         }

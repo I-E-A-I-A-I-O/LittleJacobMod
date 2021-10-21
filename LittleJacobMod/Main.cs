@@ -18,19 +18,22 @@ public class Main : Script
     LittleJacobMod.Interface.Menu menu;
     int timerCurrent, timerStart;
     PedHash currentPed;
-    public static bool jacobActive;
+    public static bool JacobActive { get; set; }
+    public static bool SavingEnabled { get; private set; }
     public static LittleJacob LittleJacob { get; set; }
     public static bool TimerStarted { get { return timerStarted; } set { timerStarted = value; } }
-    Dictionary<string, string> animsDic = new Dictionary<string, string>()
+    /*Dictionary<string, string> animsDic = new Dictionary<string, string>()
     {
         { "anim@mp_bedmid@left_var_01",  }
-    };
+    };*/
+
     public Main()
     {
         Migrator.Migrate();
 
         var settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
         openMenuControl = settings.GetValue("Controls", "OpenMenu", "E");
+        SavingEnabled = settings.GetValue("Gameplay", "EnableSaving", true);
 
         if (!Enum.TryParse(openMenuControl, out openMenuKey))
         {
@@ -42,19 +45,24 @@ public class Main : Script
         ifruit = new PhoneContact();
         menu = new LittleJacobMod.Interface.Menu();
 
-        if (Game.IsLoading)
+        if (SavingEnabled)
         {
-            Tick += WaitForGameLoad;
-        } else
-        {
-            currentPed = (PedHash)Game.Player.Character.Model.Hash;
-            Tick += ModelWatcher;
+            if (Game.IsLoading)
+            {
+                Tick += WaitForGameLoad;
+            }
+            else
+            {
+                currentPed = (PedHash)Game.Player.Character.Model.Hash;
+                //LoadoutSaving.PerformLoad();
+                Tick += ModelWatcher;
+            }
+            Tick += AutoSaveWatch;
+            Tick += WeaponUse;
         }
 
         KeyUp += KeyboardControls;
         Tick += GamepadControls;
-        Tick += WeaponUse;
-        Tick += AutoSaveWatch;
         Tick += (o, e) =>
         {
             ifruit.Phone.Update();
@@ -66,7 +74,7 @@ public class Main : Script
 
     private void Main_Aborted(object sender, EventArgs e)
     {
-        if (jacobActive)
+        if (JacobActive)
         {
             LittleJacob.DeleteBlip();
             Game.Player.Character.CanSwitchWeapons = true;
@@ -133,7 +141,7 @@ public class Main : Script
 
     void OnTick(object o, EventArgs e)
     {
-        if (!jacobActive)
+        if (!JacobActive)
         {
             return;
         }
@@ -155,7 +163,7 @@ public class Main : Script
                 GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "my friend told me the police is after u. we cant meet like this, call me again when you lose them. Peace");
                 LittleJacob.DeleteBlip();
                 timerStarted = false;
-                jacobActive = false;
+                JacobActive = false;
             }
             return;
         }
@@ -192,7 +200,7 @@ public class Main : Script
                 {
                     GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "where u at? if you aint comin u shoulda say something. das not cool");
                     timerStarted = false;
-                    jacobActive = false;
+                    JacobActive = false;
                     LittleJacob.DeleteBlip();
                     return;
                 }
@@ -217,13 +225,13 @@ public class Main : Script
         } else if (LittleJacob.Left && !LittleJacob.IsNearby())
         {
             LittleJacob.DeleteJacob();
-            jacobActive = false;
+            JacobActive = false;
         }
     }
 
     void KeyboardControls(object o, KeyEventArgs e)
     {
-        if (!jacobActive)
+        if (!JacobActive)
         {
             return;
         }
@@ -247,7 +255,7 @@ public class Main : Script
             return;
         }
 
-        if (!jacobActive)
+        if (!JacobActive)
         {
             return;
         }
