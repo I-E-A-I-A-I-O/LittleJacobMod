@@ -29,8 +29,13 @@ namespace LittleJacobMod.Utils.Weapons
             new SMGMk2(),
             new CombatMGMk2(),
             new UnholyHellbringer(),
-            //new SMG(),
-            //new AssaultSMG(),
+            new SMG(),
+            new AssaultSMG(),
+            new MicroSMG(),
+            new MiniSMG(),
+            new MG(),
+            new CombatMG(),
+            new CombatPDW()
         };
 
         public static List<Weapon> Rifles => new List<Weapon>()
@@ -50,13 +55,19 @@ namespace LittleJacobMod.Utils.Weapons
             new CombatShotgun(),
             new PumpShotgunMk2(),
             new DoubleBarrelShotgun(),
-            new SweeperShotgun()
+            new SweeperShotgun(),
+            new AssaultShotgun(),
+            new BullpupShotgun(),
+            new HeavyShotgun(),
+            new PumpShotgun(),
+            new SawnOffShotgun()
         };
 
         public static List<Weapon> Snipers => new List<Weapon>()
         {
             new HeavySniperMk2(),
-            new MarksmanRifleMk2()
+            new MarksmanRifleMk2(),
+            new HeavySniper()
         };
 
         public static List<Weapon> Heavy = new List<Weapon>()
@@ -65,7 +76,8 @@ namespace LittleJacobMod.Utils.Weapons
             new Firework(),
             new CompactGrenadeLauncher(),
             new RPG(),
-            new Minigun()
+            new Minigun(),
+            new GrenadeLauncher()
         };
 
         public static List<Weapon> Explosives => new List<Weapon>()

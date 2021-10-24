@@ -4,25 +4,25 @@ using GTA;
 
 namespace LittleJacobMod.Utils.Weapons
 {
-    internal class SMG : Weapon
+    internal class BullpupShotgun : Weapon
     {
         public override bool SaveFileWeapon => false;
 
-        public override WeaponHash WeaponHash => WeaponHash.SMG;
+        public override WeaponHash WeaponHash => WeaponHash.BullpupShotgun;
 
-        public override int Price => 5000;
+        public override int Price => 7000;
 
-        public override string Name => "SMG";
+        public override string Name => "Bullpup Shotgun";
 
         public override bool HasMuzzleOrSupp => true;
 
-        public override bool HasClip => true;
+        public override bool HasClip => false;
 
         public override bool HasBarrel => false;
 
-        public override bool HasGrip => false;
+        public override bool HasGrip => true;
 
-        public override bool HasScope => true;
+        public override bool HasScope => false;
 
         public override bool HasCamo => false;
 
@@ -31,32 +31,27 @@ namespace LittleJacobMod.Utils.Weapons
         public override Dictionary<string, WeaponComponentHash> MuzzlesAndSupps => new Dictionary<string, WeaponComponentHash>()
         {
             { "None - $199", WeaponComponentHash.Invalid },
-            { "Suppressor - $2000", WeaponComponentHash.AtPiSupp }
+            { "Suppressor - $28000", WeaponComponentHash.AtArSupp02 }
         };
 
-        public override Dictionary<string, WeaponComponentHash> Clips => new Dictionary<string, WeaponComponentHash>()
-        {
-            { "Normal - $199", WeaponComponentHash.SMGClip01 },
-            { "Extended - $6000", WeaponComponentHash.SMGClip02 },
-            { "Drum - $16000", WeaponComponentHash.SMGClip03 }
-        };
+        public override Dictionary<string, WeaponComponentHash> Clips => throw new NotImplementedException();
 
         public override Dictionary<string, WeaponComponentHash> Barrels => throw new NotImplementedException();
 
-        public override Dictionary<string, WeaponComponentHash> Grips => throw new NotImplementedException();
-
-        public override Dictionary<string, WeaponComponentHash> Scopes => new Dictionary<string, WeaponComponentHash>()
+        public override Dictionary<string, WeaponComponentHash> Grips => new Dictionary<string, WeaponComponentHash>()
         {
             { "None - $199", WeaponComponentHash.Invalid },
-            { "Scope - $8000", WeaponComponentHash.AtScopeMacro02 }
+            { "Grip - $8000", WeaponComponentHash.AtArAfGrip }
         };
+
+        public override Dictionary<string, WeaponComponentHash> Scopes => throw new NotImplementedException();
 
         public override Dictionary<string, WeaponComponentHash> Camos => throw new NotImplementedException();
 
         public override Dictionary<string, WeaponComponentHash> FlashLight => new Dictionary<string, WeaponComponentHash>()
         {
             { "None - $199", WeaponComponentHash.Invalid },
-            { "Flashlight - $2000", WeaponComponentHash.AtArFlsh }
+            { "Flashlight - $3500", WeaponComponentHash.AtArFlsh }
         };
     }
 }

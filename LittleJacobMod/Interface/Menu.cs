@@ -174,6 +174,7 @@ namespace LittleJacobMod.Interface
                     return;
                 }
                 GTA.UI.Notification.Show($"{weapon.Name} purchased!");
+                Main.LittleJacob.ProcessVoice(true, true);
                 Game.Player.Money -= price;
                 Game.Player.Character.Weapons.Give(weapon.WeaponHash, 0, false, false);
             }
@@ -198,7 +199,11 @@ namespace LittleJacobMod.Interface
                 {
                     tintSlider.Add($"{i}");
                 }
-                tintSlider.Activated += (o, e) => TintPurchased(currentWeapon, tintSlider.SelectedIndex, weapon.SaveFileWeapon);
+                tintSlider.Activated += (o, e) =>
+                {
+                    TintPurchased(currentWeapon, tintSlider.SelectedIndex, weapon.SaveFileWeapon);
+                    Main.LittleJacob.ProcessVoice(true);
+                };
                 menu.Add(tintSlider);
             }
 
@@ -209,7 +214,11 @@ namespace LittleJacobMod.Interface
                 {
                     clipSlider.Add(weapon.Clips.ElementAt(i).Key);
                 }
-                clipSlider.Activated += (o, e) => ClipPurchased(currentWeapon, weapon.Clips.ElementAt(clipSlider.SelectedIndex), weapon.SaveFileWeapon);
+                clipSlider.Activated += (o, e) =>
+                {
+                    ClipPurchased(currentWeapon, weapon.Clips.ElementAt(clipSlider.SelectedIndex), weapon.SaveFileWeapon);
+                    Main.LittleJacob.ProcessVoice(true);
+                };
                 menu.Add(clipSlider);
             }
 
@@ -220,7 +229,11 @@ namespace LittleJacobMod.Interface
                 {
                     muzzleSlider.Add(weapon.MuzzlesAndSupps.ElementAt(i).Key);
                 }
-                muzzleSlider.Activated += (o, e) => MuzzlePurchased(currentWeapon, weapon.MuzzlesAndSupps.ElementAt(muzzleSlider.SelectedIndex), weapon.MuzzlesAndSupps.Values.ToList(), weapon.SaveFileWeapon);
+                muzzleSlider.Activated += (o, e) =>
+                {
+                    MuzzlePurchased(currentWeapon, weapon.MuzzlesAndSupps.ElementAt(muzzleSlider.SelectedIndex), weapon.MuzzlesAndSupps.Values.ToList(), weapon.SaveFileWeapon);
+                    Main.LittleJacob.ProcessVoice(true);
+                };
                 menu.Add(muzzleSlider);
             }
 
@@ -231,7 +244,11 @@ namespace LittleJacobMod.Interface
                 {
                     flashSlider.Add(weapon.FlashLight.ElementAt(i).Key);
                 }
-                flashSlider.Activated += (o, e) => FlashPurchased(currentWeapon, weapon.FlashLight.ElementAt(flashSlider.SelectedIndex), weapon.FlashLight.Values.ToList(), weapon.SaveFileWeapon);
+                flashSlider.Activated += (o, e) =>
+                {
+                    FlashPurchased(currentWeapon, weapon.FlashLight.ElementAt(flashSlider.SelectedIndex), weapon.FlashLight.Values.ToList(), weapon.SaveFileWeapon);
+                    Main.LittleJacob.ProcessVoice(true);
+                };
                 menu.Add(flashSlider);
             }
 
@@ -242,7 +259,11 @@ namespace LittleJacobMod.Interface
                 {
                     scopeSlider.Add(weapon.Scopes.ElementAt(i).Key);
                 }
-                scopeSlider.Activated += (o, e) => ScopePurchased(currentWeapon, weapon.Scopes.ElementAt(scopeSlider.SelectedIndex), weapon.Scopes.Values.ToList(), weapon.SaveFileWeapon);
+                scopeSlider.Activated += (o, e) => 
+                { 
+                    ScopePurchased(currentWeapon, weapon.Scopes.ElementAt(scopeSlider.SelectedIndex), weapon.Scopes.Values.ToList(), weapon.SaveFileWeapon);
+                    Main.LittleJacob.ProcessVoice(true); 
+                };
                 menu.Add(scopeSlider);
             }
 
@@ -253,7 +274,7 @@ namespace LittleJacobMod.Interface
                 {
                     gripSlider.Add(weapon.Grips.ElementAt(i).Key);
                 }
-                gripSlider.Activated += (o, e) => GripPurchased(currentWeapon, weapon.Grips.ElementAt(gripSlider.SelectedIndex), weapon.Grips.Values.ToList(), weapon.SaveFileWeapon);
+                gripSlider.Activated += (o, e) => { GripPurchased(currentWeapon, weapon.Grips.ElementAt(gripSlider.SelectedIndex), weapon.Grips.Values.ToList(), weapon.SaveFileWeapon); Main.LittleJacob.ProcessVoice(true); };
                 menu.Add(gripSlider);
             }
 
@@ -264,7 +285,7 @@ namespace LittleJacobMod.Interface
                 {
                     barrelSlider.Add(weapon.Barrels.ElementAt(i).Key);
                 }
-                barrelSlider.Activated += (o, e) => BarrelPurchased(currentWeapon, weapon.Barrels.ElementAt(barrelSlider.SelectedIndex), weapon.Barrels.Values.ToList());
+                barrelSlider.Activated += (o, e) => { BarrelPurchased(currentWeapon, weapon.Barrels.ElementAt(barrelSlider.SelectedIndex), weapon.Barrels.Values.ToList()); Main.LittleJacob.ProcessVoice(true); };
                 menu.Add(barrelSlider);
             }
 
@@ -280,7 +301,7 @@ namespace LittleJacobMod.Interface
                 {
                     camoColorSlider.Add($"{i}");
                 }
-                camoSlider.Activated += (o, e) => CamoPurchased(currentWeapon, weapon.Camos.ElementAt(camoSlider.SelectedIndex), weapon.Camos.Values.ToList());
+                camoSlider.Activated += (o, e) => { CamoPurchased(currentWeapon, weapon.Camos.ElementAt(camoSlider.SelectedIndex), weapon.Camos.Values.ToList()); Main.LittleJacob.ProcessVoice(true); };
                 camoColorSlider.Activated += (o, e) => CamoColorPurchased(currentWeapon, camoColorSlider.SelectedIndex);
                 menu.Add(camoSlider);
                 menu.Add(camoColorSlider);

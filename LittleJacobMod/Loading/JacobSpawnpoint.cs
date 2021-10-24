@@ -12,7 +12,7 @@ namespace LittleJacobMod.Loading
         float carHeading;
         float jacobHeading;
         public static Model CarModel => new Model(VehicleHash.Manana);
-        public static Model JacobModel => new Model(PedHash.Soucent03AMY);
+        public static Model JacobModel => new Model(Main.JacobHash);
         public Vector3 JacobPosition => jacobPosition;
         public Vector3 CarPosition => carPosition;
         public float JacobHeading => jacobHeading;

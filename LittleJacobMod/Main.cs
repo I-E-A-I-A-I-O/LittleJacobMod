@@ -6,26 +6,23 @@ using LittleJacobMod.Utils;
 using LittleJacobMod.Saving;
 using LittleJacobMod.Saving.Utils;
 using GTA.Native;
-using System.Collections.Generic;
 
 public class Main : Script
 {
     string openMenuControl;
     Keys openMenuKey;
     PhoneContact ifruit;
-    bool menuOpened, saveTriggered;
-    static bool timerStarted;
     LittleJacobMod.Interface.Menu menu;
-    int timerCurrent, timerStart;
     PedHash currentPed;
     public static bool JacobActive { get; set; }
     public static bool SavingEnabled { get; private set; }
     public static LittleJacob LittleJacob { get; set; }
-    public static bool TimerStarted { get { return timerStarted; } set { timerStarted = value; } }
-    /*Dictionary<string, string> animsDic = new Dictionary<string, string>()
-    {
-        { "anim@mp_bedmid@left_var_01",  }
-    };*/
+    public static bool TimerStarted { get; set; }
+    static int TimerStart { get; set; }
+    static int TimerCurrent { get; set; }
+    public static bool MenuOpened { get; private set; }
+    bool SaveTriggered { get; set; }
+    public static PedHash JacobHash { get; private set; }
 
     public Main()
     {
@@ -34,6 +31,7 @@ public class Main : Script
         var settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
         openMenuControl = settings.GetValue("Controls", "OpenMenu", "E");
         SavingEnabled = settings.GetValue("Gameplay", "EnableSaving", true);
+        JacobHash = settings.GetValue("Gameplay", "JacobModel", PedHash.Soucent03AMY);
 
         if (!Enum.TryParse(openMenuControl, out openMenuKey))
         {
@@ -87,17 +85,22 @@ public class Main : Script
     {
         if (Function.Call<bool>(Hash.IS_AUTO_SAVE_IN_PROGRESS))
         {
-            if (!saveTriggered)
+            if (!SaveTriggered)
             {
                 LoadoutSaving.PerformSave(currentPed);
-                saveTriggered = true;
+                SaveTriggered = true;
             }
             return;
         }
 
-        if (saveTriggered)
+        if (SaveTriggered)
         {
-            saveTriggered = false;
+            SaveTriggered = false;
+        }
+
+        if (Timers.AutoSaveTimer() && !LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS))
+        {
+            Game.DoAutoSave();
         }
     }
 
@@ -146,66 +149,88 @@ public class Main : Script
             return;
         }
 
+        LittleJacob.ProcessVoice();
+
         if (Game.Player.WantedLevel > 0)
         {
             if (LittleJacob.Spawned && !LittleJacob.Left)
             {
                 menu.Pool.HideAll();
-                menuOpened = false;
+                MenuOpened = false;
                 Game.Player.Character.CanSwitchWeapons = true;
                 LittleJacob.ToggleTrunk();
                 LittleJacob.DriveAway();
                 LittleJacob.DeleteBlip();
                 Game.DoAutoSave();
-                LittleJacob.DeleteJacob();
             } else if (!LittleJacob.Spawned)
             {
                 GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "my friend told me the police is after u. we cant meet like this, call me again when you lose them. Peace");
                 LittleJacob.DeleteBlip();
-                timerStarted = false;
+                TimerStarted = false;
                 JacobActive = false;
             }
+            return;
+        }
+
+        if (LittleJacob.Spawned && !LittleJacob.Left && !LittleJacob.IsPlayerInArea())
+        {
+            menu.Pool.HideAll();
+            MenuOpened = false;
+            Game.Player.Character.CanSwitchWeapons = true;
+            LittleJacob.DeleteBlip();
+            LittleJacob.DriveAway();
+            return;
+        }
+
+        if (MenuOpened && !LittleJacob.PlayerNearTrunk())
+        {
+            menu.Pool.HideAll();
+            MenuOpened = false;
+            Game.Player.Character.CanSwitchWeapons = true;
+            LittleJacob.ToggleTrunk();
+            LittleJacob.DeleteBlip();
+            LittleJacob.DriveAway();
             return;
         }
 
         if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.Jacob.IsDead)
         {
             menu.Pool.HideAll();
-            menuOpened = false;
+            MenuOpened = false;
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
             LittleJacob.DeleteBlip();
             Game.DoAutoSave();
-            LittleJacob.DeleteJacob();
+            LittleJacob.Terminate();
             return;
         }
 
         if (!LittleJacob.Spawned && LittleJacob.IsPlayerInArea())
         {
             LittleJacob.Spawn();
-            if (timerStarted)
+            if (TimerStarted)
             {
-                timerStarted = false;
+                TimerStarted = false;
             }
         } else if (!LittleJacob.Spawned && !LittleJacob.IsPlayerInArea())
         {
-            if (!timerStarted)
+            if (!TimerStarted)
             {
-                timerStarted = true;
-                timerStart = Game.GameTime;
+                TimerStarted = true;
+                TimerStart = Game.GameTime;
             } else
             {
-                timerCurrent = Game.GameTime;
-                if (timerCurrent - timerStart >= 180000)
+                TimerCurrent = Game.GameTime;
+                if (TimerCurrent - TimerStart >= 180000)
                 {
                     GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "where u at? if you aint comin u shoulda say something. das not cool");
-                    timerStarted = false;
+                    TimerStarted = false;
                     JacobActive = false;
                     LittleJacob.DeleteBlip();
                     return;
                 }
             }
-        } else if (LittleJacob.Spawned && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !menuOpened && !LittleJacob.Left)
+        } else if (LittleJacob.Spawned && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !MenuOpened && !LittleJacob.Left)
         {
             if (Game.LastInputMethod == InputMethod.MouseAndKeyboard)
             {
@@ -214,9 +239,9 @@ public class Main : Script
             {
                 GTA.UI.Screen.ShowHelpTextThisFrame("Press DPad Left to purchase weapons", false);
             }
-        } else if (menuOpened && !menu.Pool.AreAnyVisible)
+        } else if (MenuOpened && !menu.Pool.AreAnyVisible)
         {
-            menuOpened = false;
+            MenuOpened = false;
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
             LittleJacob.DriveAway();
@@ -238,10 +263,10 @@ public class Main : Script
 
         if (e.KeyCode == openMenuKey)
         {
-            if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !menuOpened)
+            if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !MenuOpened)
             {
                 LittleJacob.ToggleTrunk();
-                menuOpened = true;
+                MenuOpened = true;
                 Game.Player.Character.CanSwitchWeapons = false;
                 menu.ShowMainMenu();
             }
@@ -262,10 +287,10 @@ public class Main : Script
 
         if (Game.IsControlJustReleased(GTA.Control.ScriptPadLeft))
         {
-            if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !menuOpened)
+            if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !MenuOpened)
             {
                 LittleJacob.ToggleTrunk();
-                menuOpened = true;
+                MenuOpened = true;
                 Game.Player.Character.CanSwitchWeapons = false;
                 menu.ShowMainMenu();
             }
