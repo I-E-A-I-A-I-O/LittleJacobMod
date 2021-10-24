@@ -98,7 +98,7 @@ public class Main : Script
             SaveTriggered = false;
         }
 
-        if (Timers.AutoSaveTimer() && !LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS))
+        if (Timers.AutoSaveTimer() && !LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
         {
             Game.DoAutoSave();
         }
