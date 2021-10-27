@@ -30,6 +30,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="iFruitAddon2">
       <HintPath>..\..\..\..\..\..\Program Files\Epic Games\GTAV\scripts\iFruitAddon2.dll</HintPath>
@@ -87,74 +90,105 @@
     <Compile Include="Loading\JacobSpawnpoint.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="Saving\LoadoutSaving.cs" />
+    <Compile Include="Saving\Mapper.cs" />
     <Compile Include="Saving\Utils\Migrator.cs" />
     <Compile Include="Saving\Utils\StoredWeapon.cs" />
+    <Compile Include="Utils\Controls.cs" />
     <Compile Include="Utils\LittleJacob.cs" />
     <Compile Include="Utils\Timers.cs" />
     <Compile Include="Utils\Voice.cs" />
     <Compile Include="Utils\WeaponComponent.cs" />
     <Compile Include="Utils\WeaponHashes.cs" />
-    <Compile Include="Utils\Weapons\AdvancedRifle.cs" />
-    <Compile Include="Utils\Weapons\ApPistol.cs" />
-    <Compile Include="Utils\Weapons\AssaultRifle.cs" />
-    <Compile Include="Utils\Weapons\AssaultRifleMk2.cs" />
-    <Compile Include="Utils\Weapons\AssaultShotgun.cs" />
-    <Compile Include="Utils\Weapons\AssaultSMG.cs" />
-    <Compile Include="Utils\Weapons\BullPupMk2.cs" />
-    <Compile Include="Utils\Weapons\BullpupRifle.cs" />
-    <Compile Include="Utils\Weapons\BullpupShotgun.cs" />
-    <Compile Include="Utils\Weapons\Carbine.cs" />
-    <Compile Include="Utils\Weapons\CarbineRifleMk2.cs" />
-    <Compile Include="Utils\Weapons\CombatMG.cs" />
-    <Compile Include="Utils\Weapons\CombatMGMk2.cs" />
-    <Compile Include="Utils\Weapons\CombatPDW.cs" />
-    <Compile Include="Utils\Weapons\CombatPistol.cs" />
-    <Compile Include="Utils\Weapons\CombatShotgun.cs" />
-    <Compile Include="Utils\Weapons\CompactGrenadeLauncher.cs" />
-    <Compile Include="Utils\Weapons\DoubleActionRevolver.cs" />
-    <Compile Include="Utils\Weapons\DoubleBarrelShotgun.cs" />
-    <Compile Include="Utils\Weapons\Firework.cs" />
-    <Compile Include="Utils\Weapons\Grenade.cs" />
-    <Compile Include="Utils\Weapons\GrenadeLauncher.cs" />
-    <Compile Include="Utils\Weapons\HeavyPistol.cs" />
-    <Compile Include="Utils\Weapons\HeavyRevolver.cs" />
-    <Compile Include="Utils\Weapons\HeavyShotgun.cs" />
-    <Compile Include="Utils\Weapons\HeavySniper.cs" />
-    <Compile Include="Utils\Weapons\HeavySniperMk2.cs" />
-    <Compile Include="Utils\Weapons\MarksmanPistol.cs" />
-    <Compile Include="Utils\Weapons\MarksmanRifleMk2.cs" />
-    <Compile Include="Utils\Weapons\MG.cs" />
-    <Compile Include="Utils\Weapons\MicroSMG.cs" />
-    <Compile Include="Utils\Weapons\MilitaryRifle.cs" />
-    <Compile Include="Utils\Weapons\Minigun.cs" />
-    <Compile Include="Utils\Weapons\MiniSMG.cs" />
-    <Compile Include="Utils\Weapons\NavyRevolver.cs" />
-    <Compile Include="Utils\Weapons\PericoPistol.cs" />
-    <Compile Include="Utils\Weapons\Pistol.cs" />
-    <Compile Include="Utils\Weapons\Pistol50.cs" />
-    <Compile Include="Utils\Weapons\PistolMk2.cs" />
-    <Compile Include="Utils\Weapons\ProximityMine.cs" />
-    <Compile Include="Utils\Weapons\PumpShotgun.cs" />
-    <Compile Include="Utils\Weapons\PumpShotgunMk2.cs" />
-    <Compile Include="Utils\Weapons\RevolverMk2.cs" />
-    <Compile Include="Utils\Weapons\RPG.cs" />
-    <Compile Include="Utils\Weapons\SawnOffShotgun.cs" />
-    <Compile Include="Utils\Weapons\SMG.cs" />
-    <Compile Include="Utils\Weapons\SMGMk2.cs" />
-    <Compile Include="Utils\Weapons\Snowball.cs" />
-    <Compile Include="Utils\Weapons\SNSPistol.cs" />
-    <Compile Include="Utils\Weapons\SNSPistolMk2.cs" />
-    <Compile Include="Utils\Weapons\StickyBomb.cs" />
-    <Compile Include="Utils\Weapons\SweeperShotgun.cs" />
-    <Compile Include="Utils\Weapons\UnholyHellbringer.cs" />
-    <Compile Include="Utils\Weapons\UpNAtomizer.cs" />
+    <Compile Include="Utils\Weapons\MK2\Rifles\SpecialCarbineMK2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Explosives\BZGas.cs" />
+    <Compile Include="Utils\Weapons\Normal\Explosives\Flare.cs" />
+    <Compile Include="Utils\Weapons\Normal\Explosives\Molotov.cs" />
+    <Compile Include="Utils\Weapons\Normal\Explosives\PipeBomb.cs" />
+    <Compile Include="Utils\Weapons\Normal\Explosives\SmokeGrenade.cs" />
+    <Compile Include="Utils\Weapons\Normal\Heavy\HomingLauncher.cs" />
+    <Compile Include="Utils\Weapons\Normal\Heavy\Railgun.cs" />
+    <Compile Include="Utils\Weapons\Normal\Machine guns\Gusenberg.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\CeramicPistol.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\FlareGun.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\MachinePistol.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\StunGun.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\VintagePistol.cs" />
+    <Compile Include="Utils\Weapons\Normal\Rifles\AdvancedRifle.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\ApPistol.cs" />
+    <Compile Include="Utils\Weapons\Normal\Rifles\AssaultRifle.cs" />
+    <Compile Include="Utils\Weapons\MK2\Rifles\AssaultRifleMk2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Rifles\Musket.cs" />
+    <Compile Include="Utils\Weapons\Normal\Rifles\SpecialCarbine.cs" />
+    <Compile Include="Utils\Weapons\Normal\Shotguns\AssaultShotgun.cs" />
+    <Compile Include="Utils\Weapons\Normal\Machine guns\AssaultSMG.cs" />
+    <Compile Include="Utils\Weapons\MK2\Rifles\BullPupMk2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Rifles\BullpupRifle.cs" />
+    <Compile Include="Utils\Weapons\Normal\Shotguns\BullpupShotgun.cs" />
+    <Compile Include="Utils\Weapons\Normal\Rifles\Carbine.cs" />
+    <Compile Include="Utils\Weapons\MK2\Rifles\CarbineRifleMk2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Machine guns\CombatMG.cs" />
+    <Compile Include="Utils\Weapons\MK2\Machine guns\CombatMGMk2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Machine guns\CombatPDW.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\CombatPistol.cs" />
+    <Compile Include="Utils\Weapons\Normal\Shotguns\CombatShotgun.cs" />
+    <Compile Include="Utils\Weapons\Normal\Heavy\CompactGrenadeLauncher.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\DoubleActionRevolver.cs" />
+    <Compile Include="Utils\Weapons\Normal\Shotguns\DoubleBarrelShotgun.cs" />
+    <Compile Include="Utils\Weapons\Normal\Heavy\Firework.cs" />
+    <Compile Include="Utils\Weapons\Normal\Explosives\Grenade.cs" />
+    <Compile Include="Utils\Weapons\Normal\Heavy\GrenadeLauncher.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\HeavyPistol.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\HeavyRevolver.cs" />
+    <Compile Include="Utils\Weapons\Normal\Shotguns\HeavyShotgun.cs" />
+    <Compile Include="Utils\Weapons\Normal\Snipers\HeavySniper.cs" />
+    <Compile Include="Utils\Weapons\MK2\Snipers\HeavySniperMk2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\MarksmanPistol.cs" />
+    <Compile Include="Utils\Weapons\MK2\Snipers\MarksmanRifleMk2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Machine guns\MG.cs" />
+    <Compile Include="Utils\Weapons\Normal\Machine guns\MicroSMG.cs" />
+    <Compile Include="Utils\Weapons\Normal\Rifles\MilitaryRifle.cs" />
+    <Compile Include="Utils\Weapons\Normal\Heavy\Minigun.cs" />
+    <Compile Include="Utils\Weapons\Normal\Machine guns\MiniSMG.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\NavyRevolver.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\PericoPistol.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\Pistol.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\Pistol50.cs" />
+    <Compile Include="Utils\Weapons\MK2\Pistols\PistolMk2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Explosives\ProximityMine.cs" />
+    <Compile Include="Utils\Weapons\Normal\Shotguns\PumpShotgun.cs" />
+    <Compile Include="Utils\Weapons\MK2\Shotguns\PumpShotgunMk2.cs" />
+    <Compile Include="Utils\Weapons\MK2\Pistols\RevolverMk2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Heavy\RPG.cs" />
+    <Compile Include="Utils\Weapons\Normal\Shotguns\SawnOffShotgun.cs" />
+    <Compile Include="Utils\Weapons\Normal\Machine guns\SMG.cs" />
+    <Compile Include="Utils\Weapons\MK2\Machine guns\SMGMk2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Explosives\Snowball.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\SNSPistol.cs" />
+    <Compile Include="Utils\Weapons\MK2\Pistols\SNSPistolMk2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Explosives\StickyBomb.cs" />
+    <Compile Include="Utils\Weapons\Normal\Shotguns\SweeperShotgun.cs" />
+    <Compile Include="Utils\Weapons\Normal\Machine guns\UnholyHellbringer.cs" />
+    <Compile Include="Utils\Weapons\Normal\Pistols\UpNAtomizer.cs" />
+    <Compile Include="Utils\Weapons\Normal\Snipers\MarksmanRifle.cs" />
+    <Compile Include="Utils\Weapons\Normal\Snipers\SniperRifle.cs" />
     <Compile Include="Utils\Weapons\Weapon.cs" />
     <Compile Include="Utils\Weapons\WeaponsList.cs" />
-    <Compile Include="Utils\Weapons\Widowmaker.cs" />
+    <Compile Include="Utils\Weapons\Normal\Heavy\Widowmaker.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

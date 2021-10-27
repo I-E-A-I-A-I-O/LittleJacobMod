@@ -1,6 +1,5 @@
 ﻿using System;
 using GTA;
-using System.Windows.Forms;
 using LittleJacobMod.Interface;
 using LittleJacobMod.Utils;
 using LittleJacobMod.Saving;
@@ -9,10 +8,8 @@ using GTA.Native;
 
 public class Main : Script
 {
-    string openMenuControl;
-    Keys openMenuKey;
     PhoneContact ifruit;
-    LittleJacobMod.Interface.Menu menu;
+    Menu menu;
     PedHash currentPed;
     public static bool JacobActive { get; set; }
     public static bool SavingEnabled { get; private set; }
@@ -23,28 +20,23 @@ public class Main : Script
     public static bool MenuOpened { get; private set; }
     bool SaveTriggered { get; set; }
     public static PedHash JacobHash { get; private set; }
+    public static Controls OpenMenuKey { get; private set; }
 
     public Main()
     {
         Migrator.Migrate();
 
         var settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
-        openMenuControl = settings.GetValue("Controls", "OpenMenu", "E");
+        OpenMenuKey = settings.GetValue("Controls", "OpenMenu", Controls.INPUT_CONTEXT);
         SavingEnabled = settings.GetValue("Gameplay", "EnableSaving", true);
         JacobHash = settings.GetValue("Gameplay", "JacobModel", PedHash.Soucent03AMY);
 
-        if (!Enum.TryParse(openMenuControl, out openMenuKey))
-        {
-            openMenuControl = "E";
-            openMenuKey = Keys.E;
-            GTA.UI.Notification.Show("Little Jacob mod: ~r~Failed~w~ to load the 'OpenMenu' key from the ini file. Using default value 'E'");
-        }
-
         ifruit = new PhoneContact();
-        menu = new LittleJacobMod.Interface.Menu();
+        menu = new Menu();
 
         if (SavingEnabled)
         {
+            Mapper.Initialize();
             if (Game.IsLoading)
             {
                 Tick += WaitForGameLoad;
@@ -59,8 +51,7 @@ public class Main : Script
             Tick += WeaponUse;
         }
 
-        KeyUp += KeyboardControls;
-        Tick += GamepadControls;
+        KeyUp += ControlWatch;
         Tick += (o, e) =>
         {
             ifruit.Phone.Update();
@@ -100,6 +91,11 @@ public class Main : Script
 
         if (!JacobActive)
         {
+            if (!LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
+            {
+                LoadoutSaving.UpdateWeaponMap();
+            }
+
             if (Timers.AutoSaveTimer() && !LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
             {
                 Game.DoAutoSave();
@@ -141,7 +137,6 @@ public class Main : Script
         LoadoutSaving.PerformSave(currentPed);
 
         currentPed = (PedHash)Game.Player.Character.Model.Hash;
-        LoadoutSaving.RemoveWeapons(!LoadoutSaving.IsPedMainPlayer(Game.Player.Character));
         LoadoutSaving.PerformLoad();
     }
 
@@ -235,13 +230,7 @@ public class Main : Script
             }
         } else if (LittleJacob.Spawned && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !MenuOpened && !LittleJacob.Left)
         {
-            if (Game.LastInputMethod == InputMethod.MouseAndKeyboard)
-            {
-                GTA.UI.Screen.ShowHelpTextThisFrame($"Press ~g~{openMenuControl}~w~ to purchase weapons", false);
-            } else
-            {
-                GTA.UI.Screen.ShowHelpTextThisFrame("Press DPad Left to purchase weapons", false);
-            }
+            GTA.UI.Screen.ShowHelpTextThisFrame($"Press ~{OpenMenuKey}~ to purchase weapons", false);
         } else if (MenuOpened && !menu.Pool.AreAnyVisible)
         {
             MenuOpened = false;
@@ -257,38 +246,14 @@ public class Main : Script
         }
     }
 
-    void KeyboardControls(object o, KeyEventArgs e)
+    void ControlWatch(object o, EventArgs e)
     {
         if (!JacobActive)
         {
             return;
         }
 
-        if (e.KeyCode == openMenuKey)
-        {
-            if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !MenuOpened)
-            {
-                LittleJacob.ToggleTrunk();
-                MenuOpened = true;
-                Game.Player.Character.CanSwitchWeapons = false;
-                menu.ShowMainMenu();
-            }
-        }
-    }
-
-    void GamepadControls(object o, EventArgs e)
-    {
-        if (Game.LastInputMethod == InputMethod.MouseAndKeyboard)
-        {
-            return;
-        }
-
-        if (!JacobActive)
-        {
-            return;
-        }
-
-        if (Game.IsControlJustReleased(GTA.Control.ScriptPadLeft))
+        if (Function.Call<bool>(Hash.IS_CONTROL_JUST_RELEASED, 0, (int)OpenMenuKey))
         {
             if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !MenuOpened)
             {

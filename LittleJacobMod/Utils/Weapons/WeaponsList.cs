@@ -21,7 +21,12 @@ namespace LittleJacobMod.Utils.Weapons
             new SNSPistolMk2(),
             new HeavyRevolver(),
             new DoubleActionRevolver(),
-            new NavyRevolver()
+            new NavyRevolver(),
+            new StunGun(),
+            new FlareGun(),
+            new MachinePistol(),
+            new CeramicPistol(),
+            new VintagePistol()
         };
 
         public static List<Weapon> SMGs => new List<Weapon>()
@@ -35,7 +40,8 @@ namespace LittleJacobMod.Utils.Weapons
             new MiniSMG(),
             new MG(),
             new CombatMG(),
-            new CombatPDW()
+            new CombatPDW(),
+            new Gusenberg()
         };
 
         public static List<Weapon> Rifles => new List<Weapon>()
@@ -48,6 +54,9 @@ namespace LittleJacobMod.Utils.Weapons
             new BullPupMk2(),
             new MilitaryRifle(),
             new AssaultRifleMk2(),
+            new Musket(),
+            new SpecialCarbine(),
+            new SpecialCarbineMK2()
         };
 
         public static List<Weapon> Shotguns => new List<Weapon>()
@@ -67,7 +76,9 @@ namespace LittleJacobMod.Utils.Weapons
         {
             new HeavySniperMk2(),
             new MarksmanRifleMk2(),
-            new HeavySniper()
+            new HeavySniper(),
+            new SniperRifle(),
+            new MarksmanRifle()
         };
 
         public static List<Weapon> Heavy = new List<Weapon>()
@@ -77,7 +88,9 @@ namespace LittleJacobMod.Utils.Weapons
             new CompactGrenadeLauncher(),
             new RPG(),
             new Minigun(),
-            new GrenadeLauncher()
+            new GrenadeLauncher(),
+            new HomingLauncher(),
+            new Railgun()
         };
 
         public static List<Weapon> Explosives => new List<Weapon>()
@@ -85,7 +98,12 @@ namespace LittleJacobMod.Utils.Weapons
             new Grenade(),
             new StickyBomb(),
             new ProximityMine(),
-            new Snowball()
+            new Snowball(),
+            new PipeBomb(),
+            new Molotov(),
+            new BZGas(),
+            new Flare(),
+            new SmokeGrenade()
         };
     }
 }

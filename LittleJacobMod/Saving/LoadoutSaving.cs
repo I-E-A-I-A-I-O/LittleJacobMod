@@ -10,7 +10,12 @@ namespace LittleJacobMod.Saving
     static internal class LoadoutSaving
     {
         static readonly List<StoredWeapon> StoredWeapons = new List<StoredWeapon>();
-        public static bool Busy { get; private set; }
+        public static bool Busy { get; private set; } = false;
+
+        public static void UpdateWeaponMap()
+        {
+            Mapper.Process(StoredWeapons);
+        }
 
         public static bool IsWeaponInStore(WeaponHash weapon)
         {
@@ -257,6 +262,8 @@ namespace LittleJacobMod.Saving
                 return;
             }
 
+            RemoveWeapons();
+
             Busy = true;
             StoredWeapons.Clear();
             GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
@@ -364,12 +371,9 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void RemoveWeapons(bool customPed = false)
+        public static void RemoveWeapons()
         {
-            if (customPed)
-            {
-                Game.Player.Character.Weapons.RemoveAll();
-            }
+            Game.Player.Character.Weapons.RemoveAll();
         }
     }
 }

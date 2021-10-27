@@ -37,6 +37,7 @@ namespace LittleJacobMod.Interface
             shotguns = new NativeMenu("Shotguns", "Shotguns");
             explosives = new NativeMenu("Explosives", "Explosives");
             heavy = new NativeMenu("Heavy Weapons", "Heavy Weapons");
+            var armorOption = new NativeItem("Armor", "Buy armor");
 
             pool.Add(mainMenu);
             pool.Add(melee);
@@ -56,6 +57,19 @@ namespace LittleJacobMod.Interface
             mainMenu.AddSubMenu(snipers);
             mainMenu.AddSubMenu(heavy);
             mainMenu.AddSubMenu(explosives);
+            mainMenu.Add(armorOption);
+
+            armorOption.Activated += (o, e) =>
+            {
+                if (Game.Player.Money < 3000)
+                {
+                    GTA.UI.Notification.Show("Not enough money to buy armor!");
+                    return;
+                }
+                Game.Player.Money -= 3000;
+                Game.Player.Character.Armor = 100;
+                GTA.UI.Notification.Show("Armor purchased!");
+            };
 
             for (var i = 0; i < WeaponHashes.meeleHashes.Count; i++)
             {
@@ -192,7 +206,12 @@ namespace LittleJacobMod.Interface
             ammoOptionItem.Activated += (o, e) => AmmoPurchased(currentWeapon, ammoOptionItem.Value);
             menu.Add(ammoOptionItem);
 
-            if (!isExplosive && weapon.WeaponHash != WeaponHash.PericoPistol && weapon.WeaponHash != WeaponHash.DoubleActionRevolver && weapon.WeaponHash != WeaponHash.NavyRevolver)
+            if (isExplosive)
+            {
+                return;
+            }
+
+            if (weapon.WeaponHash != WeaponHash.PericoPistol && weapon.WeaponHash != WeaponHash.DoubleActionRevolver && weapon.WeaponHash != WeaponHash.NavyRevolver)
             {
                 var tintSlider = new NativeListItem<string>("Tints");
                 for (int i = 0; i < Function.Call<int>(Hash.GET_WEAPON_TINT_COUNT, currentWeapon.Hash); i++)

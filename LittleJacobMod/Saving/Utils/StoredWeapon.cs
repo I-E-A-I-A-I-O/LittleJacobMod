@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using GTA;
+using GTA.Native;
 
 namespace LittleJacobMod.Saving.Utils
 {
@@ -21,6 +21,21 @@ namespace LittleJacobMod.Saving.Utils
         public StoredWeapon (WeaponHash hash)
         {
             WeaponHash = hash;
+        }
+
+        public int GetTintIndex()
+        {
+            return Function.Call<int>(Hash.GET_PED_WEAPON_TINT_INDEX, Game.Player.Character.Handle, WeaponHash);
+        }
+
+        public bool HasComponent(WeaponComponentHash componentHash)
+        {
+            return Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON_COMPONENT, Game.Player.Character.Handle, WeaponHash, componentHash);
+        }
+
+        public int GetCamoColor()
+        {
+            return Function.Call<int>(Hash._GET_PED_WEAPON_LIVERY_COLOR, Game.Player.Character.Handle, WeaponHash, Camo);
         }
     }
 }
