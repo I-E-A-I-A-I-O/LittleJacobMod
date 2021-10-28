@@ -266,6 +266,10 @@ namespace LittleJacobMod.Saving
             StoredWeapons.Clear();
             GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
             var characterHandle = Game.Player.Character.Handle;
+            if (!IsPedMainPlayer(Game.Player.Character) && !switching)
+            {
+                RemoveWeapons();
+            }
             try
             {
                 var dir = Directory.GetCurrentDirectory();
@@ -279,10 +283,6 @@ namespace LittleJacobMod.Saving
                     return;
                 }
 
-                if (!IsPedMainPlayer(Game.Player.Character) && !switching)
-                {
-                    RemoveWeapons();
-                }
                 var loadedAmmoTypes = new List<uint>();
 
                 using (var reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
