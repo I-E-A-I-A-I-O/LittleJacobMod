@@ -122,7 +122,7 @@ public class Main : Script
             return;
         }
         currentPed = (PedHash)Game.Player.Character.Model.Hash;
-        LoadoutSaving.PerformLoad(currentPed);
+        LoadoutSaving.PerformLoad(false);
         Tick -= WaitForGameLoad;
         Tick += ModelWatcher;
     }
@@ -137,7 +137,7 @@ public class Main : Script
         LoadoutSaving.PerformSave(currentPed);
 
         currentPed = (PedHash)Game.Player.Character.Model.Hash;
-        LoadoutSaving.PerformLoad(currentPed);
+        LoadoutSaving.PerformLoad(Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS));
     }
 
     void OnTick(object o, EventArgs e)

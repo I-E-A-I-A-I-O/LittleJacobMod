@@ -255,7 +255,7 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void PerformLoad(PedHash currentPed)
+        public static void PerformLoad(bool switching)
         {
             if (!Main.SavingEnabled)
             {
@@ -279,7 +279,7 @@ namespace LittleJacobMod.Saving
                     return;
                 }
 
-                if (!IsPedMainCharacter(currentPed))
+                if (!IsPedMainPlayer(Game.Player.Character) && !switching)
                 {
                     RemoveWeapons();
                 }
@@ -302,10 +302,10 @@ namespace LittleJacobMod.Saving
                         var tint = reader.ReadInt32();
                         Enum.TryParse<WeaponHash>(reader.ReadString(), out var weaponHash);
 
-                        if (IsPedMainPlayer(Game.Player.Character) && Game.Player.Character.Weapons.HasWeapon(weaponHash))
+                        /*if (IsPedMainPlayer(Game.Player.Character) && Game.Player.Character.Weapons.HasWeapon(weaponHash))
                         {
                             continue;
-                        }
+                        }*/
 
                         Game.Player.Character.Weapons.Give(weaponHash, 0, false, false);
                         var storedWeapon = new StoredWeapon(weaponHash)
@@ -383,11 +383,6 @@ namespace LittleJacobMod.Saving
         public static void RemoveWeapons()
         {
             Game.Player.Character.Weapons.RemoveAll();
-        }
-
-        public static bool IsPedMainCharacter(PedHash ped)
-        {
-            return ped == PedHash.Michael || ped == PedHash.Trevor || ped == PedHash.Franklin;
         }
     }
 }
