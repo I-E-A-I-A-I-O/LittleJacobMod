@@ -361,6 +361,7 @@ namespace LittleJacobMod.Saving
                         var ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weaponHash);
                         if (loadedAmmoTypes.Contains(ammoType))
                         {
+                            StoredWeapons.Add(storedWeapon);
                             continue;
                         }
                         Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Game.Player.Character.Handle, ammoType, ammo);
