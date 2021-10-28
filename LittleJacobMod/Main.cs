@@ -98,7 +98,7 @@ public class Main : Script
 
             if (Timers.AutoSaveTimer() && !LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
             {
-                Game.DoAutoSave();
+                LoadoutSaving.PerformSave(currentPed);
             }
         }
     }
@@ -122,7 +122,7 @@ public class Main : Script
             return;
         }
         currentPed = (PedHash)Game.Player.Character.Model.Hash;
-        LoadoutSaving.PerformLoad();
+        LoadoutSaving.PerformLoad(currentPed);
         Tick -= WaitForGameLoad;
         Tick += ModelWatcher;
     }
@@ -137,7 +137,7 @@ public class Main : Script
         LoadoutSaving.PerformSave(currentPed);
 
         currentPed = (PedHash)Game.Player.Character.Model.Hash;
-        LoadoutSaving.PerformLoad();
+        LoadoutSaving.PerformLoad(currentPed);
     }
 
     void OnTick(object o, EventArgs e)
@@ -159,7 +159,7 @@ public class Main : Script
                 LittleJacob.ToggleTrunk();
                 LittleJacob.DriveAway();
                 LittleJacob.DeleteBlip();
-                Game.DoAutoSave();
+                LoadoutSaving.PerformSave(currentPed);
             } else if (!LittleJacob.Spawned)
             {
                 GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "my friend told me the police is after u. we cant meet like this, call me again when you lose them. Peace");
@@ -198,7 +198,7 @@ public class Main : Script
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
             LittleJacob.DeleteBlip();
-            Game.DoAutoSave();
+            LoadoutSaving.PerformSave(currentPed);
             LittleJacob.Terminate();
             return;
         }
@@ -238,7 +238,7 @@ public class Main : Script
             LittleJacob.ToggleTrunk();
             LittleJacob.DriveAway();
             LittleJacob.DeleteBlip();
-            Game.DoAutoSave();
+            LoadoutSaving.PerformSave(currentPed);
         } else if (LittleJacob.Left && !LittleJacob.IsNearby())
         {
             LittleJacob.DeleteJacob();

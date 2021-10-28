@@ -255,14 +255,12 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void PerformLoad()
+        public static void PerformLoad(PedHash currentPed)
         {
             if (!Main.SavingEnabled)
             {
                 return;
             }
-
-            RemoveWeapons();
 
             Busy = true;
             StoredWeapons.Clear();
@@ -280,6 +278,12 @@ namespace LittleJacobMod.Saving
                     GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ No weapon loadouts saved for this ped!");
                     return;
                 }
+
+                if (!IsPedMainCharacter(currentPed))
+                {
+                    RemoveWeapons();
+                }
+                var loadedAmmoTypes = new List<uint>();
 
                 using (var reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
                 {
@@ -354,7 +358,12 @@ namespace LittleJacobMod.Saving
                             storedWeapon.Tint = tint;
                         }
                         var ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weaponHash);
+                        if (loadedAmmoTypes.Contains(ammoType))
+                        {
+                            continue;
+                        }
                         Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Game.Player.Character.Handle, ammoType, ammo);
+                        loadedAmmoTypes.Add(ammoType);
                         StoredWeapons.Add(storedWeapon);
                     }
                 }
@@ -374,6 +383,11 @@ namespace LittleJacobMod.Saving
         public static void RemoveWeapons()
         {
             Game.Player.Character.Weapons.RemoveAll();
+        }
+
+        public static bool IsPedMainCharacter(PedHash ped)
+        {
+            return ped == PedHash.Michael || ped == PedHash.Trevor || ped == PedHash.Franklin;
         }
     }
 }
