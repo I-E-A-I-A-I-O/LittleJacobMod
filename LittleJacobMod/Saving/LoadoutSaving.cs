@@ -266,7 +266,7 @@ namespace LittleJacobMod.Saving
             StoredWeapons.Clear();
             GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
             var characterHandle = Game.Player.Character.Handle;
-            if (!IsPedMainPlayer(Game.Player.Character) && !switching)
+            if (!IsPedMainPlayer(Game.Player.Character) || !switching)
             {
                 RemoveWeapons();
             }
