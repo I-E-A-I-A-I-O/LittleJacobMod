@@ -161,7 +161,7 @@ namespace LittleJacobMod.Saving
                     continue;
                 }
                 var playerStoredWeapon = Game.Player.Character.Weapons[weapons[i].WeaponHash];
-                if (playerStoredWeapon.Ammo > weapons[i].Ammo)
+                if (playerStoredWeapon.Ammo != weapons[i].Ammo)
                 {
                     weapons[i].Ammo = playerStoredWeapon.Ammo;
                 }
