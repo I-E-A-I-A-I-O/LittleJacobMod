@@ -283,6 +283,7 @@ namespace LittleJacobMod.Saving
                     return;
                 }
 
+                RemoveWeapons();
                 var loadedAmmoTypes = new List<uint>();
 
                 using (var reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
@@ -302,11 +303,11 @@ namespace LittleJacobMod.Saving
                         var tint = reader.ReadInt32();
                         Enum.TryParse<WeaponHash>(reader.ReadString(), out var weaponHash);
 
-                        if (IsPedMainPlayer(Game.Player.Character) && Game.Player.Character.Weapons.HasWeapon(weaponHash))
+                        /*if (IsPedMainPlayer(Game.Player.Character) && Game.Player.Character.Weapons.HasWeapon(weaponHash))
                         {
                             continue;
-                        }
-
+                        }*/
+                        
                         Game.Player.Character.Weapons.Give(weaponHash, 0, false, false);
                         var storedWeapon = new StoredWeapon(weaponHash)
                         {
