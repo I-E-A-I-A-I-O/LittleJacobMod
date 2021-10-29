@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using GTA;
-using GTA.Native;
 using LittleJacobMod.Saving.Utils;
 using LittleJacobMod.Utils.Weapons;
 using Weapon = LittleJacobMod.Utils.Weapons.Weapon;
@@ -37,10 +36,13 @@ namespace LittleJacobMod.Saving
 
         public static void Process(List<StoredWeapon> weapons)
         {
+            bool changes = false;
+
             for (var i = 0; i < Weapons.Count; i++)
             {
                 if (Game.Player.Character.Weapons.HasWeapon(Weapons[i].WeaponHash) && !LoadoutSaving.IsWeaponInStore(Weapons[i].WeaponHash))
                 {
+                    changes = true;
                     var storedWeapon = new StoredWeapon(Weapons[i].WeaponHash);
                     storedWeapon.Tint = storedWeapon.GetTintIndex();
                     storedWeapon.Ammo = Game.Player.Character.Weapons[Weapons[i].WeaponHash].Ammo;
@@ -57,6 +59,7 @@ namespace LittleJacobMod.Saving
                             }
                         }
                     }
+
                     if (Weapons[i].HasClip)
                     {
                         foreach (var clip in Weapons[i].Clips)
@@ -70,6 +73,7 @@ namespace LittleJacobMod.Saving
                             }
                         }
                     }
+
                     if (Weapons[i].HasScope)
                     {
                         foreach (var scope in Weapons[i].Scopes)
@@ -84,6 +88,7 @@ namespace LittleJacobMod.Saving
                             }
                         }
                     }
+
                     if (Weapons[i].HasGrip)
                     {
                         foreach (var grip in Weapons[i].Grips)
@@ -98,6 +103,7 @@ namespace LittleJacobMod.Saving
                             }
                         }
                     }
+
                     if (Weapons[i].HasBarrel)
                     {
                         foreach (var barrel in Weapons[i].Barrels)
@@ -112,6 +118,7 @@ namespace LittleJacobMod.Saving
                             }
                         }
                     }
+
                     if (Weapons[i].HasCamo)
                     {
                         foreach (var camo in Weapons[i].Camos)
@@ -127,6 +134,7 @@ namespace LittleJacobMod.Saving
                             }
                         }
                     }
+
                     if (Weapons[i].HasFlaslight)
                     {
                         foreach (var flash in Weapons[i].FlashLight)
@@ -149,6 +157,7 @@ namespace LittleJacobMod.Saving
             {
                 if (!Game.Player.Character.Weapons.HasWeapon(weapons[i].WeaponHash))
                 {
+                    changes = true;
                     weapons.RemoveAt(i);
                 }
             }
@@ -160,16 +169,19 @@ namespace LittleJacobMod.Saving
                 {
                     continue;
                 }
+
                 var playerStoredWeapon = Game.Player.Character.Weapons[weapons[i].WeaponHash];
-                if (playerStoredWeapon.Ammo != weapons[i].Ammo)
+                if (playerStoredWeapon.Ammo > weapons[i].Ammo && Main.CurrentPed == (PedHash)Game.Player.Character.Model.Hash)
                 {
                     weapons[i].Ammo = playerStoredWeapon.Ammo;
                 }
+
                 int tintIndex = weapons[i].GetTintIndex();
                 if (tintIndex != weapons[i].Tint)
                 {
                     weapons[i].Tint = tintIndex;
                 }
+
                 if (weaponCatalogOption.HasMuzzleOrSupp)
                 {
                     foreach (var muzzleOrSupp in weaponCatalogOption.MuzzlesAndSupps)
@@ -184,6 +196,7 @@ namespace LittleJacobMod.Saving
                         }
                     }
                 }
+
                 if (weaponCatalogOption.HasClip)
                 {
                     foreach (var clip in weaponCatalogOption.Clips)
@@ -198,6 +211,7 @@ namespace LittleJacobMod.Saving
                         }
                     }
                 }
+
                 if (weaponCatalogOption.HasScope)
                 {
                     foreach (var scope in weaponCatalogOption.Scopes)
@@ -212,6 +226,7 @@ namespace LittleJacobMod.Saving
                         }
                     }
                 }
+
                 if (weaponCatalogOption.HasGrip)
                 {
                     foreach (var grip in weaponCatalogOption.Grips)
@@ -226,6 +241,7 @@ namespace LittleJacobMod.Saving
                         }
                     }
                 }
+
                 if (weaponCatalogOption.HasBarrel)
                 {
                     foreach (var barrel in weaponCatalogOption.Barrels)
@@ -240,6 +256,7 @@ namespace LittleJacobMod.Saving
                         }
                     }
                 }
+
                 if (weaponCatalogOption.HasCamo)
                 {
                     foreach (var camo in weaponCatalogOption.Camos)
@@ -255,6 +272,7 @@ namespace LittleJacobMod.Saving
                         }
                     }
                 }
+
                 if (weaponCatalogOption.HasFlaslight)
                 {
                     foreach (var flash in weaponCatalogOption.FlashLight)
@@ -269,6 +287,11 @@ namespace LittleJacobMod.Saving
                         }
                     }
                 }
+            }
+
+            if (changes)
+            {
+                LoadoutSaving.PerformSave(Main.CurrentPed);
             }
         }
     }

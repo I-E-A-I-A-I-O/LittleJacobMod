@@ -52,15 +52,28 @@ namespace LittleJacobMod.Saving
             {
                 if (StoredWeapons[i].WeaponHash == hash)
                 {
-                    if (hash == WeaponHash.Snowball && ammo == 0)
-                    {
-                        StoredWeapons.RemoveAt(i);
-                    } else
-                    {
-                        StoredWeapons[i].Ammo = ammo;
-                    }
-
+                    StoredWeapons[i].Ammo = ammo;
                     return;
+                }
+            }
+        }
+
+        public static void UpdateAmmo(WeaponHash hash, int ammo)
+        {
+            var playerHandle = Game.Player.Character.Handle;
+            var currentWeaponAmmoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, playerHandle, hash);
+            foreach (StoredWeapon weapon in StoredWeapons)
+            {
+                if (weapon.WeaponHash == hash)
+                {
+                    weapon.Ammo = ammo;
+                } else
+                {
+                    var storedWeaponAmmoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, playerHandle, weapon.WeaponHash);
+                    if (storedWeaponAmmoType == currentWeaponAmmoType)
+                    {
+                        weapon.Ammo = ammo;
+                    }
                 }
             }
         }
@@ -214,7 +227,7 @@ namespace LittleJacobMod.Saving
             try
             {
                 var dir = Directory.GetCurrentDirectory();
-                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{((int)ped)}.data";
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{(int)ped}.data";
                 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
                 {
@@ -249,13 +262,13 @@ namespace LittleJacobMod.Saving
                 GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error saving weapon loadout!");
             } finally
             {
-                Script.Wait(2500);
+                Script.Wait(1000);
                 GTA.UI.LoadingPrompt.Hide();
                 Busy = false;
             }
         }
 
-        public static void PerformLoad(bool switching)
+        public static void PerformLoad()
         {
             if (!Main.SavingEnabled)
             {
@@ -266,9 +279,11 @@ namespace LittleJacobMod.Saving
             StoredWeapons.Clear();
             GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
             var characterHandle = Game.Player.Character.Handle;
-            if (!IsPedMainPlayer(Game.Player.Character) || !switching)
+            var weaponsRemoved = false;
+            if (!IsPedMainPlayer(Game.Player.Character))
             {
                 RemoveWeapons();
+                weaponsRemoved = true;
             }
             try
             {
@@ -283,7 +298,11 @@ namespace LittleJacobMod.Saving
                     return;
                 }
 
-                RemoveWeapons();
+                if (!weaponsRemoved)
+                {
+                    RemoveWeapons();
+                }
+
                 var loadedAmmoTypes = new List<uint>();
 
                 using (var reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
@@ -303,10 +322,10 @@ namespace LittleJacobMod.Saving
                         var tint = reader.ReadInt32();
                         Enum.TryParse<WeaponHash>(reader.ReadString(), out var weaponHash);
 
-                        if (IsPedMainPlayer(Game.Player.Character) && Game.Player.Character.Weapons.HasWeapon(weaponHash))
+                        /*if (IsPedMainPlayer(Game.Player.Character) && Game.Player.Character.Weapons.HasWeapon(weaponHash))
                         {
                             continue;
-                        }
+                        }*/
                         
                         Game.Player.Character.Weapons.Give(weaponHash, 0, false, false);
                         var storedWeapon = new StoredWeapon(weaponHash)
@@ -376,7 +395,7 @@ namespace LittleJacobMod.Saving
             }
             finally
             {
-                Script.Wait(2500);
+                Script.Wait(1000);
                 GTA.UI.LoadingPrompt.Hide();
                 Busy = false;
             }

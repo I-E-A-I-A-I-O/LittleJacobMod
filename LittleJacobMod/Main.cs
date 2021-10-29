@@ -10,7 +10,6 @@ public class Main : Script
 {
     PhoneContact ifruit;
     Menu menu;
-    PedHash currentPed;
     public static bool JacobActive { get; set; }
     public static bool SavingEnabled { get; private set; }
     public static LittleJacob LittleJacob { get; set; }
@@ -21,6 +20,7 @@ public class Main : Script
     bool SaveTriggered { get; set; }
     public static PedHash JacobHash { get; private set; }
     public static Controls OpenMenuKey { get; private set; }
+    public static PedHash CurrentPed { get; private set; }
 
     public Main()
     {
@@ -43,7 +43,7 @@ public class Main : Script
             }
             else
             {
-                currentPed = (PedHash)Game.Player.Character.Model.Hash;
+                CurrentPed = (PedHash)Game.Player.Character.Model.Hash;
                 //LoadoutSaving.PerformLoad();
                 Tick += ModelWatcher;
             }
@@ -78,7 +78,7 @@ public class Main : Script
         {
             if (!SaveTriggered)
             {
-                LoadoutSaving.PerformSave(currentPed);
+                LoadoutSaving.PerformSave(CurrentPed);
                 SaveTriggered = true;
             }
             return;
@@ -98,7 +98,7 @@ public class Main : Script
 
             if (Timers.AutoSaveTimer() && !LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
             {
-                LoadoutSaving.PerformSave(currentPed);
+                LoadoutSaving.PerformSave(CurrentPed);
             }
         }
     }
@@ -110,7 +110,7 @@ public class Main : Script
             var currentWeapon = Game.Player.Character.Weapons.Current;
             if (LoadoutSaving.IsWeaponInStore(currentWeapon.Hash))
             {
-                LoadoutSaving.SetAmmo(currentWeapon.Hash, currentWeapon.Ammo);
+                LoadoutSaving.UpdateAmmo(currentWeapon.Hash, currentWeapon.Ammo);
             }
         }
     }
@@ -121,23 +121,22 @@ public class Main : Script
         {
             return;
         }
-        currentPed = (PedHash)Game.Player.Character.Model.Hash;
-        LoadoutSaving.PerformLoad(false);
+        CurrentPed = (PedHash)Game.Player.Character.Model.Hash;
+        LoadoutSaving.PerformLoad();
         Tick -= WaitForGameLoad;
         Tick += ModelWatcher;
     }
 
     void ModelWatcher(object o, EventArgs e)
     {
-        if (currentPed == (PedHash)Game.Player.Character.Model.Hash)
+        if (CurrentPed == (PedHash)Game.Player.Character.Model.Hash)
         {
             return;
         }
 
-        LoadoutSaving.PerformSave(currentPed);
-
-        currentPed = (PedHash)Game.Player.Character.Model.Hash;
-        LoadoutSaving.PerformLoad(Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS));
+        LoadoutSaving.PerformSave(CurrentPed);
+        CurrentPed = (PedHash)Game.Player.Character.Model.Hash;
+        LoadoutSaving.PerformLoad();
     }
 
     void OnTick(object o, EventArgs e)
@@ -159,7 +158,7 @@ public class Main : Script
                 LittleJacob.ToggleTrunk();
                 LittleJacob.DriveAway();
                 LittleJacob.DeleteBlip();
-                LoadoutSaving.PerformSave(currentPed);
+                LoadoutSaving.PerformSave(CurrentPed);
             } else if (!LittleJacob.Spawned)
             {
                 GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "my friend told me the police is after u. we cant meet like this, call me again when you lose them. Peace");
@@ -198,7 +197,7 @@ public class Main : Script
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
             LittleJacob.DeleteBlip();
-            LoadoutSaving.PerformSave(currentPed);
+            LoadoutSaving.PerformSave(CurrentPed);
             LittleJacob.Terminate();
             return;
         }
@@ -238,7 +237,7 @@ public class Main : Script
             LittleJacob.ToggleTrunk();
             LittleJacob.DriveAway();
             LittleJacob.DeleteBlip();
-            LoadoutSaving.PerformSave(currentPed);
+            LoadoutSaving.PerformSave(CurrentPed);
         } else if (LittleJacob.Left && !LittleJacob.IsNearby())
         {
             LittleJacob.DeleteJacob();
