@@ -51,7 +51,7 @@ public class Main : Script
             Tick += WeaponUse;
         }
 
-        KeyUp += ControlWatch;
+        Tick += ControlWatch;
         Tick += (o, e) =>
         {
             ifruit.Phone.Update();
