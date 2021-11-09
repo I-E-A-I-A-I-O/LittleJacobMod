@@ -129,7 +129,7 @@ public class Main : Script
 
     void ModelWatcher(object o, EventArgs e)
     {
-        if (CurrentPed == (PedHash)Game.Player.Character.Model.Hash)
+        if (Function.Call<bool>(Hash.IS_PED_IN_MODEL, Game.Player.Character.Handle, CurrentPed))
         {
             return;
         }
