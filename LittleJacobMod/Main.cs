@@ -10,6 +10,7 @@ public class Main : Script
 {
     PhoneContact ifruit;
     Menu menu;
+    Camera cam;
     public static bool JacobActive { get; set; }
     public static bool SavingEnabled { get; private set; }
     public static LittleJacob LittleJacob { get; set; }
@@ -153,6 +154,9 @@ public class Main : Script
             if (LittleJacob.Spawned && !LittleJacob.Left)
             {
                 menu.Pool.HideAll();
+                cam.IsActive = false;
+                cam.Delete();
+                Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
                 MenuOpened = false;
                 Game.Player.Character.CanSwitchWeapons = true;
                 LittleJacob.ToggleTrunk();
@@ -172,6 +176,9 @@ public class Main : Script
         if (LittleJacob.Spawned && !LittleJacob.Left && !LittleJacob.IsPlayerInArea())
         {
             menu.Pool.HideAll();
+            cam.IsActive = false;
+            cam.Delete();
+            Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
             MenuOpened = false;
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.DeleteBlip();
@@ -182,6 +189,9 @@ public class Main : Script
         if (MenuOpened && !LittleJacob.PlayerNearTrunk())
         {
             menu.Pool.HideAll();
+            cam.IsActive = false;
+            cam.Delete();
+            Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
             MenuOpened = false;
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
@@ -193,6 +203,9 @@ public class Main : Script
         if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.Jacob.IsDead)
         {
             menu.Pool.HideAll();
+            cam.IsActive = false;
+            cam.Delete();
+            Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
             MenuOpened = false;
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
@@ -232,6 +245,9 @@ public class Main : Script
             GTA.UI.Screen.ShowHelpTextThisFrame($"Press ~{OpenMenuKey}~ to purchase weapons", false);
         } else if (MenuOpened && !menu.Pool.AreAnyVisible)
         {
+            cam.IsActive = false;
+            cam.Delete();
+            Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
             MenuOpened = false;
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
@@ -256,6 +272,12 @@ public class Main : Script
         {
             if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !MenuOpened)
             {
+                cam = Function.Call<Camera>(Hash.CREATE_CAM, "DEFAULT_SCRIPTED_CAMERA", 0);
+                cam.AttachTo(Game.Player.Character.Bones.Core, new GTA.Math.Vector3(0, 1.2f, 0));
+                cam.IsActive = true;
+                cam.PointAt(Game.Player.Character.RearPosition);
+                Function.Call(Hash.RENDER_SCRIPT_CAMS, 1, 1, 3000, 1, 0);
+
                 LittleJacob.ToggleTrunk();
                 MenuOpened = true;
                 Game.Player.Character.CanSwitchWeapons = false;

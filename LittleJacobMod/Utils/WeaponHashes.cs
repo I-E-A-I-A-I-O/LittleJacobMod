@@ -15,7 +15,15 @@ namespace LittleJacobMod.Utils
             WeaponHash.Dagger,
             WeaponHash.Crowbar,
             WeaponHash.Hatchet,
-            WeaponHash.Nightstick
+            WeaponHash.Nightstick,
+            WeaponHash.Flashlight,
+            WeaponHash.SwitchBlade,
+            WeaponHash.Wrench,
+            WeaponHash.StoneHatchet,
+            WeaponHash.GolfClub,
+            WeaponHash.Bottle,
+            WeaponHash.Hammer,
+            WeaponHash.KnuckleDuster
         };
     }
 }
