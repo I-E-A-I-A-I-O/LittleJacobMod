@@ -151,7 +151,7 @@ public class Main : Script
 
         if (LittleJacob.Spawned && !LittleJacob.Left)
         {
-            if (cam != null && cam.Handle != 0)
+            if (cam != null && cam.Handle != 0 && cam.IsActive)
             {
                 menu.DrawLight();
             }
