@@ -5,6 +5,7 @@ using LemonUI;
 using LemonUI.Menus;
 using GTA;
 using GTA.Native;
+using GTA.Math;
 using LittleJacobMod.Utils;
 using LittleJacobMod.Utils.Weapons;
 using LittleJacobMod.Saving;
@@ -23,6 +24,9 @@ namespace LittleJacobMod.Interface
         NativeMenu heavy;
         NativeMenu shotguns;
         NativeMenu explosives;
+        Prop weaponHandle;
+        int oldIndex = -1;
+        
         public ObjectPool Pool => pool;
 
         public Menu()
@@ -71,12 +75,17 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show("Armor purchased!");
             };
 
-            for (var i = 0; i < WeaponHashes.meeleHashes.Count; i++)
+            for (var i = 0; i < WeaponsList.Melee.Count; i++)
             {
                 var index = i;
-                var item = new NativeItem(WeaponHashes.meeleHashes[i].ToString());
-                melee.Add(item);
-                item.Activated += (o, e) => MeleeWeaponSelected(index);
+                var displayName = WeaponsList.Melee[i].Name;
+                var meleeMenu = new NativeMenu(displayName, displayName);
+
+                meleeMenu.Shown += (o, e) => WeaponSelected(WeaponsList.Melee[index], WeaponsList.Melee[index].Price, meleeMenu, false, true);
+                meleeMenu.Closed += (o, e) => meleeMenu.Clear();
+
+                pool.Add(meleeMenu);
+                melee.AddSubMenu(meleeMenu);
             }
 
             for (var i = 0; i < WeaponsList.Pistols.Count; i++)
@@ -169,6 +178,144 @@ namespace LittleJacobMod.Interface
                 pool.Add(expMenu);
                 explosives.AddSubMenu(expMenu);
             }
+
+            melee.SelectedIndexChanged += (o, e) =>
+            {
+                SelectedIndexChanged(e.Index, WeaponsList.Melee[e.Index]);
+            };
+
+            melee.Closed += (o, e) => { oldIndex = -1; };
+
+            pistols.SelectedIndexChanged += (o, e) =>
+            {
+                SelectedIndexChanged(e.Index, WeaponsList.Pistols[e.Index]);
+            };
+
+            pistols.Closed += (o, e) => { oldIndex = -1; };
+
+            rifles.SelectedIndexChanged += (o, e) =>
+            {
+                SelectedIndexChanged(e.Index, WeaponsList.Rifles[e.Index]);
+            };
+
+            rifles.Closed += (o, e) => { oldIndex = -1; };
+
+            mg.SelectedIndexChanged += (o, e) =>
+            {
+                SelectedIndexChanged(e.Index, WeaponsList.SMGs[e.Index]);
+            };
+
+            mg.Closed += (o, e) => { oldIndex = -1; };
+
+            shotguns.SelectedIndexChanged += (o, e) =>
+            {
+                SelectedIndexChanged(e.Index, WeaponsList.Shotguns[e.Index]);
+            };
+
+            shotguns.Closed += (o, e) => { oldIndex = -1; };
+
+            snipers.SelectedIndexChanged += (o, e) =>
+            {
+                SelectedIndexChanged(e.Index, WeaponsList.Snipers[e.Index]);
+            };
+
+            snipers.Closed += (o, e) => { oldIndex = -1; };
+
+            heavy.SelectedIndexChanged += (o, e) =>
+            {
+                SelectedIndexChanged(e.Index, WeaponsList.Heavy[e.Index]);
+            };
+
+            heavy.Closed += (o, e) => { oldIndex = -1; };
+
+            explosives.SelectedIndexChanged += (o, e) =>
+            {
+                SelectedIndexChanged(e.Index, WeaponsList.Explosives[e.Index]);
+            };
+
+            explosives.Closed += (o, e) => { oldIndex = -1; };
+        }
+
+        private void SelectedIndexChanged(int index, Utils.Weapons.Weapon weapon)
+        {
+            if (oldIndex == index)
+            {
+                return;
+            }
+
+            oldIndex = index;
+
+            SpawnWeaponObject(weapon.WeaponHash);
+        }
+
+        void GiveWeaponComponentToObject(WeaponComponentHash component)
+        {
+            int componentModel = Function.Call<int>(Hash.GET_WEAPON_COMPONENT_TYPE_MODEL, component);
+            if (componentModel != 0)
+            {
+                Function.Call(Hash.REQUEST_MODEL, componentModel);
+                while (!Function.Call<bool>(Hash.HAS_MODEL_LOADED, componentModel))
+                {
+                    Script.Wait(250);
+                }
+                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_WEAPON_OBJECT, weaponHandle.Handle, component);
+                Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, componentModel);
+            }
+        }
+
+        void SpawnWeaponObject(WeaponHash hash)
+        {
+            DeleteWeaponObject();
+
+            Function.Call(Hash.REQUEST_WEAPON_ASSET, hash, 31, 0);
+            while (!Function.Call<bool>(Hash.HAS_WEAPON_ASSET_LOADED, hash))
+            {
+                Script.Wait(250);
+            }
+            weaponHandle = Function.Call<Prop>(Hash.CREATE_WEAPON_OBJECT, hash, 1, Main.LittleJacob.Vehicle.RearPosition.X + (Main.cam.Direction.X / 2), Main.LittleJacob.Vehicle.RearPosition.Y + (Main.cam.Direction.Y / 2), Main.LittleJacob.Vehicle.RearPosition.Z + 0.3f, false, 1, 0);
+            Function.Call(Hash.REMOVE_WEAPON_ASSET, hash);
+
+            if(LoadoutSaving.IsWeaponInStore(hash))
+            {
+                var storedWeapon = LoadoutSaving.GetStoreReference(hash);
+                Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, weaponHandle.Handle, storedWeapon.GetTintIndex());
+
+                if (storedWeapon.Camo != WeaponComponentHash.Invalid)
+                {
+                    GiveWeaponComponentToObject(storedWeapon.Camo);
+                    Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, weaponHandle.Handle, storedWeapon.Camo, storedWeapon.GetCamoColor());
+                }
+
+                if (storedWeapon.Barrel != WeaponComponentHash.Invalid)
+                {
+                    GiveWeaponComponentToObject(storedWeapon.Barrel);
+                }
+
+                if (storedWeapon.Clip != WeaponComponentHash.Invalid)
+                {
+                    GiveWeaponComponentToObject(storedWeapon.Clip);
+                }
+
+                if (storedWeapon.Flashlight != WeaponComponentHash.Invalid)
+                {
+                    GiveWeaponComponentToObject(storedWeapon.Flashlight);
+                }
+
+                if (storedWeapon.Grip != WeaponComponentHash.Invalid)
+                {
+                    GiveWeaponComponentToObject(storedWeapon.Grip);
+                }
+
+                if (storedWeapon.Scope != WeaponComponentHash.Invalid)
+                {
+                    GiveWeaponComponentToObject(storedWeapon.Scope);
+                }
+            }
+        }
+
+        public void DrawLight()
+        {
+            Function.Call(Hash.DRAW_LIGHT_WITH_RANGE, Main.LittleJacob.Vehicle.RearPosition.X + (Main.cam.Direction.X / 2), Main.LittleJacob.Vehicle.RearPosition.Y + (Main.cam.Direction.Y / 2), Main.LittleJacob.Vehicle.RearPosition.Z + 0.3f, 255, 255, 255, 1.5f, 0.5f);
         }
 
         public void ShowMainMenu()
@@ -176,7 +323,20 @@ namespace LittleJacobMod.Interface
             mainMenu.Visible = true;
         }
 
-        void WeaponSelected(Utils.Weapons.Weapon weapon, int price, NativeMenu menu, bool isExplosive = false)
+        public void DeleteWeaponObject(bool resetIndex = false)
+        {
+            if (weaponHandle != null && weaponHandle.Handle != 0)
+            {
+                weaponHandle.Delete();
+            }
+
+            if (resetIndex)
+            {
+                oldIndex = -1;
+            }
+        }
+
+        void WeaponSelected(Utils.Weapons.Weapon weapon, int price, NativeMenu menu, bool isExplosive = false, bool isMelee = false)
         {
             var hasWeapon = Game.Player.Character.Weapons.HasWeapon(weapon.WeaponHash);
             if (!hasWeapon)
@@ -200,6 +360,11 @@ namespace LittleJacobMod.Interface
             if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || weapon.SaveFileWeapon)
             {
                 LoadoutSaving.AddWeapon(currentWeapon);
+            }
+
+            if (isMelee)
+            {
+                return;
             }
 
             var ammoOptionItem = new NativeSliderItem("Ammo", currentWeapon.MaxAmmo, 1);
@@ -360,11 +525,9 @@ namespace LittleJacobMod.Interface
             }
             Game.Player.Money -= price;
             Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, Game.Player.Character.Handle, weapon.Hash, index);
+            Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, weaponHandle.Handle, index);
             GTA.UI.Notification.Show($"Tint purchased!");
-            if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
-            {
-                LoadoutSaving.SetTint(weapon.Hash, index);
-            }
+            LoadoutSaving.SetTint(weapon.Hash, index);
         }
 
         void ClipPurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, bool saveFileWeapon)
@@ -377,11 +540,9 @@ namespace LittleJacobMod.Interface
             }
             Game.Player.Money -= price;
             GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
+            GiveWeaponComponentToObject(weaponComponent.Value);
             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
-            if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
-            {
-                LoadoutSaving.SetClip(weapon.Hash, weaponComponent.Value);
-            }
+            LoadoutSaving.SetClip(weapon.Hash, weaponComponent.Value);
         }
 
         void MuzzlePurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, List<WeaponComponentHash> components, bool saveFileWeapon)
@@ -403,18 +564,14 @@ namespace LittleJacobMod.Interface
                     }
                 }
                 GTA.UI.Notification.Show("Muzzle attachments removed!");
-                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
-                {
-                    LoadoutSaving.SetMuzzle(weapon.Hash, WeaponComponentHash.Invalid);
-                }
+                LoadoutSaving.SetMuzzle(weapon.Hash, WeaponComponentHash.Invalid);
+                SpawnWeaponObject(weapon.Hash);
             } else
             {
+                GiveWeaponComponentToObject(weaponComponent.Value);
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
-                {
-                    LoadoutSaving.SetMuzzle(weapon.Hash, weaponComponent.Value);
-                }
+                LoadoutSaving.SetMuzzle(weapon.Hash, weaponComponent.Value);
             }
         }
 
@@ -437,19 +594,15 @@ namespace LittleJacobMod.Interface
                     }
                 }
                 GTA.UI.Notification.Show("Flashlight removed!");
-                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
-                {
-                    LoadoutSaving.SetFlashlight(weapon.Hash, WeaponComponentHash.Invalid);
-                }
+                LoadoutSaving.SetFlashlight(weapon.Hash, WeaponComponentHash.Invalid);
+                SpawnWeaponObject(weapon.Hash);
             }
             else
             {
+                GiveWeaponComponentToObject(weaponComponent.Value);
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
-                {
-                    LoadoutSaving.SetFlashlight(weapon.Hash, weaponComponent.Value);
-                }
+                LoadoutSaving.SetFlashlight(weapon.Hash, weaponComponent.Value);
             }
         }
 
@@ -472,19 +625,15 @@ namespace LittleJacobMod.Interface
                     }
                 }
                 GTA.UI.Notification.Show("Scope removed!");
-                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
-                {
-                    LoadoutSaving.SetScope(weapon.Hash, WeaponComponentHash.Invalid);
-                }
+                LoadoutSaving.SetScope(weapon.Hash, WeaponComponentHash.Invalid);
+                SpawnWeaponObject(weapon.Hash);
             }
             else
             {
+                GiveWeaponComponentToObject(weaponComponent.Value);
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
-                {
-                    LoadoutSaving.SetScope(weapon.Hash, weaponComponent.Value);
-                }
+                LoadoutSaving.SetScope(weapon.Hash, weaponComponent.Value);
             }
         }
 
@@ -507,19 +656,15 @@ namespace LittleJacobMod.Interface
                     }
                 }
                 GTA.UI.Notification.Show("Grip removed!");
-                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
-                {
-                    LoadoutSaving.SetGrip(weapon.Hash, WeaponComponentHash.Invalid);
-                }
+                LoadoutSaving.SetGrip(weapon.Hash, WeaponComponentHash.Invalid);
+                SpawnWeaponObject(weapon.Hash);
             }
             else
             {
+                GiveWeaponComponentToObject(weaponComponent.Value);
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || saveFileWeapon)
-                {
-                    LoadoutSaving.SetGrip(weapon.Hash, weaponComponent.Value);
-                }
+                LoadoutSaving.SetGrip(weapon.Hash, weaponComponent.Value);
             }
         }
 
@@ -543,9 +688,11 @@ namespace LittleJacobMod.Interface
                 }
                 GTA.UI.Notification.Show("Custom Barrel removed!");
                 LoadoutSaving.SetBarrel(weapon.Hash, WeaponComponentHash.Invalid);
+                SpawnWeaponObject(weapon.Hash);
             }
             else
             {
+                GiveWeaponComponentToObject(weaponComponent.Value);
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
                 LoadoutSaving.SetBarrel(weapon.Hash, weaponComponent.Value);
@@ -572,9 +719,11 @@ namespace LittleJacobMod.Interface
                 }
                 GTA.UI.Notification.Show("Camo removed!");
                 LoadoutSaving.SetCamo(weapon.Hash, WeaponComponentHash.Invalid);
+                SpawnWeaponObject(weapon.Hash);
             }
             else
             {
+                GiveWeaponComponentToObject(weaponComponent.Value);
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
                 GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
                 LoadoutSaving.SetCamo(weapon.Hash, weaponComponent.Value);
@@ -598,30 +747,11 @@ namespace LittleJacobMod.Interface
             else
             {
                 var storedWeapon = LoadoutSaving.GetStoreReference(weapon.Hash);
+                Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, weaponHandle.Handle, storedWeapon.Camo, index);
                 Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Game.Player.Character.Handle, weapon.Hash, storedWeapon.Camo, index);
                 GTA.UI.Notification.Show("Camo color purchased!");
                 LoadoutSaving.SetCamoColor(weapon.Hash, index);
             }
-        }
-
-        void MeleeWeaponSelected(int index)
-        {
-            var hasWeapon = Game.Player.Character.Weapons.HasWeapon(WeaponHashes.meeleHashes[index]);
-            if (hasWeapon)
-            {
-                GTA.UI.Notification.Show("You already have that weapon!");
-                return;
-            }
-
-            if (Game.Player.Money < 1000)
-            {
-                GTA.UI.Notification.Show("You don't have enough money!");
-                return;
-            }
-
-            Game.Player.Character.Weapons.Give(WeaponHashes.meeleHashes[index], 1, true, true);
-            GTA.UI.Notification.Show($"{WeaponHashes.meeleHashes[index]} purchased!");
-            Game.Player.Money -= 1000;
         }
     }
 }

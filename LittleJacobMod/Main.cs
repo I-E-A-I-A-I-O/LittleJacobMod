@@ -10,7 +10,7 @@ public class Main : Script
 {
     PhoneContact ifruit;
     Menu menu;
-    Camera cam;
+    static public Camera cam;
     public static bool JacobActive { get; set; }
     public static bool SavingEnabled { get; private set; }
     public static LittleJacob LittleJacob { get; set; }
@@ -149,11 +149,20 @@ public class Main : Script
 
         LittleJacob.ProcessVoice();
 
+        if (LittleJacob.Spawned && !LittleJacob.Left)
+        {
+            if (cam != null && cam.Handle != 0)
+            {
+                menu.DrawLight();
+            }
+        }
+
         if (Game.Player.WantedLevel > 0)
         {
             if (LittleJacob.Spawned && !LittleJacob.Left)
             {
                 menu.Pool.HideAll();
+                menu.DeleteWeaponObject(true);
                 cam.IsActive = false;
                 cam.Delete();
                 Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
@@ -176,6 +185,7 @@ public class Main : Script
         if (LittleJacob.Spawned && !LittleJacob.Left && !LittleJacob.IsPlayerInArea())
         {
             menu.Pool.HideAll();
+            menu.DeleteWeaponObject(true);
             cam.IsActive = false;
             cam.Delete();
             Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
@@ -189,6 +199,7 @@ public class Main : Script
         if (MenuOpened && !LittleJacob.PlayerNearTrunk())
         {
             menu.Pool.HideAll();
+            menu.DeleteWeaponObject(true);
             cam.IsActive = false;
             cam.Delete();
             Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
@@ -203,6 +214,7 @@ public class Main : Script
         if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.Jacob.IsDead)
         {
             menu.Pool.HideAll();
+            menu.DeleteWeaponObject(true);
             cam.IsActive = false;
             cam.Delete();
             Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
@@ -245,6 +257,7 @@ public class Main : Script
             GTA.UI.Screen.ShowHelpTextThisFrame($"Press ~{OpenMenuKey}~ to purchase weapons", false);
         } else if (MenuOpened && !menu.Pool.AreAnyVisible)
         {
+            menu.DeleteWeaponObject(true);
             cam.IsActive = false;
             cam.Delete();
             Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
@@ -263,6 +276,23 @@ public class Main : Script
 
     void ControlWatch(object o, EventArgs e)
     {
+        /*if (Function.Call<bool>(Hash.IS_CONTROL_JUST_RELEASED, 0, 51))
+        {
+            Function.Call(Hash.REQUEST_WEAPON_ASSET, WeaponHash.Pistol, 31, 0);
+            while (!Function.Call<bool>(Hash.HAS_WEAPON_ASSET_LOADED, WeaponHash.Pistol))
+            {
+                Wait(250);
+            }
+            int a = Function.Call<int>(Hash.CREATE_WEAPON_OBJECT, WeaponHash.Pistol, 1, Game.Player.Character.FrontPosition.X, Game.Player.Character.FrontPosition.Y, Game.Player.Character.FrontPosition.Z, false, 1, 0);
+            Function.Call(Hash.REMOVE_WEAPON_ASSET, WeaponHash.Pistol);
+            GTA.UI.Screen.ShowSubtitle($"HANDLE {a}");
+        }*/
+
+        if (Function.Call<bool>(Hash.IS_CONTROL_JUST_RELEASED, 0, 52))
+        {
+
+        }
+
         if (!JacobActive)
         {
             return;
@@ -273,9 +303,9 @@ public class Main : Script
             if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !MenuOpened)
             {
                 cam = Function.Call<Camera>(Hash.CREATE_CAM, "DEFAULT_SCRIPTED_CAMERA", 0);
-                cam.AttachTo(Game.Player.Character.Bones.Core, new GTA.Math.Vector3(0, 1.2f, 0));
+                cam.Position = new GTA.Math.Vector3(LittleJacob.Vehicle.RearPosition.X, LittleJacob.Vehicle.RearPosition.Y, LittleJacob.Vehicle.RearPosition.Z + 0.3f);
                 cam.IsActive = true;
-                cam.PointAt(Game.Player.Character.RearPosition);
+                cam.PointAt(LittleJacob.Vehicle.FrontPosition);
                 Function.Call(Hash.RENDER_SCRIPT_CAMS, 1, 1, 3000, 1, 0);
 
                 LittleJacob.ToggleTrunk();

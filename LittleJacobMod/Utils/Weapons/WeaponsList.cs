@@ -5,6 +5,25 @@ namespace LittleJacobMod.Utils.Weapons
 {
     internal static class WeaponsList
     {
+        public static List<Weapon> Melee => new List<Weapon>()
+        {
+            new Bat(),
+            new BattleAxe(),
+            new Bottle(),
+            new Crowbar(),
+            new Dagger(),
+            new Flashlight(),
+            new Golfclub(),
+            new Hammer(),
+            new Hatchet(),
+            new Knife(),
+            new KnuckleDuster(),
+            new Nightstick(),
+            new StoneHatchet(),
+            new Switchblade(),
+            new Wrench()
+        };
+
         public static List<Weapon> Pistols => new List<Weapon>()
         {
             new Pistol(),
