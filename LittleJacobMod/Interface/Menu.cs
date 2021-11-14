@@ -25,6 +25,7 @@ namespace LittleJacobMod.Interface
         NativeMenu shotguns;
         NativeMenu explosives;
         Prop weaponHandle;
+        Vector3 weaponCoords;
         int oldIndex = -1;
         
         public ObjectPool Pool => pool;
@@ -179,6 +180,8 @@ namespace LittleJacobMod.Interface
                 explosives.AddSubMenu(expMenu);
             }
 
+            mainMenu.Shown += (o, e) => { weaponCoords = Main.LittleJacob.Vehicle.RearPosition; };
+
             melee.SelectedIndexChanged += (o, e) =>
             {
                 SelectedIndexChanged(e.Index, WeaponsList.Melee[e.Index]);
@@ -272,7 +275,11 @@ namespace LittleJacobMod.Interface
             {
                 Script.Wait(250);
             }
-            weaponHandle = Function.Call<Prop>(Hash.CREATE_WEAPON_OBJECT, hash, 1, Main.LittleJacob.Vehicle.RearPosition.X + (Main.cam.Direction.X / 2), Main.LittleJacob.Vehicle.RearPosition.Y + (Main.cam.Direction.Y / 2), Main.LittleJacob.Vehicle.RearPosition.Z + 0.3f, false, 1, 0);
+            weaponHandle = Function.Call<Prop>(Hash.CREATE_WEAPON_OBJECT, hash, 1, weaponCoords.X + (Main.cam.Direction.X / 1.4f), weaponCoords.Y + (Main.cam.Direction.Y / 1.4f), weaponCoords.Z + 0.15f, true, 1, 0);
+            weaponHandle.PositionNoOffset = new Vector3(weaponCoords.X + (Main.cam.Direction.X / 1.2f), weaponCoords.Y + (Main.cam.Direction.Y / 1.2f), weaponCoords.Z + 0.2f);
+            weaponHandle.HasGravity = false;
+            weaponHandle.IsCollisionEnabled = false;
+            weaponHandle.Heading = Main.cam.ForwardVector.ToHeading();
             Function.Call(Hash.REMOVE_WEAPON_ASSET, hash);
 
             if(LoadoutSaving.IsWeaponInStore(hash))
@@ -310,12 +317,17 @@ namespace LittleJacobMod.Interface
                 {
                     GiveWeaponComponentToObject(storedWeapon.Scope);
                 }
+
+                if (storedWeapon.Muzzle != WeaponComponentHash.Invalid)
+                {
+                    GiveWeaponComponentToObject(storedWeapon.Muzzle);
+                }
             }
         }
 
         public void DrawLight()
         {
-            Function.Call(Hash.DRAW_LIGHT_WITH_RANGE, Main.LittleJacob.Vehicle.RearPosition.X + (Main.cam.Direction.X / 2), Main.LittleJacob.Vehicle.RearPosition.Y + (Main.cam.Direction.Y / 2), Main.LittleJacob.Vehicle.RearPosition.Z + 0.3f, 255, 255, 255, 1.5f, 0.5f);
+            Function.Call(Hash.DRAW_LIGHT_WITH_RANGE, weaponCoords.X + (Main.cam.Direction.X / 2), weaponCoords.Y + (Main.cam.Direction.Y / 2), weaponCoords.Z + 0.3f, 255, 255, 255, 1.5f, 0.5f);
         }
 
         public void ShowMainMenu()
