@@ -85,45 +85,45 @@ class WeaponPreview : Script
 
             if (SkipComponent(storedWeapon.Camo))
             {
-                GiveWeaponComponentToObject(_compFromStorage ? storedWeapon.Camo : _new);
+                GiveWeaponComponentToObject(storedWeapon.Camo);
                 Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo, storedWeapon.GetCamoColor());
             }
 
             if (SkipComponent(storedWeapon.Barrel))
             {
-                GiveWeaponComponentToObject(_compFromStorage ? storedWeapon.Barrel : _new);
+                GiveWeaponComponentToObject(storedWeapon.Barrel);
             }
 
             if (SkipComponent(storedWeapon.Clip))
             {
-                GiveWeaponComponentToObject(_compFromStorage ? storedWeapon.Clip : _new);
+                GiveWeaponComponentToObject(storedWeapon.Clip);
             }
 
             if (SkipComponent(storedWeapon.Flashlight))
             {
-                GiveWeaponComponentToObject(_compFromStorage ? storedWeapon.Flashlight : _new);
+                GiveWeaponComponentToObject(storedWeapon.Flashlight);
             }
 
             if (SkipComponent(storedWeapon.Grip))
             {
-                GiveWeaponComponentToObject(_compFromStorage ? storedWeapon.Grip : _new);
+                GiveWeaponComponentToObject(storedWeapon.Grip);
             }
 
             if (SkipComponent(storedWeapon.Scope))
             {
-                GiveWeaponComponentToObject(_compFromStorage ? storedWeapon.Scope : _new);
+                GiveWeaponComponentToObject(storedWeapon.Scope);
             }
 
             if (SkipComponent(storedWeapon.Muzzle))
             {
-                GiveWeaponComponentToObject(_compFromStorage ? storedWeapon.Muzzle : _new);
+                GiveWeaponComponentToObject(storedWeapon.Muzzle);
             }
         }
     }
 
     private bool SkipComponent(WeaponComponentHash component)
     {
-        return (_compFromStorage && component != WeaponComponentHash.Invalid) || (!_compFromStorage && _old != component && _new != WeaponComponentHash.Invalid);
+        return (_compFromStorage && component != WeaponComponentHash.Invalid) || (!_compFromStorage && _old != component && _old != WeaponComponentHash.Invalid);
     }
 
     private void Menu_SpawnWeaponObject(object sender, WeaponHash hash)
