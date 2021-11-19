@@ -17,6 +17,11 @@ namespace LittleJacobMod.Saving
             Mapper.Process(StoredWeapons);
         }
 
+        public static int Count()
+        {
+            return StoredWeapons.Count;
+        }
+
         public static bool IsWeaponInStore(WeaponHash weapon)
         {
             foreach (var storedWeapon in StoredWeapons)

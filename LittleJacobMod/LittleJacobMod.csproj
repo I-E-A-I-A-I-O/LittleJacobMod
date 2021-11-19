@@ -100,6 +100,8 @@
     <Compile Include="Saving\Mapper.cs" />
     <Compile Include="Saving\Utils\Migrator.cs" />
     <Compile Include="Saving\Utils\StoredWeapon.cs" />
+    <Compile Include="Utils\ComoColorEventArgs.cs" />
+    <Compile Include="Utils\ComponentPreviewEventArgs.cs" />
     <Compile Include="Utils\Controls.cs" />
     <Compile Include="Utils\LittleJacob.cs" />
     <Compile Include="Utils\Timers.cs" />
@@ -195,6 +197,7 @@
     <Compile Include="Utils\Weapons\Weapon.cs" />
     <Compile Include="Utils\Weapons\WeaponsList.cs" />
     <Compile Include="Utils\Weapons\Normal\Heavy\Widowmaker.cs" />
+    <Compile Include="WeaponPreview.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

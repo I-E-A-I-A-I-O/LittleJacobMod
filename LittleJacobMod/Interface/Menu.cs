@@ -5,16 +5,16 @@ using LemonUI;
 using LemonUI.Menus;
 using GTA;
 using GTA.Native;
-using GTA.Math;
 using LittleJacobMod.Utils;
 using LittleJacobMod.Utils.Weapons;
 using LittleJacobMod.Saving;
 
 namespace LittleJacobMod.Interface
 {
-    internal class Menu
+    public class Menu
     {
-        ObjectPool pool;
+        public ObjectPool Pool { get; private set; }
+
         NativeMenu mainMenu;
         NativeMenu melee;
         NativeMenu pistols;
@@ -24,15 +24,16 @@ namespace LittleJacobMod.Interface
         NativeMenu heavy;
         NativeMenu shotguns;
         NativeMenu explosives;
-        Prop weaponHandle;
-        Vector3 weaponCoords;
-        int oldIndex = -1;
-        
-        public ObjectPool Pool => pool;
+
+        public static event EventHandler<ComponentPreviewEventArgs> ComponentSelected;
+        public static event EventHandler<WeaponHash> SpawnWeaponObject;
+        public static event EventHandler<int> TintChanged;
+        public static event EventHandler<CamoColorEventArgs> CamoColorChanged;
+        public static event EventHandler<WeaponHash> ReloadComponents;
 
         public Menu()
         {
-            pool = new ObjectPool();
+            Pool = new ObjectPool();
             mainMenu = new NativeMenu("Little Jacob", "Weapon store");
             melee = new NativeMenu("Melee", "Melee weapons");
             pistols = new NativeMenu("Pistols", "Pistols");
@@ -44,15 +45,15 @@ namespace LittleJacobMod.Interface
             heavy = new NativeMenu("Heavy Weapons", "Heavy Weapons");
             var armorOption = new NativeItem("Armor", "Buy armor");
 
-            pool.Add(mainMenu);
-            pool.Add(melee);
-            pool.Add(pistols);
-            pool.Add(rifles);
-            pool.Add(mg);
-            pool.Add(snipers);
-            pool.Add(explosives);
-            pool.Add(shotguns);
-            pool.Add(heavy);
+            Pool.Add(mainMenu);
+            Pool.Add(melee);
+            Pool.Add(pistols);
+            Pool.Add(rifles);
+            Pool.Add(mg);
+            Pool.Add(snipers);
+            Pool.Add(explosives);
+            Pool.Add(shotguns);
+            Pool.Add(heavy);
 
             mainMenu.AddSubMenu(melee);
             mainMenu.AddSubMenu(pistols);
@@ -76,258 +77,55 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show("Armor purchased!");
             };
 
-            for (var i = 0; i < WeaponsList.Melee.Count; i++)
-            {
-                var index = i;
-                var displayName = WeaponsList.Melee[i].Name;
-                var meleeMenu = new NativeMenu(displayName, displayName);
+            AddSubmenu(WeaponsList.Melee, melee, false, true);
+            AddSubmenu(WeaponsList.Pistols, pistols);
+            AddSubmenu(WeaponsList.SMGs, mg);
+            AddSubmenu(WeaponsList.Rifles, rifles);
+            AddSubmenu(WeaponsList.Shotguns, shotguns);
+            AddSubmenu(WeaponsList.Snipers, snipers);
+            AddSubmenu(WeaponsList.Heavy, heavy);
+            AddSubmenu(WeaponsList.Explosives, explosives, true);
 
-                meleeMenu.Shown += (o, e) => WeaponSelected(WeaponsList.Melee[index], WeaponsList.Melee[index].Price, meleeMenu, false, true);
-                meleeMenu.Closed += (o, e) => meleeMenu.Clear();
-
-                pool.Add(meleeMenu);
-                melee.AddSubMenu(meleeMenu);
-            }
-
-            for (var i = 0; i < WeaponsList.Pistols.Count; i++)
-            {
-                var index = i;
-                var displayName = WeaponsList.Pistols[i].Name;
-                var pistolMenu = new NativeMenu(displayName, displayName);
-
-                pistolMenu.Shown += (o, e) => WeaponSelected(WeaponsList.Pistols[index], WeaponsList.Pistols[index].Price, pistolMenu);
-                pistolMenu.Closed += (o, e) => pistolMenu.Clear();
-                
-                pool.Add(pistolMenu);
-                pistols.AddSubMenu(pistolMenu);
-            }
-
-            for (var i = 0; i < WeaponsList.SMGs.Count; i++)
-            {
-                var index = i;
-                var displayName = WeaponsList.SMGs[i].Name;
-                var smgMenu = new NativeMenu(displayName, displayName);
-
-                smgMenu.Shown += (o, e) => WeaponSelected(WeaponsList.SMGs[index], WeaponsList.SMGs[index].Price, smgMenu);
-                smgMenu.Closed += (o, e) => smgMenu.Clear();
-
-                pool.Add(smgMenu);
-                mg.AddSubMenu(smgMenu);
-            }
-
-            for (var i = 0; i < WeaponsList.Shotguns.Count; i++)
-            {
-                var index = i;
-                var displayName = WeaponsList.Shotguns[i].Name;
-                var shotgunMenu = new NativeMenu(displayName, displayName);
-
-                shotgunMenu.Shown += (o, e) => WeaponSelected(WeaponsList.Shotguns[index], WeaponsList.Shotguns[index].Price, shotgunMenu);
-                shotgunMenu.Closed += (o, e) => shotgunMenu.Clear();
-
-                pool.Add(shotgunMenu);
-                shotguns.AddSubMenu(shotgunMenu);
-            }
-
-            for (var i = 0; i < WeaponsList.Rifles.Count; i++)
-            {
-                var index = i;
-                var displayName = WeaponsList.Rifles[i].Name;
-                var rifleMenu = new NativeMenu(displayName, displayName);
-
-                rifleMenu.Shown += (o, e) => WeaponSelected(WeaponsList.Rifles[index], WeaponsList.Rifles[index].Price, rifleMenu);
-                rifleMenu.Closed += (o, e) => rifleMenu.Clear();
-
-                pool.Add(rifleMenu);
-                rifles.AddSubMenu(rifleMenu);
-            }
-
-            for (var i = 0; i < WeaponsList.Snipers.Count; i++)
-            {
-                var index = i;
-                var displayName = WeaponsList.Snipers[i].Name;
-                var sniperMenu = new NativeMenu(displayName, displayName);
-
-                sniperMenu.Shown += (o, e) => WeaponSelected(WeaponsList.Snipers[index], WeaponsList.Snipers[index].Price, sniperMenu);
-                sniperMenu.Closed += (o, e) => sniperMenu.Clear();
-
-                pool.Add(sniperMenu);
-                snipers.AddSubMenu(sniperMenu);
-            }
-
-            for (var i = 0; i < WeaponsList.Heavy.Count; i++)
-            {
-                var index = i;
-                var displayName = WeaponsList.Heavy[i].Name;
-                var heavyMenu = new NativeMenu(displayName, displayName);
-
-                heavyMenu.Shown += (o, e) => WeaponSelected(WeaponsList.Heavy[index], WeaponsList.Heavy[index].Price, heavyMenu);
-                heavyMenu.Closed += (o, e) => heavyMenu.Clear();
-
-                pool.Add(heavyMenu);
-                heavy.AddSubMenu(heavyMenu);
-            }
-
-            for (var i = 0; i < WeaponsList.Explosives.Count; i++)
-            {
-                var index = i;
-                var displayName = WeaponsList.Explosives[i].Name;
-                var expMenu = new NativeMenu(displayName, displayName);
-
-                expMenu.Shown += (o, e) => WeaponSelected(WeaponsList.Explosives[index], WeaponsList.Explosives[index].Price, expMenu, true);
-                expMenu.Closed += (o, e) => expMenu.Clear();
-
-                pool.Add(expMenu);
-                explosives.AddSubMenu(expMenu);
-            }
-
-            mainMenu.Shown += (o, e) => { weaponCoords = Main.LittleJacob.Vehicle.RearPosition; };
-
-            melee.SelectedIndexChanged += (o, e) =>
-            {
-                SelectedIndexChanged(e.Index, WeaponsList.Melee[e.Index]);
-            };
-
-            melee.Closed += (o, e) => { oldIndex = -1; };
-
-            pistols.SelectedIndexChanged += (o, e) =>
-            {
-                SelectedIndexChanged(e.Index, WeaponsList.Pistols[e.Index]);
-            };
-
-            pistols.Closed += (o, e) => { oldIndex = -1; };
-
-            rifles.SelectedIndexChanged += (o, e) =>
-            {
-                SelectedIndexChanged(e.Index, WeaponsList.Rifles[e.Index]);
-            };
-
-            rifles.Closed += (o, e) => { oldIndex = -1; };
-
-            mg.SelectedIndexChanged += (o, e) =>
-            {
-                SelectedIndexChanged(e.Index, WeaponsList.SMGs[e.Index]);
-            };
-
-            mg.Closed += (o, e) => { oldIndex = -1; };
-
-            shotguns.SelectedIndexChanged += (o, e) =>
-            {
-                SelectedIndexChanged(e.Index, WeaponsList.Shotguns[e.Index]);
-            };
-
-            shotguns.Closed += (o, e) => { oldIndex = -1; };
-
-            snipers.SelectedIndexChanged += (o, e) =>
-            {
-                SelectedIndexChanged(e.Index, WeaponsList.Snipers[e.Index]);
-            };
-
-            snipers.Closed += (o, e) => { oldIndex = -1; };
-
-            heavy.SelectedIndexChanged += (o, e) =>
-            {
-                SelectedIndexChanged(e.Index, WeaponsList.Heavy[e.Index]);
-            };
-
-            heavy.Closed += (o, e) => { oldIndex = -1; };
-
-            explosives.SelectedIndexChanged += (o, e) =>
-            {
-                SelectedIndexChanged(e.Index, WeaponsList.Explosives[e.Index]);
-            };
-
-            explosives.Closed += (o, e) => { oldIndex = -1; };
+            melee.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(WeaponsList.Melee[e.Index]); };
+            pistols.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(WeaponsList.Pistols[e.Index]); };
+            rifles.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(WeaponsList.Rifles[e.Index]); };
+            mg.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(WeaponsList.SMGs[e.Index]); };
+            shotguns.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(WeaponsList.Shotguns[e.Index]); };
+            snipers.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(WeaponsList.Snipers[e.Index]); };
+            heavy.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(WeaponsList.Heavy[e.Index]); };
+            explosives.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(WeaponsList.Explosives[e.Index]); };
         }
 
-        private void SelectedIndexChanged(int index, Utils.Weapons.Weapon weapon)
+        private void AddSubmenu(List<Utils.Weapons.Weapon> weaponGroup, NativeMenu parentMenu, bool isExplosive = false, bool isMelee = false)
         {
-            if (oldIndex == index)
+            for (var i = 0; i < weaponGroup.Count; i++)
             {
-                return;
-            }
+                var displayName = weaponGroup[i].Name;
+                var subMenu = new NativeMenu(displayName, displayName);
 
-            oldIndex = index;
-
-            SpawnWeaponObject(weapon.WeaponHash);
-        }
-
-        void GiveWeaponComponentToObject(WeaponComponentHash component)
-        {
-            int componentModel = Function.Call<int>(Hash.GET_WEAPON_COMPONENT_TYPE_MODEL, component);
-            if (componentModel != 0)
-            {
-                Function.Call(Hash.REQUEST_MODEL, componentModel);
-                while (!Function.Call<bool>(Hash.HAS_MODEL_LOADED, componentModel))
+                subMenu.Shown += (o, e) =>
                 {
-                    Script.Wait(250);
-                }
-                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_WEAPON_OBJECT, weaponHandle.Handle, component);
-                Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, componentModel);
+                    if (WeaponSelected(weaponGroup[parentMenu.SelectedIndex], weaponGroup[parentMenu.SelectedIndex].Price, subMenu))
+                    {
+                        AddOptions(weaponGroup[parentMenu.SelectedIndex], subMenu, isExplosive, isMelee);
+                    }
+                };
+
+                subMenu.SelectedIndexChanged += (o, e) =>
+                {
+                    ReloadComponents?.Invoke(this, weaponGroup[parentMenu.SelectedIndex].WeaponHash);
+                };
+
+                subMenu.Closed += (o, e) => subMenu.Clear();
+
+                Pool.Add(subMenu);
+                parentMenu.AddSubMenu(subMenu);
             }
         }
 
-        void SpawnWeaponObject(WeaponHash hash)
+        private void SelectedIndexChanged(Utils.Weapons.Weapon weapon)
         {
-            DeleteWeaponObject();
-
-            Function.Call(Hash.REQUEST_WEAPON_ASSET, hash, 31, 0);
-            while (!Function.Call<bool>(Hash.HAS_WEAPON_ASSET_LOADED, hash))
-            {
-                Script.Wait(250);
-            }
-            weaponHandle = Function.Call<Prop>(Hash.CREATE_WEAPON_OBJECT, hash, 1, weaponCoords.X + (Main.cam.Direction.X / 1.4f), weaponCoords.Y + (Main.cam.Direction.Y / 1.4f), weaponCoords.Z + 0.15f, true, 1, 0);
-            weaponHandle.PositionNoOffset = new Vector3(weaponCoords.X + (Main.cam.Direction.X / 1.2f), weaponCoords.Y + (Main.cam.Direction.Y / 1.2f), weaponCoords.Z + 0.2f);
-            weaponHandle.HasGravity = false;
-            weaponHandle.IsCollisionEnabled = false;
-            weaponHandle.Heading = Main.cam.ForwardVector.ToHeading();
-            Function.Call(Hash.REMOVE_WEAPON_ASSET, hash);
-
-            if(LoadoutSaving.IsWeaponInStore(hash))
-            {
-                var storedWeapon = LoadoutSaving.GetStoreReference(hash);
-                Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, weaponHandle.Handle, storedWeapon.GetTintIndex());
-
-                if (storedWeapon.Camo != WeaponComponentHash.Invalid)
-                {
-                    GiveWeaponComponentToObject(storedWeapon.Camo);
-                    Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, weaponHandle.Handle, storedWeapon.Camo, storedWeapon.GetCamoColor());
-                }
-
-                if (storedWeapon.Barrel != WeaponComponentHash.Invalid)
-                {
-                    GiveWeaponComponentToObject(storedWeapon.Barrel);
-                }
-
-                if (storedWeapon.Clip != WeaponComponentHash.Invalid)
-                {
-                    GiveWeaponComponentToObject(storedWeapon.Clip);
-                }
-
-                if (storedWeapon.Flashlight != WeaponComponentHash.Invalid)
-                {
-                    GiveWeaponComponentToObject(storedWeapon.Flashlight);
-                }
-
-                if (storedWeapon.Grip != WeaponComponentHash.Invalid)
-                {
-                    GiveWeaponComponentToObject(storedWeapon.Grip);
-                }
-
-                if (storedWeapon.Scope != WeaponComponentHash.Invalid)
-                {
-                    GiveWeaponComponentToObject(storedWeapon.Scope);
-                }
-
-                if (storedWeapon.Muzzle != WeaponComponentHash.Invalid)
-                {
-                    GiveWeaponComponentToObject(storedWeapon.Muzzle);
-                }
-            }
-        }
-
-        public void DrawLight()
-        {
-            Function.Call(Hash.DRAW_LIGHT_WITH_RANGE, weaponCoords.X + (Main.cam.Direction.X / 2), weaponCoords.Y + (Main.cam.Direction.Y / 2), weaponCoords.Z + 0.3f, 255, 255, 255, 1.5f, 0.5f);
+            SpawnWeaponObject?.Invoke(this, weapon.WeaponHash);
         }
 
         public void ShowMainMenu()
@@ -335,20 +133,7 @@ namespace LittleJacobMod.Interface
             mainMenu.Visible = true;
         }
 
-        public void DeleteWeaponObject(bool resetIndex = false)
-        {
-            if (weaponHandle != null && weaponHandle.Handle != 0)
-            {
-                weaponHandle.Delete();
-            }
-
-            if (resetIndex)
-            {
-                oldIndex = -1;
-            }
-        }
-
-        void WeaponSelected(Utils.Weapons.Weapon weapon, int price, NativeMenu menu, bool isExplosive = false, bool isMelee = false)
+        bool WeaponSelected(Utils.Weapons.Weapon weapon, int price, NativeMenu menu)
         {
             var hasWeapon = Game.Player.Character.Weapons.HasWeapon(weapon.WeaponHash);
             if (!hasWeapon)
@@ -356,31 +141,34 @@ namespace LittleJacobMod.Interface
                 if (Game.Player.Money < price)
                 {
                     GTA.UI.Notification.Show("You don't have enough money!");
-                    mainMenu.Back();
-                    return;
+                    menu.Back();
+                    return false;
                 }
                 GTA.UI.Notification.Show($"{weapon.Name} purchased!");
                 Main.LittleJacob.ProcessVoice(true, true);
                 Game.Player.Money -= price;
                 Game.Player.Character.Weapons.Give(weapon.WeaponHash, 0, false, false);
             }
-            Script.Wait(1);
+
             Game.Player.Character.Weapons.Select(weapon.WeaponHash, true);
-            Script.Wait(1);
             var currentWeapon = Game.Player.Character.Weapons.Current;
+            LoadoutSaving.AddWeapon(currentWeapon);
 
-            if (!LoadoutSaving.IsPedMainPlayer(Game.Player.Character) || weapon.SaveFileWeapon)
-            {
-                LoadoutSaving.AddWeapon(currentWeapon);
-            }
+            return true;
+        }
 
+        void AddOptions(Utils.Weapons.Weapon weapon, NativeMenu menu, bool isExplosive, bool isMelee)
+        {
             if (isMelee)
             {
                 return;
             }
 
-            var ammoOptionItem = new NativeSliderItem("Ammo", currentWeapon.MaxAmmo, 1);
-            ammoOptionItem.Activated += (o, e) => AmmoPurchased(currentWeapon, ammoOptionItem.Value);
+            var ammoOptionItem = new NativeSliderItem("Ammo", 250, 1);
+            ammoOptionItem.Activated += (o, e) => 
+            {
+                AmmoPurchased(Game.Player.Character.Weapons.Current, ammoOptionItem.Value);
+            };
             menu.Add(ammoOptionItem);
 
             if (isExplosive)
@@ -388,100 +176,194 @@ namespace LittleJacobMod.Interface
                 return;
             }
 
+            var storeRef = LoadoutSaving.GetStoreReference(weapon.WeaponHash);
+
             if (weapon.WeaponHash != WeaponHash.PericoPistol && weapon.WeaponHash != WeaponHash.DoubleActionRevolver && weapon.WeaponHash != WeaponHash.NavyRevolver)
             {
                 var tintSlider = new NativeListItem<string>("Tints");
-                for (int i = 0; i < Function.Call<int>(Hash.GET_WEAPON_TINT_COUNT, currentWeapon.Hash); i++)
+
+                for (int i = 0; i < Function.Call<int>(Hash.GET_WEAPON_TINT_COUNT, weapon.WeaponHash); i++)
                 {
                     tintSlider.Add($"{i}");
                 }
+
+                var index = storeRef.GetTintIndex();
+                tintSlider.SelectedIndex = index == -1 ? 0 : index;
+
                 tintSlider.Activated += (o, e) =>
                 {
-                    TintPurchased(currentWeapon, tintSlider.SelectedIndex, weapon.SaveFileWeapon);
+                    TintPurchased(weapon.WeaponHash, tintSlider.SelectedIndex);
                     Main.LittleJacob.ProcessVoice(true);
                 };
+
+                tintSlider.ItemChanged += (o, e) =>
+                {
+                    TintChanged?.Invoke(this, e.Index);
+                };
+
                 menu.Add(tintSlider);
             }
 
             if (weapon.HasClip)
             {
                 var clipSlider = new NativeListItem<string>("Clips");
+
                 for (int i = 0; i < weapon.Clips.Count; i++)
                 {
                     clipSlider.Add(weapon.Clips.ElementAt(i).Key);
                 }
+
+                var index = weapon.Clips.Values.ToList().IndexOf(storeRef.Clip);
+                clipSlider.SelectedIndex = index == -1 ? 0 : index;
+
                 clipSlider.Activated += (o, e) =>
                 {
-                    ClipPurchased(currentWeapon, weapon.Clips.ElementAt(clipSlider.SelectedIndex), weapon.SaveFileWeapon);
+                    ComponentPurchased(weapon.WeaponHash, weapon.Clips.ElementAt(clipSlider.SelectedIndex), null, LoadoutSaving.SetClip);
                     Main.LittleJacob.ProcessVoice(true);
                 };
+
+                clipSlider.ItemChanged += (o, e) =>
+                {
+                    ComponentSelected?.Invoke(this, 
+                        new ComponentPreviewEventArgs(weapon.WeaponHash, storeRef.Clip, 
+                        weapon.Clips.ElementAt(clipSlider.SelectedIndex).Value));
+                };
+
                 menu.Add(clipSlider);
             }
 
             if (weapon.HasMuzzleOrSupp)
             {
-                var muzzleSlider = new NativeListItem<string>("Muzzle and suppressors");
+                var muzzleSlider = new NativeListItem<string>("Muzzle");
+
                 for (int i = 0; i < weapon.MuzzlesAndSupps.Count; i++)
                 {
                     muzzleSlider.Add(weapon.MuzzlesAndSupps.ElementAt(i).Key);
                 }
+
+                var index = weapon.MuzzlesAndSupps.Values.ToList().IndexOf(storeRef.Muzzle);
+                muzzleSlider.SelectedIndex = index == -1 ? 0 : index;
+
                 muzzleSlider.Activated += (o, e) =>
                 {
-                    MuzzlePurchased(currentWeapon, weapon.MuzzlesAndSupps.ElementAt(muzzleSlider.SelectedIndex), weapon.MuzzlesAndSupps.Values.ToList(), weapon.SaveFileWeapon);
+                    ComponentPurchased(weapon.WeaponHash, weapon.MuzzlesAndSupps.ElementAt(muzzleSlider.SelectedIndex), weapon.MuzzlesAndSupps.Values.ToList(), LoadoutSaving.SetMuzzle);
                     Main.LittleJacob.ProcessVoice(true);
                 };
+
+                muzzleSlider.ItemChanged += (o, e) =>
+                {
+                    ComponentSelected?.Invoke(this, new ComponentPreviewEventArgs(weapon.WeaponHash, storeRef.Muzzle, 
+                        weapon.MuzzlesAndSupps.ElementAt(muzzleSlider.SelectedIndex).Value));
+                };
+
                 menu.Add(muzzleSlider);
             }
 
             if (weapon.HasFlaslight)
             {
                 var flashSlider = new NativeListItem<string>("Flashlight");
+
                 for (int i = 0; i < weapon.FlashLight.Count; i++)
                 {
                     flashSlider.Add(weapon.FlashLight.ElementAt(i).Key);
                 }
+
+                var index = weapon.FlashLight.Values.ToList().IndexOf(storeRef.Flashlight);
+                flashSlider.SelectedIndex = index == -1 ? 0 : index;
+
                 flashSlider.Activated += (o, e) =>
                 {
-                    FlashPurchased(currentWeapon, weapon.FlashLight.ElementAt(flashSlider.SelectedIndex), weapon.FlashLight.Values.ToList(), weapon.SaveFileWeapon);
+                    ComponentPurchased(weapon.WeaponHash, weapon.FlashLight.ElementAt(flashSlider.SelectedIndex), weapon.FlashLight.Values.ToList(), LoadoutSaving.SetFlashlight);
                     Main.LittleJacob.ProcessVoice(true);
                 };
+
+                flashSlider.ItemChanged += (o, e) =>
+                {
+                    ComponentSelected?.Invoke(this, new ComponentPreviewEventArgs(weapon.WeaponHash, storeRef.Flashlight,
+                        weapon.FlashLight.ElementAt(flashSlider.SelectedIndex).Value));
+                };
+
                 menu.Add(flashSlider);
             }
 
             if (weapon.HasScope)
             {
                 var scopeSlider = new NativeListItem<string>("Scopes");
+
                 for (int i = 0; i < weapon.Scopes.Count; i++)
                 {
                     scopeSlider.Add(weapon.Scopes.ElementAt(i).Key);
                 }
-                scopeSlider.Activated += (o, e) => 
-                { 
-                    ScopePurchased(currentWeapon, weapon.Scopes.ElementAt(scopeSlider.SelectedIndex), weapon.Scopes.Values.ToList(), weapon.SaveFileWeapon);
-                    Main.LittleJacob.ProcessVoice(true); 
+
+                var index = weapon.Scopes.Values.ToList().IndexOf(storeRef.Scope);
+                scopeSlider.SelectedIndex = index == -1 ? 0 : index;
+
+                scopeSlider.Activated += (o, e) =>
+                {
+                    ComponentPurchased(weapon.WeaponHash, weapon.Scopes.ElementAt(scopeSlider.SelectedIndex), weapon.Scopes.Values.ToList(), LoadoutSaving.SetScope);
+                    Main.LittleJacob.ProcessVoice(true);
                 };
+
+                scopeSlider.ItemChanged += (o, e) =>
+                {
+                    ComponentSelected?.Invoke(this, new ComponentPreviewEventArgs(weapon.WeaponHash, storeRef.Scope,
+                        weapon.Scopes.ElementAt(scopeSlider.SelectedIndex).Value));
+                };
+
                 menu.Add(scopeSlider);
             }
 
             if (weapon.HasGrip)
             {
                 var gripSlider = new NativeListItem<string>("Grips");
+
                 for (int i = 0; i < weapon.Grips.Count; i++)
                 {
                     gripSlider.Add(weapon.Grips.ElementAt(i).Key);
                 }
-                gripSlider.Activated += (o, e) => { GripPurchased(currentWeapon, weapon.Grips.ElementAt(gripSlider.SelectedIndex), weapon.Grips.Values.ToList(), weapon.SaveFileWeapon); Main.LittleJacob.ProcessVoice(true); };
+
+                var index = weapon.Grips.Values.ToList().IndexOf(storeRef.Grip);
+                gripSlider.SelectedIndex = index == -1 ? 0 : index;
+
+                gripSlider.Activated += (o, e) => 
+                { 
+                    ComponentPurchased(weapon.WeaponHash, weapon.Grips.ElementAt(gripSlider.SelectedIndex), weapon.Grips.Values.ToList(), LoadoutSaving.SetGrip);
+                    Main.LittleJacob.ProcessVoice(true); 
+                };
+                
+                gripSlider.ItemChanged += (o, e) =>
+                {
+                    ComponentSelected?.Invoke(this, new ComponentPreviewEventArgs(weapon.WeaponHash, storeRef.Grip,
+                        weapon.Grips.ElementAt(gripSlider.SelectedIndex).Value));
+                };
+
                 menu.Add(gripSlider);
             }
 
             if (weapon.HasBarrel)
             {
                 var barrelSlider = new NativeListItem<string>("Barrels");
+
                 for (int i = 0; i < weapon.Barrels.Count; i++)
                 {
                     barrelSlider.Add(weapon.Barrels.ElementAt(i).Key);
                 }
-                barrelSlider.Activated += (o, e) => { BarrelPurchased(currentWeapon, weapon.Barrels.ElementAt(barrelSlider.SelectedIndex), weapon.Barrels.Values.ToList()); Main.LittleJacob.ProcessVoice(true); };
+
+                var index = weapon.Barrels.Values.ToList().IndexOf(storeRef.Barrel);
+                barrelSlider.SelectedIndex = index == -1 ? 0 : index;
+
+                barrelSlider.Activated += (o, e) => 
+                { 
+                    ComponentPurchased(weapon.WeaponHash, weapon.Barrels.ElementAt(barrelSlider.SelectedIndex), weapon.Barrels.Values.ToList(), LoadoutSaving.SetBarrel);
+                    Main.LittleJacob.ProcessVoice(true); 
+                };
+
+                barrelSlider.ItemChanged += (o, e) =>
+                {
+                    ComponentSelected?.Invoke(this, new ComponentPreviewEventArgs(weapon.WeaponHash, storeRef.Barrel,
+                        weapon.Barrels.ElementAt(barrelSlider.SelectedIndex).Value));
+                };
+
                 menu.Add(barrelSlider);
             }
 
@@ -489,16 +371,44 @@ namespace LittleJacobMod.Interface
             {
                 var camoSlider = new NativeListItem<string>("Camo");
                 var camoColorSlider = new NativeListItem<string>("Camo color");
+
                 for (int i = 0; i < weapon.Camos.Count; i++)
                 {
                     camoSlider.Add(weapon.Camos.ElementAt(i).Key);
                 }
+
                 for (int i = 0; i < 31; i++)
                 {
                     camoColorSlider.Add($"{i}");
                 }
-                camoSlider.Activated += (o, e) => { CamoPurchased(currentWeapon, weapon.Camos.ElementAt(camoSlider.SelectedIndex), weapon.Camos.Values.ToList()); Main.LittleJacob.ProcessVoice(true); };
-                camoColorSlider.Activated += (o, e) => CamoColorPurchased(currentWeapon, camoColorSlider.SelectedIndex);
+
+                var index = weapon.Camos.Values.ToList().IndexOf(storeRef.Camo);
+                camoSlider.SelectedIndex = index == -1 ? 0 : index;
+                index = storeRef.GetCamoColor();
+                camoColorSlider.SelectedIndex = index < 0 ? 0 : index;
+
+                camoSlider.Activated += (o, e) => { ComponentPurchased(weapon.WeaponHash, weapon.Camos.ElementAt(camoSlider.SelectedIndex), weapon.Camos.Values.ToList(), LoadoutSaving.SetCamo, true); Main.LittleJacob.ProcessVoice(true); };
+
+                camoSlider.ItemChanged += (o, e) =>
+                {
+                    ComponentSelected?.Invoke(this,
+                        new ComponentPreviewEventArgs(weapon.WeaponHash, storeRef.Camo,
+                        weapon.Camos.ElementAt(camoSlider.SelectedIndex).Value));
+                };
+
+                camoColorSlider.ItemChanged += (o, e) =>
+                {
+                    var eventArgs = new CamoColorEventArgs
+                    {
+                        Camo = storeRef.Camo,
+                        ColorIndex = index
+                    };
+
+                    CamoColorChanged?.Invoke(this, eventArgs);
+                };
+
+                camoColorSlider.Activated += (o, e) => CamoColorPurchased(weapon.WeaponHash, camoColorSlider.SelectedIndex);
+                
                 menu.Add(camoSlider);
                 menu.Add(camoColorSlider);
             }
@@ -527,7 +437,7 @@ namespace LittleJacobMod.Interface
             LoadoutSaving.SetAmmo(weapon.Hash, weapon.Ammo);
         }
 
-        void TintPurchased(GTA.Weapon weapon, int index, bool saveFileWeapon)
+        void TintPurchased(WeaponHash weapon, int index)
         {
             var price = 5000;
             if (Game.Player.Money < price)
@@ -536,234 +446,72 @@ namespace LittleJacobMod.Interface
                 return;
             }
             Game.Player.Money -= price;
-            Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, Game.Player.Character.Handle, weapon.Hash, index);
-            Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, weaponHandle.Handle, index);
-            GTA.UI.Notification.Show($"Tint purchased!");
-            LoadoutSaving.SetTint(weapon.Hash, index);
+
+            TintChanged?.Invoke(this, index);
+            Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, Game.Player.Character.Handle, weapon, index);
+
+            GTA.UI.Notification.Show("Tint purchased!");
+            LoadoutSaving.SetTint(weapon, index);
         }
 
-        void ClipPurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, bool saveFileWeapon)
+        void ComponentPurchased(WeaponHash weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, List<WeaponComponentHash> components, Action<WeaponHash, WeaponComponentHash> OnSuccess, bool isCamo = false)
         {
-            var price = int.Parse(weaponComponent.Key.Split('$')[1]);
-            if (Game.Player.Money < price)
-            {
-                GTA.UI.Notification.Show("Couldn't purchase the clip. Not enough money!");
-                return;
-            }
-            Game.Player.Money -= price;
-            GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-            GiveWeaponComponentToObject(weaponComponent.Value);
-            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
-            LoadoutSaving.SetClip(weapon.Hash, weaponComponent.Value);
-        }
+            var price = isCamo ? 60000 : int.Parse(weaponComponent.Key.Split('$')[1]);
+            var name = isCamo ? weaponComponent.Key : weaponComponent.Key.Split('-')[0];
 
-        void MuzzlePurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, List<WeaponComponentHash> components, bool saveFileWeapon)
-        {
-            var price = int.Parse(weaponComponent.Key.Split('$')[1]);
             if (Game.Player.Money < price)
             {
-                GTA.UI.Notification.Show("Couldn't purchase the muzzle attachment. Not enough money!");
+                GTA.UI.Notification.Show($"Couldn't purchase {name}. Not enough money!");
                 return;
             }
+
             Game.Player.Money -= price;
+
             if (weaponComponent.Key.Contains("None"))
             {
                 foreach (WeaponComponentHash component in components)
                 {
-                    if (weaponComponent.Value != component && Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON_COMPONENT, Game.Player.Character.Handle, weapon.Hash, component))
+                    if (weaponComponent.Value != component && Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON_COMPONENT, Game.Player.Character.Handle, weapon, component))
                     {
-                        Function.Call(Hash.REMOVE_WEAPON_COMPONENT_FROM_PED, Game.Player.Character.Handle, weapon.Hash, component);
+                        Function.Call(Hash.REMOVE_WEAPON_COMPONENT_FROM_PED, Game.Player.Character.Handle, weapon, component);
                     }
                 }
-                GTA.UI.Notification.Show("Muzzle attachments removed!");
-                LoadoutSaving.SetMuzzle(weapon.Hash, WeaponComponentHash.Invalid);
-                SpawnWeaponObject(weapon.Hash);
-            } else
-            {
-                GiveWeaponComponentToObject(weaponComponent.Value);
-                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
-                GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                LoadoutSaving.SetMuzzle(weapon.Hash, weaponComponent.Value);
-            }
-        }
-
-        void FlashPurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, List<WeaponComponentHash> components, bool saveFileWeapon)
-        {
-            var price = int.Parse(weaponComponent.Key.Split('$')[1]);
-            if (Game.Player.Money < price)
-            {
-                GTA.UI.Notification.Show("Couldn't purchase flashlight. Not enough money!");
-                return;
-            }
-            Game.Player.Money -= price;
-            if (weaponComponent.Key.Contains("None"))
-            {
-                foreach (WeaponComponentHash component in components)
-                {
-                    if (weaponComponent.Value != component && Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON_COMPONENT, Game.Player.Character.Handle, weapon.Hash, component))
-                    {
-                        Function.Call(Hash.REMOVE_WEAPON_COMPONENT_FROM_PED, Game.Player.Character.Handle, weapon.Hash, component);
-                    }
-                }
-                GTA.UI.Notification.Show("Flashlight removed!");
-                LoadoutSaving.SetFlashlight(weapon.Hash, WeaponComponentHash.Invalid);
-                SpawnWeaponObject(weapon.Hash);
+                GTA.UI.Notification.Show($"Attachments removed!");
+                OnSuccess(weapon, WeaponComponentHash.Invalid);
+                //SpawnWeaponObject?.Invoke(this, weapon);
             }
             else
             {
-                GiveWeaponComponentToObject(weaponComponent.Value);
-                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
-                GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                LoadoutSaving.SetFlashlight(weapon.Hash, weaponComponent.Value);
+                //ComponentSelected?.Invoke(this, weaponComponent.Value);
+                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon, weaponComponent.Value);
+                GTA.UI.Notification.Show($"{name} purchased!");
+                OnSuccess(weapon, weaponComponent.Value);
             }
         }
 
-        void ScopePurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, List<WeaponComponentHash> components, bool saveFileWeapon)
+        void CamoColorPurchased(WeaponHash weapon, int index)
         {
-            var price = int.Parse(weaponComponent.Key.Split('$')[1]);
-            if (Game.Player.Money < price)
+            if (!LoadoutSaving.HasCamo(weapon))
             {
-                GTA.UI.Notification.Show("Couldn't purchase scope. Not enough money!");
+                GTA.UI.Notification.Show("Buy a camo first!");
                 return;
             }
-            Game.Player.Money -= price;
-            if (weaponComponent.Key.Contains("None"))
-            {
-                foreach (WeaponComponentHash component in components)
-                {
-                    if (weaponComponent.Value != component && Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON_COMPONENT, Game.Player.Character.Handle, weapon.Hash, component))
-                    {
-                        Function.Call(Hash.REMOVE_WEAPON_COMPONENT_FROM_PED, Game.Player.Character.Handle, weapon.Hash, component);
-                    }
-                }
-                GTA.UI.Notification.Show("Scope removed!");
-                LoadoutSaving.SetScope(weapon.Hash, WeaponComponentHash.Invalid);
-                SpawnWeaponObject(weapon.Hash);
-            }
-            else
-            {
-                GiveWeaponComponentToObject(weaponComponent.Value);
-                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
-                GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                LoadoutSaving.SetScope(weapon.Hash, weaponComponent.Value);
-            }
-        }
 
-        void GripPurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, List<WeaponComponentHash> components, bool saveFileWeapon)
-        {
-            var price = int.Parse(weaponComponent.Key.Split('$')[1]);
-            if (Game.Player.Money < price)
-            {
-                GTA.UI.Notification.Show("Couldn't purchase grip. Not enough money!");
-                return;
-            }
-            Game.Player.Money -= price;
-            if (weaponComponent.Key.Contains("None"))
-            {
-                foreach (WeaponComponentHash component in components)
-                {
-                    if (weaponComponent.Value != component && Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON_COMPONENT, Game.Player.Character.Handle, weapon.Hash, component))
-                    {
-                        Function.Call(Hash.REMOVE_WEAPON_COMPONENT_FROM_PED, Game.Player.Character.Handle, weapon.Hash, component);
-                    }
-                }
-                GTA.UI.Notification.Show("Grip removed!");
-                LoadoutSaving.SetGrip(weapon.Hash, WeaponComponentHash.Invalid);
-                SpawnWeaponObject(weapon.Hash);
-            }
-            else
-            {
-                GiveWeaponComponentToObject(weaponComponent.Value);
-                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
-                GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                LoadoutSaving.SetGrip(weapon.Hash, weaponComponent.Value);
-            }
-        }
-
-        void BarrelPurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, List<WeaponComponentHash> components)
-        {
-            var price = int.Parse(weaponComponent.Key.Split('$')[1]);
-            if (Game.Player.Money < price)
-            {
-                GTA.UI.Notification.Show("Couldn't purchase barrel. Not enough money!");
-                return;
-            }
-            Game.Player.Money -= price;
-            if (weaponComponent.Key.Contains("None"))
-            {
-                foreach (WeaponComponentHash component in components)
-                {
-                    if (weaponComponent.Value != component && Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON_COMPONENT, Game.Player.Character.Handle, weapon.Hash, component))
-                    {
-                        Function.Call(Hash.REMOVE_WEAPON_COMPONENT_FROM_PED, Game.Player.Character.Handle, weapon.Hash, component);
-                    }
-                }
-                GTA.UI.Notification.Show("Custom Barrel removed!");
-                LoadoutSaving.SetBarrel(weapon.Hash, WeaponComponentHash.Invalid);
-                SpawnWeaponObject(weapon.Hash);
-            }
-            else
-            {
-                GiveWeaponComponentToObject(weaponComponent.Value);
-                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
-                GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                LoadoutSaving.SetBarrel(weapon.Hash, weaponComponent.Value);
-            }
-        }
-
-        void CamoPurchased(GTA.Weapon weapon, KeyValuePair<string, WeaponComponentHash> weaponComponent, List<WeaponComponentHash> components)
-        {
-            var price = 20000;
-            if (Game.Player.Money < price)
-            {
-                GTA.UI.Notification.Show("Couldn't purchase camo. Not enough money!");
-                return;
-            }
-            Game.Player.Money -= price;
-            if (weaponComponent.Key.Contains("None"))
-            {
-                foreach (WeaponComponentHash component in components)
-                {
-                    if (weaponComponent.Value != component && Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON_COMPONENT, Game.Player.Character.Handle, weapon.Hash, component))
-                    {
-                        Function.Call(Hash.REMOVE_WEAPON_COMPONENT_FROM_PED, Game.Player.Character.Handle, weapon.Hash, component);
-                    }
-                }
-                GTA.UI.Notification.Show("Camo removed!");
-                LoadoutSaving.SetCamo(weapon.Hash, WeaponComponentHash.Invalid);
-                SpawnWeaponObject(weapon.Hash);
-            }
-            else
-            {
-                GiveWeaponComponentToObject(weaponComponent.Value);
-                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon.Hash, weaponComponent.Value);
-                GTA.UI.Notification.Show($"{weaponComponent.Key.Split('-')[0]} purchased!");
-                LoadoutSaving.SetCamo(weapon.Hash, weaponComponent.Value);
-            }
-        }
-
-        void CamoColorPurchased(GTA.Weapon weapon, int index)
-        {
             var price = 5000;
+
             if (Game.Player.Money < price)
             {
                 GTA.UI.Notification.Show("Couldn't purchase camo color. Not enough money!");
                 return;
             }
+
+            var storedWeapon = LoadoutSaving.GetStoreReference(weapon);
+
             Game.Player.Money -= price;
-            if (!LoadoutSaving.HasCamo(weapon.Hash))
-            {
-                GTA.UI.Notification.Show("Buy a camo first!");
-                return;
-            }
-            else
-            {
-                var storedWeapon = LoadoutSaving.GetStoreReference(weapon.Hash);
-                Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, weaponHandle.Handle, storedWeapon.Camo, index);
-                Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Game.Player.Character.Handle, weapon.Hash, storedWeapon.Camo, index);
-                GTA.UI.Notification.Show("Camo color purchased!");
-                LoadoutSaving.SetCamoColor(weapon.Hash, index);
-            }
+
+            Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Game.Player.Character.Handle, weapon, storedWeapon.Camo, index);
+            GTA.UI.Notification.Show("Camo color purchased!");
+            LoadoutSaving.SetCamoColor(weapon, index);
         }
     }
 }

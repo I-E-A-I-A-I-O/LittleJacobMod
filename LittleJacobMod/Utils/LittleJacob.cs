@@ -21,6 +21,7 @@ namespace LittleJacobMod.Utils
         bool ByePlayed { get; set; }
         bool SmokeOffered { get; set; }
         Random Ran => new Random();
+        public static event EventHandler<bool> TrunkStateChanged;
 
         public LittleJacob(JacobSpawnpoint jacobSpawnpoint)
         {
@@ -143,9 +144,11 @@ namespace LittleJacobMod.Utils
             if (trunk.IsOpen)
             {
                 trunk.Close();
+                TrunkStateChanged?.Invoke(this, false);
             } else
             {
                 trunk.Open();
+                TrunkStateChanged?.Invoke(this, true);
             }
         }
 
