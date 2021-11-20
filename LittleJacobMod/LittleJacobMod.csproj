@@ -105,6 +105,7 @@
     <Compile Include="Utils\Controls.cs" />
     <Compile Include="Utils\LittleJacob.cs" />
     <Compile Include="Utils\Timers.cs" />
+    <Compile Include="Utils\TintCamoColorEnum.cs" />
     <Compile Include="Utils\Voice.cs" />
     <Compile Include="Utils\WeaponComponent.cs" />
     <Compile Include="Utils\Weapons\MK2\Rifles\SpecialCarbineMK2.cs" />

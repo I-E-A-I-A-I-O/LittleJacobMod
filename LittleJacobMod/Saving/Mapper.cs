@@ -38,256 +38,261 @@ namespace LittleJacobMod.Saving
         {
             bool changes = false;
 
-            for (var i = 0; i < Weapons.Count; i++)
+            try
             {
-                if (Game.Player.Character.Weapons.HasWeapon(Weapons[i].WeaponHash) && !LoadoutSaving.IsWeaponInStore(Weapons[i].WeaponHash))
+                for (var i = 0; i < Weapons.Count; i++)
                 {
-                    changes = true;
-                    var storedWeapon = new StoredWeapon(Weapons[i].WeaponHash);
-                    storedWeapon.Tint = storedWeapon.GetTintIndex();
-                    storedWeapon.Ammo = Game.Player.Character.Weapons[Weapons[i].WeaponHash].Ammo;
-                    if (Weapons[i].HasMuzzleOrSupp)
+                    if (Game.Player.Character.Weapons.HasWeapon(Weapons[i].WeaponHash) && !LoadoutSaving.IsWeaponInStore(Weapons[i].WeaponHash))
                     {
-                        foreach (var muzzleOrSupp in Weapons[i].MuzzlesAndSupps)
+                        changes = true;
+                        var storedWeapon = new StoredWeapon(Weapons[i].WeaponHash);
+                        storedWeapon.Tint = storedWeapon.GetTintIndex();
+                        storedWeapon.Ammo = Game.Player.Character.Weapons[Weapons[i].WeaponHash].Ammo;
+                        if (Weapons[i].HasMuzzleOrSupp)
                         {
-                            if (muzzleOrSupp.Value == WeaponComponentHash.Invalid)
+                            foreach (var muzzleOrSupp in Weapons[i].MuzzlesAndSupps)
+                            {
+                                if (muzzleOrSupp.Value == WeaponComponentHash.Invalid)
+                                {
+                                    continue;
+                                }
+                                else if (storedWeapon.HasComponent(muzzleOrSupp.Value))
+                                {
+                                    storedWeapon.Muzzle = muzzleOrSupp.Value;
+                                }
+                            }
+                        }
+
+                        if (Weapons[i].HasClip)
+                        {
+                            foreach (var clip in Weapons[i].Clips)
+                            {
+                                if (clip.Value == WeaponComponentHash.Invalid)
+                                {
+                                    continue;
+                                }
+                                else if (storedWeapon.HasComponent(clip.Value))
+                                {
+                                    storedWeapon.Clip = clip.Value;
+                                }
+                            }
+                        }
+
+                        if (Weapons[i].HasScope)
+                        {
+                            foreach (var scope in Weapons[i].Scopes)
+                            {
+                                if (scope.Value == WeaponComponentHash.Invalid)
+                                {
+                                    continue;
+                                }
+                                else if (storedWeapon.HasComponent(scope.Value))
+                                {
+                                    storedWeapon.Scope = scope.Value;
+                                }
+                            }
+                        }
+
+                        if (Weapons[i].HasGrip)
+                        {
+                            foreach (var grip in Weapons[i].Grips)
+                            {
+                                if (grip.Value == WeaponComponentHash.Invalid)
+                                {
+                                    continue;
+                                }
+                                else if (storedWeapon.HasComponent(grip.Value))
+                                {
+                                    storedWeapon.Grip = grip.Value;
+                                }
+                            }
+                        }
+
+                        if (Weapons[i].HasBarrel)
+                        {
+                            foreach (var barrel in Weapons[i].Barrels)
+                            {
+                                if (barrel.Value == WeaponComponentHash.Invalid)
+                                {
+                                    continue;
+                                }
+                                else if (storedWeapon.HasComponent(barrel.Value))
+                                {
+                                    storedWeapon.Barrel = barrel.Value;
+                                }
+                            }
+                        }
+
+                        if (Weapons[i].HasCamo)
+                        {
+                            foreach (var camo in Weapons[i].Camos)
+                            {
+                                if (camo.Value == WeaponComponentHash.Invalid)
+                                {
+                                    continue;
+                                }
+                                else if (storedWeapon.HasComponent(camo.Value))
+                                {
+                                    storedWeapon.Camo = camo.Value;
+                                    storedWeapon.CamoColor = storedWeapon.GetCamoColor();
+                                }
+                            }
+                        }
+
+                        if (Weapons[i].HasFlaslight)
+                        {
+                            foreach (var flash in Weapons[i].FlashLight)
+                            {
+                                if (flash.Value == WeaponComponentHash.Invalid)
+                                {
+                                    continue;
+                                }
+                                else if (storedWeapon.HasComponent(flash.Value))
+                                {
+                                    storedWeapon.Flashlight = flash.Value;
+                                }
+                            }
+                        }
+                        weapons.Add(storedWeapon);
+                    }
+                }
+
+                for (var i = 0; i < weapons.Count; i++)
+                {
+                    if (!Game.Player.Character.Weapons.HasWeapon(weapons[i].WeaponHash))
+                    {
+                        changes = true;
+                        weapons.RemoveAt(i);
+                    }
+                }
+
+                for (var i = 0; i < weapons.Count; i++)
+                {
+                    var weaponCatalogOption = GetWeapon(weapons[i].WeaponHash);
+                    if (weaponCatalogOption == null)
+                    {
+                        continue;
+                    }
+
+                    var playerStoredWeapon = Game.Player.Character.Weapons[weapons[i].WeaponHash];
+                    if (playerStoredWeapon.Ammo > weapons[i].Ammo && Main.CurrentPed == (PedHash)Game.Player.Character.Model.Hash)
+                    {
+                        weapons[i].Ammo = playerStoredWeapon.Ammo;
+                    }
+
+                    int tintIndex = weapons[i].GetTintIndex();
+                    if (tintIndex != weapons[i].Tint)
+                    {
+                        weapons[i].Tint = tintIndex;
+                    }
+
+                    if (weaponCatalogOption.HasMuzzleOrSupp)
+                    {
+                        foreach (var muzzleOrSupp in weaponCatalogOption.MuzzlesAndSupps)
+                        {
+                            if (muzzleOrSupp.Value == WeaponComponentHash.Invalid || muzzleOrSupp.Value == weapons[i].Muzzle)
                             {
                                 continue;
-                            } else if (storedWeapon.HasComponent(muzzleOrSupp.Value))
+                            }
+                            else if (weapons[i].HasComponent(muzzleOrSupp.Value))
                             {
-                                storedWeapon.Muzzle = muzzleOrSupp.Value;
+                                weapons[i].Muzzle = muzzleOrSupp.Value;
                             }
                         }
                     }
 
-                    if (Weapons[i].HasClip)
+                    if (weaponCatalogOption.HasClip)
                     {
-                        foreach (var clip in Weapons[i].Clips)
+                        foreach (var clip in weaponCatalogOption.Clips)
                         {
-                            if (clip.Value == WeaponComponentHash.Invalid)
-                            {
-                                continue;
-                            } else if (storedWeapon.HasComponent(clip.Value))
-                            {
-                                storedWeapon.Clip = clip.Value;
-                            }
-                        }
-                    }
-
-                    if (Weapons[i].HasScope)
-                    {
-                        foreach (var scope in Weapons[i].Scopes)
-                        {
-                            if (scope.Value == WeaponComponentHash.Invalid)
+                            if (clip.Value == WeaponComponentHash.Invalid || clip.Value == weapons[i].Clip)
                             {
                                 continue;
                             }
-                            else if (storedWeapon.HasComponent(scope.Value))
+                            else if (weapons[i].HasComponent(clip.Value))
                             {
-                                storedWeapon.Scope = scope.Value;
+                                weapons[i].Clip = clip.Value;
                             }
                         }
                     }
 
-                    if (Weapons[i].HasGrip)
+                    if (weaponCatalogOption.HasScope)
                     {
-                        foreach (var grip in Weapons[i].Grips)
+                        foreach (var scope in weaponCatalogOption.Scopes)
                         {
-                            if (grip.Value == WeaponComponentHash.Invalid)
-                            {
-                                continue;
-                            }
-                            else if (storedWeapon.HasComponent(grip.Value))
-                            {
-                                storedWeapon.Grip = grip.Value;
-                            }
-                        }
-                    }
-
-                    if (Weapons[i].HasBarrel)
-                    {
-                        foreach (var barrel in Weapons[i].Barrels)
-                        {
-                            if (barrel.Value == WeaponComponentHash.Invalid)
+                            if (scope.Value == WeaponComponentHash.Invalid || scope.Value == weapons[i].Scope)
                             {
                                 continue;
                             }
-                            else if (storedWeapon.HasComponent(barrel.Value))
+                            else if (weapons[i].HasComponent(scope.Value))
                             {
-                                storedWeapon.Barrel = barrel.Value;
+                                weapons[i].Scope = scope.Value;
                             }
                         }
                     }
 
-                    if (Weapons[i].HasCamo)
+                    if (weaponCatalogOption.HasGrip)
                     {
-                        foreach (var camo in Weapons[i].Camos)
+                        foreach (var grip in weaponCatalogOption.Grips)
                         {
-                            if (camo.Value == WeaponComponentHash.Invalid)
-                            {
-                                continue;
-                            }
-                            else if (storedWeapon.HasComponent(camo.Value))
-                            {
-                                storedWeapon.Camo = camo.Value;
-                                storedWeapon.CamoColor = storedWeapon.GetCamoColor();
-                            }
-                        }
-                    }
-
-                    if (Weapons[i].HasFlaslight)
-                    {
-                        foreach (var flash in Weapons[i].FlashLight)
-                        {
-                            if (flash.Value == WeaponComponentHash.Invalid)
+                            if (grip.Value == WeaponComponentHash.Invalid || grip.Value == weapons[i].Grip)
                             {
                                 continue;
                             }
-                            else if (storedWeapon.HasComponent(flash.Value))
+                            else if (weapons[i].HasComponent(grip.Value))
                             {
-                                storedWeapon.Flashlight = flash.Value;
+                                weapons[i].Grip = grip.Value;
                             }
                         }
                     }
-                    weapons.Add(storedWeapon);
-                }
-            }
 
-            for (var i = 0; i < weapons.Count; i++)
-            {
-                if (!Game.Player.Character.Weapons.HasWeapon(weapons[i].WeaponHash))
-                {
-                    changes = true;
-                    weapons.RemoveAt(i);
-                }
-            }
-
-            for (var i = 0; i < weapons.Count; i++)
-            {
-                var weaponCatalogOption = GetWeapon(weapons[i].WeaponHash);
-                if (weaponCatalogOption == null)
-                {
-                    continue;
-                }
-
-                var playerStoredWeapon = Game.Player.Character.Weapons[weapons[i].WeaponHash];
-                if (playerStoredWeapon.Ammo > weapons[i].Ammo && Main.CurrentPed == (PedHash)Game.Player.Character.Model.Hash)
-                {
-                    weapons[i].Ammo = playerStoredWeapon.Ammo;
-                }
-
-                int tintIndex = weapons[i].GetTintIndex();
-                if (tintIndex != weapons[i].Tint)
-                {
-                    weapons[i].Tint = tintIndex;
-                }
-
-                if (weaponCatalogOption.HasMuzzleOrSupp)
-                {
-                    foreach (var muzzleOrSupp in weaponCatalogOption.MuzzlesAndSupps)
+                    if (weaponCatalogOption.HasBarrel)
                     {
-                        if (muzzleOrSupp.Value == WeaponComponentHash.Invalid || muzzleOrSupp.Value == weapons[i].Muzzle)
+                        foreach (var barrel in weaponCatalogOption.Barrels)
                         {
-                            continue;
+                            if (barrel.Value == WeaponComponentHash.Invalid || barrel.Value == weapons[i].Barrel)
+                            {
+                                continue;
+                            }
+                            else if (weapons[i].HasComponent(barrel.Value))
+                            {
+                                weapons[i].Barrel = barrel.Value;
+                            }
                         }
-                        else if (weapons[i].HasComponent(muzzleOrSupp.Value))
+                    }
+
+                    if (weaponCatalogOption.HasCamo)
+                    {
+                        foreach (var camo in weaponCatalogOption.Camos)
                         {
-                            weapons[i].Muzzle = muzzleOrSupp.Value;
+                            if (camo.Value == WeaponComponentHash.Invalid || camo.Value == weapons[i].Camo)
+                            {
+                                continue;
+                            }
+                            else if (weapons[i].HasComponent(camo.Value))
+                            {
+                                weapons[i].Camo = camo.Value;
+                                weapons[i].CamoColor = weapons[i].GetCamoColor();
+                            }
+                        }
+                    }
+
+                    if (weaponCatalogOption.HasFlaslight)
+                    {
+                        foreach (var flash in weaponCatalogOption.FlashLight)
+                        {
+                            if (flash.Value == WeaponComponentHash.Invalid || flash.Value == weapons[i].Flashlight)
+                            {
+                                continue;
+                            }
+                            else if (weapons[i].HasComponent(flash.Value))
+                            {
+                                weapons[i].Flashlight = flash.Value;
+                            }
                         }
                     }
                 }
-
-                if (weaponCatalogOption.HasClip)
-                {
-                    foreach (var clip in weaponCatalogOption.Clips)
-                    {
-                        if (clip.Value == WeaponComponentHash.Invalid || clip.Value == weapons[i].Clip)
-                        {
-                            continue;
-                        }
-                        else if (weapons[i].HasComponent(clip.Value))
-                        {
-                            weapons[i].Clip = clip.Value;
-                        }
-                    }
-                }
-
-                if (weaponCatalogOption.HasScope)
-                {
-                    foreach (var scope in weaponCatalogOption.Scopes)
-                    {
-                        if (scope.Value == WeaponComponentHash.Invalid || scope.Value == weapons[i].Scope)
-                        {
-                            continue;
-                        }
-                        else if (weapons[i].HasComponent(scope.Value))
-                        {
-                            weapons[i].Scope = scope.Value;
-                        }
-                    }
-                }
-
-                if (weaponCatalogOption.HasGrip)
-                {
-                    foreach (var grip in weaponCatalogOption.Grips)
-                    {
-                        if (grip.Value == WeaponComponentHash.Invalid || grip.Value == weapons[i].Grip)
-                        {
-                            continue;
-                        }
-                        else if (weapons[i].HasComponent(grip.Value))
-                        {
-                            weapons[i].Grip = grip.Value;
-                        }
-                    }
-                }
-
-                if (weaponCatalogOption.HasBarrel)
-                {
-                    foreach (var barrel in weaponCatalogOption.Barrels)
-                    {
-                        if (barrel.Value == WeaponComponentHash.Invalid || barrel.Value == weapons[i].Barrel)
-                        {
-                            continue;
-                        }
-                        else if (weapons[i].HasComponent(barrel.Value))
-                        {
-                            weapons[i].Barrel = barrel.Value;
-                        }
-                    }
-                }
-
-                if (weaponCatalogOption.HasCamo)
-                {
-                    foreach (var camo in weaponCatalogOption.Camos)
-                    {
-                        if (camo.Value == WeaponComponentHash.Invalid || camo.Value == weapons[i].Camo)
-                        {
-                            continue;
-                        }
-                        else if (weapons[i].HasComponent(camo.Value))
-                        {
-                            weapons[i].Camo = camo.Value;
-                            weapons[i].CamoColor = weapons[i].GetCamoColor();
-                        }
-                    }
-                }
-
-                if (weaponCatalogOption.HasFlaslight)
-                {
-                    foreach (var flash in weaponCatalogOption.FlashLight)
-                    {
-                        if (flash.Value == WeaponComponentHash.Invalid || flash.Value == weapons[i].Flashlight)
-                        {
-                            continue;
-                        }
-                        else if (weapons[i].HasComponent(flash.Value))
-                        {
-                            weapons[i].Flashlight = flash.Value;
-                        }
-                    }
-                }
-            }
+            } catch (Exception) { }
 
             if (changes)
             {

@@ -14,8 +14,8 @@ class WeaponPreview : Script
     bool _doComponentChange;
     bool _compFromStorage;
     WeaponHash _hash = WeaponHash.Pistol;
-    WeaponComponentHash _old = WeaponComponentHash.Invalid;
     WeaponComponentHash _new = WeaponComponentHash.Invalid;
+    ComponentIndex _skipIndex;
 
     public WeaponPreview()
     {
@@ -33,6 +33,7 @@ class WeaponPreview : Script
     private void Menu_ReloadComponents(object sender, WeaponHash e)
     {
         _doComponentReload = true;
+        _compFromStorage = true;
         _hash = e;
     }
 
@@ -40,8 +41,9 @@ class WeaponPreview : Script
     {
         if (_doComponentReload)
         {
-            LoadAttachments(_hash);
+            SpawnWeaponObject(_hash);
             _doComponentReload = false;
+            _compFromStorage = false;
         }
 
         if (_doObjectSpawn)
@@ -83,47 +85,47 @@ class WeaponPreview : Script
             var storedWeapon = LoadoutSaving.GetStoreReference(hash);
             Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, _weaponHandle.Handle, storedWeapon.GetTintIndex());
 
-            if (SkipComponent(storedWeapon.Camo))
+            if (SkipComponent(storedWeapon.Camo, ComponentIndex.Camo))
             {
                 GiveWeaponComponentToObject(storedWeapon.Camo);
                 Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo, storedWeapon.GetCamoColor());
             }
 
-            if (SkipComponent(storedWeapon.Barrel))
+            if (SkipComponent(storedWeapon.Barrel, ComponentIndex.Barrel))
             {
                 GiveWeaponComponentToObject(storedWeapon.Barrel);
             }
 
-            if (SkipComponent(storedWeapon.Clip))
+            if (SkipComponent(storedWeapon.Clip, ComponentIndex.Clip))
             {
                 GiveWeaponComponentToObject(storedWeapon.Clip);
             }
 
-            if (SkipComponent(storedWeapon.Flashlight))
+            if (SkipComponent(storedWeapon.Flashlight, ComponentIndex.Flashlight))
             {
                 GiveWeaponComponentToObject(storedWeapon.Flashlight);
             }
 
-            if (SkipComponent(storedWeapon.Grip))
+            if (SkipComponent(storedWeapon.Grip, ComponentIndex.Grip))
             {
                 GiveWeaponComponentToObject(storedWeapon.Grip);
             }
 
-            if (SkipComponent(storedWeapon.Scope))
+            if (SkipComponent(storedWeapon.Scope, ComponentIndex.Scope))
             {
                 GiveWeaponComponentToObject(storedWeapon.Scope);
             }
 
-            if (SkipComponent(storedWeapon.Muzzle))
+            if (SkipComponent(storedWeapon.Muzzle, ComponentIndex.Muzzle))
             {
                 GiveWeaponComponentToObject(storedWeapon.Muzzle);
             }
         }
     }
 
-    private bool SkipComponent(WeaponComponentHash component)
+    private bool SkipComponent(WeaponComponentHash component, ComponentIndex index)
     {
-        return (_compFromStorage && component != WeaponComponentHash.Invalid) || (!_compFromStorage && _old != component && _old != WeaponComponentHash.Invalid);
+        return component != WeaponComponentHash.Invalid && (_compFromStorage || (!_compFromStorage && index != _skipIndex));
     }
 
     private void Menu_SpawnWeaponObject(object sender, WeaponHash hash)
@@ -145,7 +147,7 @@ class WeaponPreview : Script
         }
 
         _weaponHandle = Function.Call<Prop>(Hash.CREATE_WEAPON_OBJECT, hash, 1, Main.LittleJacob.Vehicle.RearPosition.X + (Main.cam.Direction.X / 1.4f), Main.LittleJacob.Vehicle.RearPosition.Y + (Main.cam.Direction.Y / 1.4f), Main.LittleJacob.Vehicle.RearPosition.Z + 0.15f, true, 1, 0);
-        _weaponHandle.PositionNoOffset = new Vector3(Main.LittleJacob.Vehicle.RearPosition.X + (Main.cam.Direction.X / 1.2f), Main.LittleJacob.Vehicle.RearPosition.Y + (Main.cam.Direction.Y / 1.2f), Main.LittleJacob.Vehicle.RearPosition.Z + 0.2f);
+        _weaponHandle.PositionNoOffset = new Vector3(Main.LittleJacob.Vehicle.RearPosition.X + (Main.cam.Direction.X / 1.2f), Main.LittleJacob.Vehicle.RearPosition.Y + (Main.cam.Direction.Y / 1.2f), Main.LittleJacob.Vehicle.RearPosition.Z + 0.4f);
         _weaponHandle.HasGravity = false;
         _weaponHandle.IsCollisionEnabled = false;
         _weaponHandle.Heading = Main.cam.ForwardVector.ToHeading();
@@ -158,7 +160,7 @@ class WeaponPreview : Script
     {
         _doComponentChange = true;
         _new = component.PreviewComponent;
-        _old = component.InstalledComponent;
+        _skipIndex = component.ComponentIndex;
         _hash = component.WeaponHash;
     }
 

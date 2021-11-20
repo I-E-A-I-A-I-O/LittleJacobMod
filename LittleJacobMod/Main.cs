@@ -271,11 +271,6 @@ public class Main : Script
 
     void ControlWatch(object o, EventArgs e)
     {
-        if (Function.Call<bool>(Hash.IS_CONTROL_JUST_RELEASED, 0, 52))
-        {
-
-        }
-
         if (!JacobActive)
         {
             return;
@@ -286,7 +281,7 @@ public class Main : Script
             if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !MenuOpened)
             {
                 cam = Function.Call<Camera>(Hash.CREATE_CAM, "DEFAULT_SCRIPTED_CAMERA", 0);
-                cam.Position = new GTA.Math.Vector3(LittleJacob.Vehicle.RearPosition.X, LittleJacob.Vehicle.RearPosition.Y, LittleJacob.Vehicle.RearPosition.Z + 0.3f);
+                cam.Position = new GTA.Math.Vector3(LittleJacob.Vehicle.RearPosition.X, LittleJacob.Vehicle.RearPosition.Y, LittleJacob.Vehicle.RearPosition.Z + 0.6f);
                 cam.IsActive = true;
                 cam.PointAt(LittleJacob.Vehicle.FrontPosition);
                 Function.Call(Hash.RENDER_SCRIPT_CAMS, 1, 1, 3000, 1, 0);
