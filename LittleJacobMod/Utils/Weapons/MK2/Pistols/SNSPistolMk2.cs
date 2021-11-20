@@ -69,17 +69,6 @@ namespace LittleJacobMod.Utils.Weapons
             { "Geometric", WeaponComponentHash.SNSPistolMk2Camo09 },
             { "Boom!", WeaponComponentHash.SNSPistolMk2Camo10 },
             { "Patriotic", WeaponComponentHash.SNSPistolMk2CamoIndependence01 },
-            { "Digital 2", WeaponComponentHash.SNSPistolMk2CamoSlide },
-            { "Digital 3", WeaponComponentHash.SNSPistolMk2Camo02Slide },
-            { "Digital 4", WeaponComponentHash.SNSPistolMk2Camo03Slide },
-            { "Digital 5", WeaponComponentHash.SNSPistolMk2Camo04Slide },
-            { "Digital 6", WeaponComponentHash.SNSPistolMk2Camo05Slide },
-            { "Digital 7", WeaponComponentHash.SNSPistolMk2Camo06Slide },
-            { "Digital 8", WeaponComponentHash.SNSPistolMk2Camo07Slide },
-            { "Digital 9", WeaponComponentHash.SNSPistolMk2Camo08Slide },
-            { "Digital 10", WeaponComponentHash.SNSPistolMk2Camo09Slide },
-            { "Digital 11", WeaponComponentHash.SNSPistolMk2Camo10Slide },
-            { "Patriotic 2", WeaponComponentHash.SNSPistolMk2CamoIndependence01Slide },
 
         };
 

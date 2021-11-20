@@ -69,16 +69,6 @@ namespace LittleJacobMod.Utils.Weapons
             { "Geometric", WeaponComponentHash.PistolMk2Camo09 },
             { "Boom!", WeaponComponentHash.PistolMk2Camo10 },
             { "Patriotic", WeaponComponentHash.PistolMk2CamoIndependence01 },
-            { "Digital 2", WeaponComponentHash.PistolMk2CamoSlide },
-            { "Digital 3", WeaponComponentHash.PistolMk2Camo02Slide },
-            { "Digital 4", WeaponComponentHash.PistolMk2Camo03Slide },
-            { "Digital 5", WeaponComponentHash.PistolMk2Camo04Slide },
-            { "Digital 6", WeaponComponentHash.PistolMk2Camo05Slide },
-            { "Digital 7", WeaponComponentHash.PistolMk2Camo06Slide },
-            { "Digital 8", WeaponComponentHash.PistolMk2Camo07Slide },
-            { "Digital 9", WeaponComponentHash.PistolMk2Camo08Slide },
-            { "Digital 10", WeaponComponentHash.PistolMk2Camo09Slide },
-            { "Patriotic 2", WeaponComponentHash.PistolMk2CamoIndependence01Slide }
         };
 
         public override Dictionary<string, WeaponComponentHash> FlashLight => new Dictionary<string, WeaponComponentHash>()

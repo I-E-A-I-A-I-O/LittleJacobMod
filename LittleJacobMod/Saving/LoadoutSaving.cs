@@ -333,61 +333,88 @@ namespace LittleJacobMod.Saving
                         }*/
                         
                         Game.Player.Character.Weapons.Give(weaponHash, 0, false, false);
+
                         var storedWeapon = new StoredWeapon(weaponHash)
                         {
                             Ammo = ammo
                         };
+
                         if (barrel != WeaponComponentHash.Invalid)
                         {
                             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, barrel);
                             storedWeapon.Barrel = barrel;
                         }
+
                         if (camo != WeaponComponentHash.Invalid)
                         {
                             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, camo);
+
+                            var slide = LittleJacobMod.Utils.TintsAndCamos.ReturnSlide(camo);
+
+                            if (slide != WeaponComponentHash.Invalid)
+                            {
+                                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, slide);
+                            }
+
                             storedWeapon.Camo = camo;
+                            
                             if (camoColor != -1)
                             {
                                 Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, characterHandle, weaponHash, camo, camoColor);
+                                
+                                if (slide != WeaponComponentHash.Invalid)
+                                {
+                                    Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, characterHandle, weaponHash, slide, camoColor);
+                                }
+
                                 storedWeapon.CamoColor = camoColor;
                             }
                         }
+
                         if (clip != WeaponComponentHash.Invalid)
                         {
                             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, clip);
                             storedWeapon.Clip = clip;
                         }
+
                         if (flash != WeaponComponentHash.Invalid)
                         {
                             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, flash);
                             storedWeapon.Flashlight = flash;
                         }
+
                         if (grip != WeaponComponentHash.Invalid)
                         {
                             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, grip);
                             storedWeapon.Grip = grip;
                         }
+
                         if (muzzle != WeaponComponentHash.Invalid)
                         {
                             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, muzzle);
                             storedWeapon.Muzzle = muzzle;
                         }
+
                         if (scope != WeaponComponentHash.Invalid)
                         {
                             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, scope);
                             storedWeapon.Scope = scope;
                         }
+
                         if (tint != -1)
                         {
                             Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, characterHandle, weaponHash, tint);
                             storedWeapon.Tint = tint;
                         }
+
                         var ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weaponHash);
+                        
                         if (loadedAmmoTypes.Contains(ammoType))
                         {
                             StoredWeapons.Add(storedWeapon);
                             continue;
                         }
+
                         Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Game.Player.Character.Handle, ammoType, ammo);
                         loadedAmmoTypes.Add(ammoType);
                         StoredWeapons.Add(storedWeapon);

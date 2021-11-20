@@ -56,13 +56,24 @@ class WeaponPreview : Script
         if (_doComponentChange)
         {
             GiveWeaponComponentToObject(_new);
+
+            if (_new != WeaponComponentHash.Invalid)
+            {
+                var slide = TintsAndCamos.ReturnSlide(_new);
+
+                if (slide != WeaponComponentHash.Invalid)
+                {
+                    GiveWeaponComponentToObject(slide);
+                }
+            }
+
             _doComponentChange = false;
         }
     }
 
     private void LittleJacob_TrunkStateChanged(object sender, bool opened)
     {
-        if (!opened)
+        if (!opened && _weaponHandle != null && _weaponHandle.Handle != 0)
         {
             DeleteWeaponObject();
         }
@@ -76,6 +87,13 @@ class WeaponPreview : Script
     private void Menu_CamoColorChanged(object sender, CamoColorEventArgs e)
     {
         Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, e.Camo, e.ColorIndex);
+
+        var slide = TintsAndCamos.ReturnSlide(e.Camo);
+
+        if (slide != WeaponComponentHash.Invalid)
+        {
+            Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, slide, e.ColorIndex);
+        }
     }
 
     private void LoadAttachments(WeaponHash hash)
@@ -88,6 +106,15 @@ class WeaponPreview : Script
             if (SkipComponent(storedWeapon.Camo, ComponentIndex.Camo))
             {
                 GiveWeaponComponentToObject(storedWeapon.Camo);
+
+                var slide = TintsAndCamos.ReturnSlide(storedWeapon.Camo);
+
+                if (slide != WeaponComponentHash.Invalid)
+                {
+                    GiveWeaponComponentToObject(slide);
+                    Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, slide, storedWeapon.GetCamoColor());
+                }
+
                 Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo, storedWeapon.GetCamoColor());
             }
 

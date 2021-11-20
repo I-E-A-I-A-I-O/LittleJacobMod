@@ -223,7 +223,7 @@ namespace LittleJacobMod.Interface
                     tints = TintsAndCamos.Tints;
                 }
 
-                for (int i = 0; i < tintCount; i++)
+                for (int i = 0; i < tints.Count; i++)
                 {
                     tintSlider.Add(tints[i]);
                 }
@@ -448,7 +448,7 @@ namespace LittleJacobMod.Interface
                     camoSlider.Add(weapon.Camos.ElementAt(i).Key);
                 }
 
-                for (int i = 0; i < 31; i++)
+                for (int i = 0; i < TintsAndCamos.CamoColor.Count; i++)
                 {
                     camoColorSlider.Add(TintsAndCamos.CamoColor[i]);
                 }
@@ -573,6 +573,17 @@ namespace LittleJacobMod.Interface
                 _doReload = false;
                 //ComponentSelected?.Invoke(this, weaponComponent.Value);
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon, weaponComponent.Value);
+                
+                if (isCamo)
+                {
+                    var slide = TintsAndCamos.ReturnSlide(weaponComponent.Value);
+
+                    if (slide != WeaponComponentHash.Invalid)
+                    {
+                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon, slide);
+                    }
+                }
+                
                 GTA.UI.Notification.Show($"{name} purchased!");
                 OnSuccess(weapon, weaponComponent.Value);
             }
@@ -601,6 +612,14 @@ namespace LittleJacobMod.Interface
             Game.Player.Money -= price;
 
             Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Game.Player.Character.Handle, weapon, storedWeapon.Camo, index);
+
+            var slide = TintsAndCamos.ReturnSlide(storedWeapon.Camo);
+            
+            if (slide != WeaponComponentHash.Invalid)
+            {
+                Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Game.Player.Character.Handle, weapon, slide, index);
+            }
+
             GTA.UI.Notification.Show("Camo color purchased!");
             LoadoutSaving.SetCamoColor(weapon, index);
         }
