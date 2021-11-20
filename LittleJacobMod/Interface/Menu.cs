@@ -454,6 +454,7 @@ namespace LittleJacobMod.Interface
                 }
 
                 camoColorSlider.Description = "Price: $10000";
+                camoSlider.Description = "Price: $60000";
 
                 var index = weapon.Camos.Values.ToList().IndexOf(storeRef.Camo);
                 camoSlider.SelectedIndex = index == -1 ? 0 : index;
