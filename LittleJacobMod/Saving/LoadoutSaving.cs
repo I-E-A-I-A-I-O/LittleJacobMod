@@ -215,11 +215,6 @@ namespace LittleJacobMod.Saving
             return false;
         }
 
-        public static bool IsPedMainPlayer(Ped ped)
-        {
-            return ped.Model.Hash == unchecked((int)PedHash.Michael) || ped.Model.Hash == unchecked((int)PedHash.Franklin) || ped.Model.Hash == unchecked((int)PedHash.Trevor);
-        }
-
         public static void PerformSave(PedHash ped)
         {
             if (!Main.SavingEnabled)
@@ -285,11 +280,13 @@ namespace LittleJacobMod.Saving
             GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
             var characterHandle = Game.Player.Character.Handle;
             var weaponsRemoved = false;
-            if (!IsPedMainPlayer(Game.Player.Character))
+
+            if (!Main.IsMainCharacter())
             {
                 RemoveWeapons();
                 weaponsRemoved = true;
             }
+
             try
             {
                 var dir = Directory.GetCurrentDirectory();
@@ -303,7 +300,7 @@ namespace LittleJacobMod.Saving
                     return;
                 }
 
-                if (!weaponsRemoved)
+                if (!weaponsRemoved && !Main.MissionFlag)
                 {
                     RemoveWeapons();
                 }
@@ -327,10 +324,10 @@ namespace LittleJacobMod.Saving
                         var tint = reader.ReadInt32();
                         Enum.TryParse<WeaponHash>(reader.ReadString(), out var weaponHash);
 
-                        /*if (IsPedMainPlayer(Game.Player.Character) && Game.Player.Character.Weapons.HasWeapon(weaponHash))
+                        if (Game.Player.Character.Weapons.HasWeapon(weaponHash))
                         {
-                            continue;
-                        }*/
+                            Game.Player.Character.Weapons.Remove(weaponHash);
+                        }
                         
                         Game.Player.Character.Weapons.Give(weaponHash, 0, false, false);
 

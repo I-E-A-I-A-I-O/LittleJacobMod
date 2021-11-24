@@ -1,6 +1,6 @@
 ﻿using System;
 using GTA;
-using GTA.Math;
+using GTA.Native;
 using LittleJacobMod.Loading;
 
 namespace LittleJacobMod.Utils
@@ -35,19 +35,28 @@ namespace LittleJacobMod.Utils
 
         public void Spawn()
         {
-            JacobSpawnpoint.JacobModel.Request();
-            JacobSpawnpoint.CarModel.Request();
-            var modelsLoaded = false;
-            while (!modelsLoaded)
+            Function.Call(Hash.REQUEST_MODEL, Main.JacobHash);
+
+            while (!Function.Call<bool>(Hash.HAS_MODEL_LOADED, Main.JacobHash))
             {
-                Script.Wait(0);
-                modelsLoaded = JacobSpawnpoint.JacobModel.IsLoaded && JacobSpawnpoint.CarModel.IsLoaded;
+                Script.Wait(50);
             }
-            jacob = World.CreatePed(JacobSpawnpoint.JacobModel, jacobSpawnpoint.JacobPosition, jacobSpawnpoint.JacobHeading);
-            vehicle = World.CreateVehicle(JacobSpawnpoint.CarModel, jacobSpawnpoint.CarPosition, jacobSpawnpoint.CarHeading);
-            Script.Wait(0);
-            JacobSpawnpoint.JacobModel.MarkAsNoLongerNeeded();
-            JacobSpawnpoint.CarModel.MarkAsNoLongerNeeded();
+
+            jacob = World.CreatePed(new Model(Main.JacobHash), jacobSpawnpoint.JacobPosition, jacobSpawnpoint.JacobHeading);
+
+            Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, Main.JacobHash);
+
+            Function.Call(Hash.REQUEST_MODEL, Main.JacobsCarHash);
+
+            while (!Function.Call<bool>(Hash.HAS_MODEL_LOADED, Main.JacobsCarHash))
+            {
+                Script.Wait(50);
+            }
+
+            vehicle = World.CreateVehicle(new Model(Main.JacobsCarHash), jacobSpawnpoint.CarPosition, jacobSpawnpoint.CarHeading);
+
+            Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, Main.JacobsCarHash);
+
             jacob.BlockPermanentEvents = true;
             jacob.Task.StartScenario("WORLD_HUMAN_DRUG_DEALER", 0);
             vehicle.Mods.InstallModKit();

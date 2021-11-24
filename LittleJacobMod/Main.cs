@@ -20,8 +20,10 @@ public class Main : Script
     public static bool MenuOpened { get; private set; }
     bool SaveTriggered { get; set; }
     public static PedHash JacobHash { get; private set; }
+    public static VehicleHash JacobsCarHash { get; private set; }
     public static Controls OpenMenuKey { get; private set; }
     public static PedHash CurrentPed { get; private set; }
+    public static bool MissionFlag;
 
     public Main()
     {
@@ -31,6 +33,7 @@ public class Main : Script
         OpenMenuKey = settings.GetValue("Controls", "OpenMenu", Controls.INPUT_CONTEXT);
         SavingEnabled = settings.GetValue("Gameplay", "EnableSaving", true);
         JacobHash = settings.GetValue("Gameplay", "JacobModel", PedHash.Soucent03AMY);
+        JacobsCarHash = settings.GetValue("Gameplay", "JacobsCarModel", VehicleHash.Virgo2);
 
         ifruit = new PhoneContact();
         menu = new Menu();
@@ -75,6 +78,23 @@ public class Main : Script
 
     void AutoSaveWatch(object o, EventArgs e)
     {
+        if (MissionFlag)
+        {
+            if (!Game.IsMissionActive)
+            {
+                LoadoutSaving.PerformLoad();
+                MissionFlag = false;
+            }
+            else
+            {
+                if (!MissionFlag)
+                {
+                    MissionFlag = true;
+                }
+                return;
+            }
+        }
+
         if (Function.Call<bool>(Hash.IS_AUTO_SAVE_IN_PROGRESS))
         {
             if (!SaveTriggered)
@@ -90,7 +110,7 @@ public class Main : Script
             SaveTriggered = false;
         }
 
-        if (!JacobActive)
+        if (!JacobActive && Game.Player.CanStartMission)
         {
             if (!LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
             {
@@ -122,6 +142,7 @@ public class Main : Script
         {
             return;
         }
+
         CurrentPed = (PedHash)Game.Player.Character.Model.Hash;
         LoadoutSaving.PerformLoad();
         Tick -= WaitForGameLoad;
@@ -130,7 +151,7 @@ public class Main : Script
 
     void ModelWatcher(object o, EventArgs e)
     {
-        if (Function.Call<bool>(Hash.IS_PED_MODEL, Game.Player.Character.Handle, CurrentPed))
+        if (Function.Call<bool>(Hash.IS_PED_MODEL, Game.Player.Character.Handle, CurrentPed) || MissionFlag)
         {
             return;
         }
@@ -316,5 +337,15 @@ public class Main : Script
                 menu.ShowMainMenu();
             }
         }
+    }
+
+    public static bool IsMainCharacter()
+    {
+        return Function.Call<bool>(Hash.IS_PED_MODEL, Game.Player.Character.Handle, PedHash.Michael) || Function.Call<bool>(Hash.IS_PED_MODEL, Game.Player.Character.Handle, PedHash.Franklin) || Function.Call<bool>(Hash.IS_PED_MODEL, Game.Player.Character.Handle, PedHash.Trevor);
+    }
+
+    public static bool IsMainCharacter(Ped ped)
+    {
+        return Function.Call<bool>(Hash.IS_PED_MODEL, ped.Handle, PedHash.Michael) || Function.Call<bool>(Hash.IS_PED_MODEL, ped.Handle, PedHash.Franklin) || Function.Call<bool>(Hash.IS_PED_MODEL, ped.Handle, PedHash.Trevor);
     }
 }

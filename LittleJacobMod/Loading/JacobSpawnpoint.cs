@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using GTA;
 using GTA.Math;
 
 namespace LittleJacobMod.Loading
@@ -11,8 +9,6 @@ namespace LittleJacobMod.Loading
         Vector3 carPosition;
         float carHeading;
         float jacobHeading;
-        public static Model CarModel => new Model(VehicleHash.Virgo2);
-        public static Model JacobModel => new Model(Main.JacobHash);
         public Vector3 JacobPosition => jacobPosition;
         public Vector3 CarPosition => carPosition;
         public float JacobHeading => jacobHeading;
