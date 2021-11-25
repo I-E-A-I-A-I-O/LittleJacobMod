@@ -200,6 +200,7 @@ namespace LittleJacobMod.Saving
                     return weapon;
                 }
             }
+
             return null;
         }
 
@@ -268,16 +269,20 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void PerformLoad()
+        public static void PerformLoad(bool constructor = false)
         {
             if (!Main.SavingEnabled)
             {
                 return;
             }
 
+            if (!constructor)
+            {
+                GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
+            }
+
             Busy = true;
             StoredWeapons.Clear();
-            GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
             var characterHandle = Game.Player.Character.Handle;
             var weaponsRemoved = false;
 
@@ -424,7 +429,11 @@ namespace LittleJacobMod.Saving
             }
             finally
             {
-                Script.Wait(1000);
+                if (!constructor)
+                {
+                    Script.Wait(1000);
+                }
+                
                 GTA.UI.LoadingPrompt.Hide();
                 Busy = false;
             }

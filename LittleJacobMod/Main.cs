@@ -35,25 +35,21 @@ public class Main : Script
         JacobHash = settings.GetValue("Gameplay", "JacobModel", PedHash.Soucent03AMY);
         JacobsCarHash = settings.GetValue("Gameplay", "JacobsCarModel", VehicleHash.Virgo2);
 
-        ifruit = new PhoneContact();
-        menu = new Menu();
+        Mapper.Initialize();
 
-        if (SavingEnabled)
+        if (Game.IsLoading)
         {
-            Mapper.Initialize();
-            if (Game.IsLoading)
-            {
-                Tick += WaitForGameLoad;
-            }
-            else
-            {
-                CurrentPed = (PedHash)Game.Player.Character.Model.Hash;
-                //LoadoutSaving.PerformLoad();
-                Tick += ModelWatcher;
-            }
-            Tick += AutoSaveWatch;
-            Tick += WeaponUse;
+            Tick += WaitForGameLoad;
         }
+        else
+        {
+            CurrentPed = (PedHash)Game.Player.Character.Model.Hash;
+            LoadoutSaving.PerformLoad(true);
+            Tick += ModelWatcher;
+        }
+
+        Tick += AutoSaveWatch;
+        Tick += WeaponUse;
 
         Tick += ControlWatch;
         Tick += (o, e) =>
@@ -63,6 +59,9 @@ public class Main : Script
         };
         Tick += OnTick;
         Aborted += Main_Aborted;
+
+        ifruit = new PhoneContact();
+        menu = new Menu();
     }
 
     private void Main_Aborted(object sender, EventArgs e)

@@ -34,11 +34,11 @@ namespace LittleJacobMod.Utils.Weapons
             { "Suppressor - $40000", WeaponComponentHash.AtPiSupp },
             { "Flat Muzzle - $29000", WeaponComponentHash.AtMuzzle01 },
             { "Tactical Muzzle - $31000", WeaponComponentHash.AtMuzzle02 },
-            { "Fat-End Muzzle - $32000", WeaponComponentHash.AtMuzzle03 },
+            { "Fat End Muzzle - $32000", WeaponComponentHash.AtMuzzle03 },
             { "Precision Muzzle - $34000", WeaponComponentHash.AtMuzzle04 },
             { "Heavy Duty Muzzle - $35000", WeaponComponentHash.AtMuzzle05 },
             { "Slanted Muzzle - $37000", WeaponComponentHash.AtMuzzle06 },
-            { "Split-End Muzzle - $38000", WeaponComponentHash.AtMuzzle07 }
+            { "Split End Muzzle - $38000", WeaponComponentHash.AtMuzzle07 }
         };
 
         public override Dictionary<string, WeaponComponentHash> Clips => new Dictionary<string, WeaponComponentHash>()

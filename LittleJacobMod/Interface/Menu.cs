@@ -25,10 +25,8 @@ namespace LittleJacobMod.Interface
         NativeMenu shotguns;
         NativeMenu explosives;
 
-        NativeListItem<string> _lastItem;
-        int _installedIndex;
-        bool _itemChanged;
-        bool _doReload = true;
+        NativeItem _currentItem;
+        NativeItem _ownedItem;
 
         public static event EventHandler<ComponentPreviewEventArgs> ComponentSelected;
         public static event EventHandler<WeaponHash> SpawnWeaponObject;
@@ -111,40 +109,12 @@ namespace LittleJacobMod.Interface
                     Description = $"Price: ${weaponGroup[i].Price}"
                 };
 
+                AddOptions(weaponGroup[i], subMenu, isExplosive, isMelee);
+
                 subMenu.Shown += (o, e) =>
                 {
-                    if (WeaponSelected(weaponGroup[parentMenu.SelectedIndex], weaponGroup[parentMenu.SelectedIndex].Price, subMenu))
-                    {
-                        AddOptions(weaponGroup[parentMenu.SelectedIndex], subMenu, isExplosive, isMelee);
-                    }
+                    WeaponSelected(weaponGroup[parentMenu.SelectedIndex], weaponGroup[parentMenu.SelectedIndex].Price, subMenu);
                 };
-
-                subMenu.Closed += (o, e) =>
-                {
-                    _itemChanged = false;
-                    _doReload = true;
-                };
-
-                subMenu.SelectedIndexChanged += (o, e) =>
-                {
-                    if (!_doReload)
-                    {
-                        _doReload = true;
-                        return;
-                    }
-
-                    ReloadComponents?.Invoke(this, weaponGroup[parentMenu.SelectedIndex].WeaponHash);
-
-                    if (!_itemChanged)
-                    {
-                        return;
-                    }
-
-                    _lastItem.SelectedIndex = _installedIndex == -1 ? 0 : _installedIndex;
-                    _itemChanged = false;
-                };
-
-                subMenu.Closed += (o, e) => subMenu.Clear();
 
                 Pool.Add(subMenu);
                 parentMenu.AddSubMenu(subMenu);
@@ -208,7 +178,17 @@ namespace LittleJacobMod.Interface
 
             if (weapon.WeaponHash != WeaponHash.PericoPistol && weapon.WeaponHash != WeaponHash.DoubleActionRevolver && weapon.WeaponHash != WeaponHash.NavyRevolver)
             {
-                var tintSlider = new NativeListItem<string>("Tints");
+                var tintsMenu = new NativeMenu("Tints", "Tints");
+                int index;
+
+                if (storeRef != null)
+                {
+                    index = storeRef.GetTintIndex();
+                    index = index == -1 ? 0 : index;
+                } else
+                {
+                    index = 0;
+                }
 
                 int tintCount = Function.Call<int>(Hash.GET_WEAPON_TINT_COUNT, weapon.WeaponHash);
 
@@ -225,96 +205,170 @@ namespace LittleJacobMod.Interface
 
                 for (int i = 0; i < tints.Count; i++)
                 {
-                    tintSlider.Add(tints[i]);
+                    var ix = i;
+
+                    var tintItem = new NativeItem(tints[i])
+                    {
+                        Description = "Price: $5000"
+                    };
+
+                    if (i == index)
+                    {
+                        tintItem.Enabled = false;
+                        tintItem.Description = "Current tint";
+                    }
+
+                    tintItem.Activated += (o, e) =>
+                    {
+                        TintPurchased(weapon.WeaponHash, ix);
+                        Main.LittleJacob.ProcessVoice(true);
+                    };
+
+                    tintsMenu.Add(tintItem);
                 }
 
-                tintSlider.Description = "Price: $5000";
-
-                var index = storeRef.GetTintIndex();
-                tintSlider.SelectedIndex = index == -1 ? 0 : index;
-
-                tintSlider.Activated += (o, e) =>
+                tintsMenu.SelectedIndexChanged += (o, e) =>
                 {
-                    TintPurchased(weapon.WeaponHash, tintSlider.SelectedIndex);
-                    Main.LittleJacob.ProcessVoice(true);
-                };
-
-                tintSlider.ItemChanged += (o, e) =>
-                {
-                    _lastItem = tintSlider;
-                    _installedIndex = LoadoutSaving.GetStoreReference(weapon.WeaponHash).GetTintIndex();
-                    _itemChanged = true;
-
+                    _currentItem = tintsMenu.Items[e.Index];
+                    _ownedItem = tintsMenu.Items[LoadoutSaving.GetStoreReference(weapon.WeaponHash).GetTintIndex()];
+                    
                     TintChanged?.Invoke(this, e.Index);
                 };
 
-                menu.Add(tintSlider);
+                tintsMenu.Closed += (o, e) =>
+                {
+                    ReloadComponents?.Invoke(this, weapon.WeaponHash);
+                };
+
+                Pool.Add(tintsMenu);
+                menu.AddSubMenu(tintsMenu);
             }
 
             if (weapon.HasClip)
             {
-                var clipSlider = new NativeListItem<string>("Clips");
+                var clipsMenu = new NativeMenu("Clips", "Clips");
+                int index;
+
+                if (storeRef != null)
+                {
+                    index = weapon.Clips.Values.ToList().IndexOf(storeRef.Clip);
+                    index = index == -1 ? 0 : index;
+                }
+                else
+                {
+                    index = 0;
+                }
 
                 for (int i = 0; i < weapon.Clips.Count; i++)
                 {
-                    clipSlider.Add(weapon.Clips.ElementAt(i).Key);
+                    var ix = i;
+                    var namePrice = weapon.Clips.Keys.ElementAt(i).Split('-');
+                    var clipItem = new NativeItem(namePrice[0])
+                    {
+                        Description = $"Price:{namePrice[1]}"
+                    };
+
+                    if (i == index)
+                    {
+                        clipItem.Enabled = false;
+                        clipItem.Description = "Current clip";
+                    }
+
+                    clipItem.Activated += (o, e) =>
+                    {
+                        ComponentPurchased(weapon.WeaponHash, weapon.Clips.ElementAt(ix), null, LoadoutSaving.SetClip);
+                        Main.LittleJacob.ProcessVoice(true);
+                    };
+
+                    clipsMenu.Add(clipItem);
                 }
 
-                var index = weapon.Clips.Values.ToList().IndexOf(storeRef.Clip);
-                clipSlider.SelectedIndex = index == -1 ? 0 : index;
-
-                clipSlider.Activated += (o, e) =>
-                {
-                    ComponentPurchased(weapon.WeaponHash, weapon.Clips.ElementAt(clipSlider.SelectedIndex), null, LoadoutSaving.SetClip);
-                    Main.LittleJacob.ProcessVoice(true);
-                };
-
-                clipSlider.ItemChanged += (o, e) =>
+                clipsMenu.SelectedIndexChanged += (o, e) =>
                 {
                     ComponentSelected?.Invoke(this, 
                         new ComponentPreviewEventArgs(weapon.WeaponHash, 
-                        weapon.Clips.ElementAt(clipSlider.SelectedIndex).Value, ComponentIndex.Clip));
+                        weapon.Clips.ElementAt(e.Index).Value, ComponentIndex.Clip));
 
-                    _lastItem = clipSlider;
-                    _installedIndex = weapon.Clips.Values.ToList().IndexOf(LoadoutSaving.GetStoreReference(weapon.WeaponHash).Clip);
-                    _itemChanged = true;
+                    _currentItem = clipsMenu.Items[e.Index];
+                    
+                    int curClip = weapon.Clips.Values.ToList().IndexOf(LoadoutSaving.GetStoreReference(weapon.WeaponHash).Clip);
+                    curClip = curClip == -1 ? 0 : curClip;
+
+                    _ownedItem = clipsMenu.Items[curClip];
                 };
 
-                menu.Add(clipSlider);
+                clipsMenu.Closed += (o, e) =>
+                {
+                    ReloadComponents?.Invoke(this, weapon.WeaponHash);
+                };
+
+                Pool.Add(clipsMenu);
+                menu.AddSubMenu(clipsMenu);
             }
 
             if (weapon.HasMuzzleOrSupp)
             {
-                var muzzleSlider = new NativeListItem<string>("Muzzle");
+                var muzzleMenu = new NativeMenu("Muzzle and suppressors", "Muzzle and suppressors");
+                int index;
+
+                if (storeRef != null)
+                {
+                    index = weapon.MuzzlesAndSupps.Values.ToList().IndexOf(storeRef.Muzzle);
+                    index = index == -1 ? 0 : index;
+                }
+                else
+                {
+                    index = 0;
+                }
 
                 for (int i = 0; i < weapon.MuzzlesAndSupps.Count; i++)
                 {
-                    muzzleSlider.Add(weapon.MuzzlesAndSupps.ElementAt(i).Key);
+                    var ix = i;
+                    var namePrice = weapon.MuzzlesAndSupps.Keys.ElementAt(i).Split('-');
+                    var muzzleItem = new NativeItem(namePrice[0])
+                    {
+                        Description = $"Price:{namePrice[1]}"
+                    };
+
+                    if (i == index)
+                    {
+                        muzzleItem.Enabled = false;
+                        muzzleItem.Description = "Current muzzle attachment";
+                    }
+
+                    muzzleItem.Activated += (o, e) =>
+                    {
+                        ComponentPurchased(weapon.WeaponHash, weapon.MuzzlesAndSupps.ElementAt(ix), weapon.MuzzlesAndSupps.Values.ToList(), LoadoutSaving.SetMuzzle);
+                        Main.LittleJacob.ProcessVoice(true);
+                    };
+
+                    muzzleMenu.Add(muzzleItem);
                 }
 
-                var index = weapon.MuzzlesAndSupps.Values.ToList().IndexOf(storeRef.Muzzle);
-                muzzleSlider.SelectedIndex = index == -1 ? 0 : index;
-
-                muzzleSlider.Activated += (o, e) =>
+                muzzleMenu.SelectedIndexChanged += (o, e) =>
                 {
-                    ComponentPurchased(weapon.WeaponHash, weapon.MuzzlesAndSupps.ElementAt(muzzleSlider.SelectedIndex), weapon.MuzzlesAndSupps.Values.ToList(), LoadoutSaving.SetMuzzle);
-                    Main.LittleJacob.ProcessVoice(true);
+                    ComponentSelected?.Invoke(this,
+                        new ComponentPreviewEventArgs(weapon.WeaponHash,
+                        weapon.MuzzlesAndSupps.ElementAt(e.Index).Value, ComponentIndex.Muzzle));
+
+                    _currentItem = muzzleMenu.Items[e.Index];
+
+                    int curMuzz = weapon.MuzzlesAndSupps.Values.ToList().IndexOf(LoadoutSaving.GetStoreReference(weapon.WeaponHash).Muzzle);
+                    curMuzz = curMuzz == -1 ? 0 : curMuzz;
+
+                    _ownedItem = muzzleMenu.Items[curMuzz];
                 };
 
-                muzzleSlider.ItemChanged += (o, e) =>
+                muzzleMenu.Closed += (o, e) =>
                 {
-                    ComponentSelected?.Invoke(this, new ComponentPreviewEventArgs(weapon.WeaponHash, 
-                        weapon.MuzzlesAndSupps.ElementAt(muzzleSlider.SelectedIndex).Value, ComponentIndex.Muzzle));
-
-                    _lastItem = muzzleSlider;
-                    _installedIndex = weapon.MuzzlesAndSupps.Values.ToList().IndexOf(LoadoutSaving.GetStoreReference(weapon.WeaponHash).Muzzle);
-                    _itemChanged = true;
+                    ReloadComponents?.Invoke(this, weapon.WeaponHash);
                 };
 
-                menu.Add(muzzleSlider);
+                Pool.Add(muzzleMenu);
+                menu.AddSubMenu(muzzleMenu);
             }
 
-            if (weapon.HasFlaslight)
+            /*if (weapon.HasFlaslight)
             {
                 var flashSlider = new NativeListItem<string>("Flashlight");
 
@@ -491,7 +545,7 @@ namespace LittleJacobMod.Interface
                 
                 menu.Add(camoSlider);
                 menu.Add(camoColorSlider);
-            }
+            }*/
         }
 
         void AmmoPurchased(GTA.Weapon weapon, int value)
@@ -527,9 +581,12 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show("Couldn't purchase this tint. Not enough money!");
                 return;
             }
-            _doReload = false;
-            _itemChanged = false;
 
+            _ownedItem.Enabled = true;
+            _ownedItem.Description = "Price $5000";
+            _currentItem.Enabled = false;
+            _currentItem.Description = "Current Tint";
+            
             Game.Player.Money -= price;
 
             TintChanged?.Invoke(this, index);
@@ -562,17 +619,11 @@ namespace LittleJacobMod.Interface
                     }
                 }
 
-                _doReload = false;
-                _itemChanged = false;
                 GTA.UI.Notification.Show($"Attachments removed!");
                 OnSuccess(weapon, WeaponComponentHash.Invalid);
-                //SpawnWeaponObject?.Invoke(this, weapon);
             }
             else
             {
-                _itemChanged = false;
-                _doReload = false;
-                //ComponentSelected?.Invoke(this, weaponComponent.Value);
                 Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Game.Player.Character.Handle, weapon, weaponComponent.Value);
                 
                 if (isCamo)
@@ -588,6 +639,11 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show($"{name} purchased!");
                 OnSuccess(weapon, weaponComponent.Value);
             }
+
+            _ownedItem.Enabled = true;
+            _ownedItem.Description = $"Price{weaponComponent.Key.Split('-')[1]}";
+            _currentItem.Enabled = false;
+            _currentItem.Description = "Current Attachment";
         }
 
         void CamoColorPurchased(WeaponHash weapon, int index)
@@ -606,8 +662,6 @@ namespace LittleJacobMod.Interface
                 return;
             }
 
-            _doReload = false;
-            _itemChanged = false;
             var storedWeapon = LoadoutSaving.GetStoreReference(weapon);
 
             Game.Player.Money -= price;
