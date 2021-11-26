@@ -75,7 +75,8 @@ namespace LittleJacobMod.Utils.Weapons
             new AssaultRifleMk2(),
             new Musket(),
             new SpecialCarbine(),
-            new SpecialCarbineMK2()
+            new SpecialCarbineMK2(),
+            new CompactRifle()
         };
 
         public static List<Weapon> Shotguns => new List<Weapon>()
