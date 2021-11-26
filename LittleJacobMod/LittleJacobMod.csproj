@@ -141,6 +141,7 @@
     <Compile Include="Utils\Weapons\Normal\Pistols\ApPistol.cs" />
     <Compile Include="Utils\Weapons\Normal\Rifles\AssaultRifle.cs" />
     <Compile Include="Utils\Weapons\MK2\Rifles\AssaultRifleMk2.cs" />
+    <Compile Include="Utils\Weapons\Normal\Rifles\CompactRifle.cs" />
     <Compile Include="Utils\Weapons\Normal\Rifles\Musket.cs" />
     <Compile Include="Utils\Weapons\Normal\Rifles\SpecialCarbine.cs" />
     <Compile Include="Utils\Weapons\Normal\Shotguns\AssaultShotgun.cs" />

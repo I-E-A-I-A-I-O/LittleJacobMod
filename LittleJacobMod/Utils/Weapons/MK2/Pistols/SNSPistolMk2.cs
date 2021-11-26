@@ -10,7 +10,7 @@ namespace LittleJacobMod.Utils.Weapons
 
         public override WeaponHash WeaponHash => WeaponHash.SNSPistolMk2;
 
-        public override int Price => 79000;
+        public override int Price => 71000;
 
         public override string Name => "SNS Pistol Mk2";
 

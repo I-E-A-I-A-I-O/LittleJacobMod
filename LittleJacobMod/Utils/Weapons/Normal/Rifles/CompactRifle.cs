@@ -4,19 +4,19 @@ using GTA;
 
 namespace LittleJacobMod.Utils.Weapons
 {
-    internal class Minigun : Weapon
+    class CompactRifle : Weapon
     {
         public override bool SaveFileWeapon => true;
 
-        public override WeaponHash WeaponHash => WeaponHash.Minigun;
+        public override WeaponHash WeaponHash => WeaponHash.CompactRifle;
 
-        public override int Price => 80000;
+        public override int Price => 10000;
 
-        public override string Name => "Minigun";
+        public override string Name => "Compact Rifle";
 
         public override bool HasMuzzleOrSupp => false;
 
-        public override bool HasClip => false;
+        public override bool HasClip => true;
 
         public override bool HasBarrel => false;
 
@@ -30,7 +30,12 @@ namespace LittleJacobMod.Utils.Weapons
 
         public override Dictionary<string, WeaponComponentHash> MuzzlesAndSupps => throw new NotImplementedException();
 
-        public override Dictionary<string, WeaponComponentHash> Clips => throw new NotImplementedException();
+        public override Dictionary<string, WeaponComponentHash> Clips => new Dictionary<string, WeaponComponentHash>()
+        {
+            { "Normal - $199", WeaponComponentHash.CompactRifleClip01 },
+            { "Extended - $7000", WeaponComponentHash.CompactRifleClip02 },
+            { "Drum - $20000", WeaponComponentHash.CompactRifleClip03 }
+        };
 
         public override Dictionary<string, WeaponComponentHash> Barrels => throw new NotImplementedException();
 
