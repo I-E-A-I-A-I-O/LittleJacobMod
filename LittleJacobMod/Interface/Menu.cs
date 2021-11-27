@@ -178,7 +178,7 @@ namespace LittleJacobMod.Interface
 
             if (weapon.WeaponHash != WeaponHash.PericoPistol && weapon.WeaponHash != WeaponHash.DoubleActionRevolver && weapon.WeaponHash != WeaponHash.NavyRevolver)
             {
-                var tintsMenu = new NativeMenu("Tints", "Tints");
+                var tintsMenu = new NativeMenu("Tint", "Tint");
                 int index;
 
                 if (storeRef != null)
@@ -246,12 +246,12 @@ namespace LittleJacobMod.Interface
 
             if (weapon.HasClip)
             {
-                AddOption("Clips", storeRef, weapon, menu, weapon.Clips, ComponentIndex.Clip, LoadoutSaving.SetClip);
+                AddOption("Clip", storeRef, weapon, menu, weapon.Clips, ComponentIndex.Clip, LoadoutSaving.SetClip);
             }
 
             if (weapon.HasMuzzleOrSupp)
             {
-                AddOption("Muzzle and Suppressors", storeRef, weapon, menu, weapon.MuzzlesAndSupps, ComponentIndex.Muzzle, LoadoutSaving.SetMuzzle);
+                AddOption("Muzzle", storeRef, weapon, menu, weapon.MuzzlesAndSupps, ComponentIndex.Muzzle, LoadoutSaving.SetMuzzle);
             }
 
             if (weapon.HasFlaslight)
@@ -261,22 +261,22 @@ namespace LittleJacobMod.Interface
 
             if (weapon.HasScope)
             {
-                AddOption("Scopes", storeRef, weapon, menu, weapon.Scopes, ComponentIndex.Scope, LoadoutSaving.SetScope);
+                AddOption("Scope", storeRef, weapon, menu, weapon.Scopes, ComponentIndex.Scope, LoadoutSaving.SetScope);
             }
 
             if (weapon.HasGrip)
             {
-                AddOption("Grips", storeRef, weapon, menu, weapon.Grips, ComponentIndex.Grip, LoadoutSaving.SetGrip);
+                AddOption("Grip", storeRef, weapon, menu, weapon.Grips, ComponentIndex.Grip, LoadoutSaving.SetGrip);
             }
 
             if (weapon.HasBarrel)
             {
-                AddOption("Barrels", storeRef, weapon, menu, weapon.Barrels, ComponentIndex.Barrel, LoadoutSaving.SetBarrel);
+                AddOption("Barrel", storeRef, weapon, menu, weapon.Barrels, ComponentIndex.Barrel, LoadoutSaving.SetBarrel);
             }
 
             if (weapon.HasCamo)
             {
-                AddOption("Liveries", storeRef, weapon, menu, weapon.Camos, ComponentIndex.Camo, LoadoutSaving.SetCamo, true);
+                AddOption("Livery", storeRef, weapon, menu, weapon.Camos, ComponentIndex.Camo, LoadoutSaving.SetCamo, true);
 
                 var camoColorMenu = new NativeMenu("Livery color", "Livery color");
                 int index;

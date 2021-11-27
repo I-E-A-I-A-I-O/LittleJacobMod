@@ -7,10 +7,11 @@ using GTA.Native;
 
 namespace LittleJacobMod.Saving
 {
-    static internal class LoadoutSaving
+    internal static class LoadoutSaving
     {
         static readonly List<StoredWeapon> StoredWeapons = new List<StoredWeapon>();
         public static bool Busy { get; private set; } = false;
+        public static event EventHandler WeaponsLoaded;
 
         public static void UpdateWeaponMap()
         {
@@ -271,11 +272,6 @@ namespace LittleJacobMod.Saving
 
         public static void PerformLoad(bool constructor = false)
         {
-            if (!Main.SavingEnabled)
-            {
-                return;
-            }
-
             if (!constructor)
             {
                 GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
@@ -437,6 +433,8 @@ namespace LittleJacobMod.Saving
                 GTA.UI.LoadingPrompt.Hide();
                 Busy = false;
             }
+
+            WeaponsLoaded?.Invoke(null, null);
         }
 
         public static void RemoveWeapons()

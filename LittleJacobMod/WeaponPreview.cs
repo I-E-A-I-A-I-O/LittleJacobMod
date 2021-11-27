@@ -178,6 +178,7 @@ class WeaponPreview : Script
         _weaponHandle.HasGravity = false;
         _weaponHandle.IsCollisionEnabled = false;
         _weaponHandle.Heading = Main.cam.ForwardVector.ToHeading();
+        _weaponHandle.Rotation = new Vector3(_weaponHandle.Rotation.X, _weaponHandle.Rotation.Y, _weaponHandle.Rotation.Z - 10);
         Function.Call(Hash.REMOVE_WEAPON_ASSET, hash);
 
         LoadAttachments(hash);

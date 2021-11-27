@@ -5,6 +5,7 @@ using LittleJacobMod.Utils;
 using LittleJacobMod.Saving;
 using LittleJacobMod.Saving.Utils;
 using GTA.Native;
+using GTA.Math;
 
 public class Main : Script
 {
@@ -24,6 +25,9 @@ public class Main : Script
     public static Controls OpenMenuKey { get; private set; }
     public static PedHash CurrentPed { get; private set; }
     public static bool MissionFlag;
+    Vector3 _gunRange1 = new Vector3(9.053967f, -1097.277f, 28.79702f);
+    Vector3 _gunRange2 = new Vector3(826.2507f, -2162.014f, 28.61901f);
+    public bool _processMenu;
 
     public Main()
     {
@@ -35,7 +39,10 @@ public class Main : Script
         JacobHash = settings.GetValue("Gameplay", "JacobModel", PedHash.Soucent03AMY);
         JacobsCarHash = settings.GetValue("Gameplay", "JacobsCarModel", VehicleHash.Virgo2);
 
+        LoadoutSaving.WeaponsLoaded += LoadoutSaving_WeaponsLoaded;
+
         Mapper.Initialize();
+        ifruit = new PhoneContact();
 
         if (Game.IsLoading)
         {
@@ -54,6 +61,13 @@ public class Main : Script
         Aborted += Main_Aborted;
     }
 
+    private void LoadoutSaving_WeaponsLoaded(object sender, EventArgs e)
+    {
+        _processMenu = false;
+        menu = new Menu();
+        _processMenu = true;
+    }
+
     private void Main_Aborted(object sender, EventArgs e)
     {
         if (JacobActive)
@@ -65,23 +79,27 @@ public class Main : Script
         }
     }
 
+    private bool IsPlayerAtGunRange()
+    {
+        return Game.Player.Character.IsInRange(_gunRange1, 12) || Game.Player.Character.IsInRange(_gunRange2, 12);
+    }
+
     void AutoSaveWatch(object o, EventArgs e)
     {
-        if (MissionFlag)
+        bool atRange = IsPlayerAtGunRange();
+
+        if (!Function.Call<bool>(Hash.GET_MISSION_FLAG) && MissionFlag && !atRange)
         {
-            if (!Game.IsMissionActive)
+            LoadoutSaving.PerformLoad();
+            MissionFlag = false;
+        }
+        else if (Function.Call<bool>(Hash.GET_MISSION_FLAG) || atRange)
+        {
+            if (!MissionFlag)
             {
-                LoadoutSaving.PerformLoad();
-                MissionFlag = false;
+                MissionFlag = true;
             }
-            else
-            {
-                if (!MissionFlag)
-                {
-                    MissionFlag = true;
-                }
-                return;
-            }
+            return;
         }
 
         if (Function.Call<bool>(Hash.IS_AUTO_SAVE_IN_PROGRESS))
@@ -99,7 +117,7 @@ public class Main : Script
             SaveTriggered = false;
         }
 
-        if (!JacobActive && Game.Player.CanStartMission)
+        if (!JacobActive)
         {
             if (!LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
             {
@@ -115,7 +133,7 @@ public class Main : Script
 
     void WeaponUse(object o, EventArgs e)
     {
-        if (Game.Player.Character.IsShooting)
+        if (Function.Call<bool>(Hash.IS_PED_SHOOTING, Function.Call<int>(Hash.PLAYER_PED_ID)))
         {
             var currentWeapon = Game.Player.Character.Weapons.Current;
             if (LoadoutSaving.IsWeaponInStore(currentWeapon.Hash))
@@ -141,15 +159,8 @@ public class Main : Script
         }
 
         CurrentPed = (PedHash)Game.Player.Character.Model.Hash;
-        LoadoutSaving.PerformLoad();
-        ifruit = new PhoneContact();
-        menu = new Menu();
+        LoadoutSaving.PerformLoad(!firstStart);
 
-        Tick += (o, e) =>
-        {
-            ifruit.Phone.Update();
-            menu.Pool.Process();
-        };
         Tick += ModelWatcher;
     }
 
@@ -167,6 +178,13 @@ public class Main : Script
 
     void OnTick(object o, EventArgs e)
     {
+        ifruit.Phone.Update();
+
+        if (_processMenu)
+        {
+            menu.Pool.Process();
+        }
+
         if (!JacobActive)
         {
             return;
