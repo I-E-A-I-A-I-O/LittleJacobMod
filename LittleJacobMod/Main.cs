@@ -43,25 +43,15 @@ public class Main : Script
         }
         else
         {
-            CurrentPed = (PedHash)Game.Player.Character.Model.Hash;
-            LoadoutSaving.PerformLoad(true);
-            Tick += ModelWatcher;
+            Initialize();
         }
 
         Tick += AutoSaveWatch;
         Tick += WeaponUse;
 
         Tick += ControlWatch;
-        Tick += (o, e) =>
-        {
-            ifruit.Phone.Update();
-            menu.Pool.Process();
-        };
         Tick += OnTick;
         Aborted += Main_Aborted;
-
-        ifruit = new PhoneContact();
-        menu = new Menu();
     }
 
     private void Main_Aborted(object sender, EventArgs e)
@@ -137,14 +127,29 @@ public class Main : Script
 
     void WaitForGameLoad(object o, EventArgs e)
     {
-        if (Game.IsLoading)
+        if (!Game.IsLoading)
         {
-            return;
+            Initialize(true);
+        }
+    }
+
+    void Initialize(bool firstStart = false)
+    {
+        if (firstStart)
+        {
+            Tick -= WaitForGameLoad;
         }
 
         CurrentPed = (PedHash)Game.Player.Character.Model.Hash;
         LoadoutSaving.PerformLoad();
-        Tick -= WaitForGameLoad;
+        ifruit = new PhoneContact();
+        menu = new Menu();
+
+        Tick += (o, e) =>
+        {
+            ifruit.Phone.Update();
+            menu.Pool.Process();
+        };
         Tick += ModelWatcher;
     }
 

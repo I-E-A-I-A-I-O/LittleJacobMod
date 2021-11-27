@@ -319,7 +319,9 @@ namespace LittleJacobMod.Interface
                 {
                     var reference = LoadoutSaving.GetStoreReference(weapon.WeaponHash);
                     _currentItem = camoColorMenu.Items[e.Index];
-                    _ownedItem = camoColorMenu.Items[reference.GetCamoColor()];
+
+                    var colorIndex = reference.GetCamoColor();
+                    _ownedItem = colorIndex == -1 ? null : camoColorMenu.Items[colorIndex];
 
                     var ev = new CamoColorEventArgs
                     {
@@ -507,7 +509,7 @@ namespace LittleJacobMod.Interface
             }
 
             _ownedItem.Enabled = true;
-            _ownedItem.Description = "Price $5000";
+            _ownedItem.Description = "Price: $5000";
             _currentItem.Enabled = false;
             _currentItem.Description = "Current Tint";
             
@@ -565,7 +567,7 @@ namespace LittleJacobMod.Interface
             }
 
             _ownedItem.Enabled = true;
-            _ownedItem.Description = $"Price{weaponComponent.Key.Split('-')[1]}";
+            _ownedItem.Description = $"Price:{(isCamo ? " $60000" : weaponComponent.Key.Split('-')[1])}";
             _currentItem.Enabled = false;
             _currentItem.Description = "Current Attachment";
         }
@@ -601,6 +603,11 @@ namespace LittleJacobMod.Interface
 
             GTA.UI.Notification.Show("Camo color purchased!");
             LoadoutSaving.SetCamoColor(weapon, index);
+
+            _ownedItem.Enabled = true;
+            _ownedItem.Description = $"Price: $60000";
+            _currentItem.Enabled = false;
+            _currentItem.Description = "Current livery color";
         }
     }
 }
