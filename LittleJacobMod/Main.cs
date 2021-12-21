@@ -3,7 +3,6 @@ using GTA;
 using LittleJacobMod.Interface;
 using LittleJacobMod.Utils;
 using LittleJacobMod.Saving;
-using LittleJacobMod.Saving.Utils;
 using GTA.Native;
 using GTA.Math;
 
@@ -11,7 +10,10 @@ public class Main : Script
 {
     PhoneContact ifruit;
     public Menu menu;
-    static public Camera cam;
+    Camera _trunkCam;
+    Camera _faceCam;
+    public static CallMenu CallMenu { get; private set; }
+    public static Camera Camera { get; private set; }
     public static bool JacobActive { get; set; }
     public static bool SavingEnabled { get; private set; }
     public static LittleJacob LittleJacob { get; set; }
@@ -28,8 +30,6 @@ public class Main : Script
 
     public Main()
     {
-        Migrator.Migrate();
-
         var settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
         OpenMenuKey = settings.GetValue("Controls", "OpenMenu", Controls.INPUT_CONTEXT);
         SavingEnabled = settings.GetValue("Gameplay", "EnableSaving", true);
@@ -38,6 +38,7 @@ public class Main : Script
         LoadoutSaving.WeaponsLoaded += LoadoutSaving_WeaponsLoaded;
         ifruit = new PhoneContact();
         menu = new Menu();
+        CallMenu = new CallMenu();
 
         if (Game.IsLoading)
         {
@@ -65,17 +66,34 @@ public class Main : Script
         _processMenu = true;
     }
 
+    void DeleteCameras()
+    {
+        if (_trunkCam != null)
+        {
+            _trunkCam.IsActive = false;
+            _trunkCam.Delete();
+        }
+
+        if (_faceCam != null)
+        {
+            _faceCam.IsActive = false;
+            _faceCam.Delete();
+        }
+
+        if (Camera != null)
+        {
+            Camera.IsActive = false;
+            Camera.Delete();
+        }
+
+        Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
+    }
+
     private void Main_Aborted(object sender, EventArgs e)
     {
         if (JacobActive)
         {
-            if (cam != null)
-            {
-                cam.IsActive = false;
-                cam.Delete();
-                Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
-            }
-
+            DeleteCameras();
             LittleJacob.DeleteBlip();
             Game.Player.Character.CanSwitchWeapons = true;
             Game.Player.Character.Task.ClearAll();
@@ -102,12 +120,14 @@ public class Main : Script
         MapperMain.CurrentPed = Function.Call<uint>(Hash.GET_ENTITY_MODEL, PPID);
         LoadoutSaving.PerformLoad(!firstStart);
         HelmetState.Load(!firstStart);
+        MissionSaving.Load(!firstStart);
     }
 
     void OnTick(object o, EventArgs e)
     {
         PPID = Function.Call<int>(Hash.PLAYER_PED_ID);
         ifruit.Phone.Update();
+        CallMenu.Pool.Process();
 
         if (_processMenu)
         {
@@ -123,9 +143,9 @@ public class Main : Script
 
         if (LittleJacob.Spawned && !LittleJacob.Left)
         {
-            if (cam != null && cam.Handle != 0 && cam.IsActive)
+            if (Camera != null && Camera.Handle != 0 && Camera.IsActive)
             {
-                Function.Call(Hash.DRAW_LIGHT_WITH_RANGE, LittleJacob.Vehicle.RearPosition.X + (cam.Direction.X / 2), LittleJacob.Vehicle.RearPosition.Y + (cam.Direction.Y / 2), LittleJacob.Vehicle.RearPosition.Z + 0.3f, 255, 255, 255, 1.5f, 0.5f);
+                Function.Call(Hash.DRAW_LIGHT_WITH_RANGE, LittleJacob.Vehicle.RearPosition.X + (_trunkCam.Direction.X / 2), LittleJacob.Vehicle.RearPosition.Y + (_trunkCam.Direction.Y / 2), LittleJacob.Vehicle.RearPosition.Z + 0.3f, 255, 255, 255, 1.5f, 0.5f);
             }
         }
 
@@ -134,14 +154,7 @@ public class Main : Script
             if (LittleJacob.Spawned && !LittleJacob.Left)
             {
                 menu.Pool.HideAll();
-
-                if (cam != null)
-                {
-                    cam.IsActive = false;
-                    cam.Delete();
-                    Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
-                }
-
+                DeleteCameras();
                 MenuOpened = false;
                 Game.Player.Character.CanSwitchWeapons = true;
                 LittleJacob.ToggleTrunk();
@@ -162,14 +175,7 @@ public class Main : Script
         if (LittleJacob.Spawned && !LittleJacob.Left && !LittleJacob.IsPlayerInArea())
         {
             menu.Pool.HideAll();
-
-            if (cam != null)
-            {
-                cam.IsActive = false;
-                cam.Delete();
-                Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
-            }
-
+            DeleteCameras();
             MenuOpened = false;
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.DeleteBlip();
@@ -180,14 +186,7 @@ public class Main : Script
         if (MenuOpened && !LittleJacob.PlayerNearTrunk())
         {
             menu.Pool.HideAll();
-
-            if (cam != null)
-            {
-                cam.IsActive = false;
-                cam.Delete();
-                Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
-            }
-
+            DeleteCameras();
             MenuOpened = false;
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
@@ -199,14 +198,7 @@ public class Main : Script
         if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.Jacob.IsDead)
         {
             menu.Pool.HideAll();
-
-            if (cam != null)
-            {
-                cam.IsActive = false;
-                cam.Delete();
-                Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
-            }
-
+            DeleteCameras();
             MenuOpened = false;
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
@@ -247,13 +239,7 @@ public class Main : Script
             GTA.UI.Screen.ShowHelpTextThisFrame($"Press ~{OpenMenuKey}~ to purchase weapons", false);
         } else if (MenuOpened && !menu.Pool.AreAnyVisible)
         {
-            if (cam != null)
-            {
-                cam.IsActive = false;
-                cam.Delete();
-                Function.Call(Hash.RENDER_SCRIPT_CAMS, 0, 1, 3000, 1, 0);
-            }
-
+            DeleteCameras();
             MenuOpened = false;
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
@@ -279,9 +265,20 @@ public class Main : Script
         {
             if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !MenuOpened)
             {
-                cam = Function.Call<Camera>(Hash.CREATE_CAM, "DEFAULT_SCRIPTED_CAMERA", 0);
+                Camera = Function.Call<Camera>(Hash.CREATE_CAM, "DEFAULT_SCRIPTED_CAMERA", 0);
+                _trunkCam = Function.Call<Camera>(Hash.CREATE_CAM, "DEFAULT_SCRIPTED_CAMERA", 0);
+                _faceCam = Function.Call<Camera>(Hash.CREATE_CAM, "DEFAULT_SCRIPTED_CAMERA", 0);
+                Vector3 rearPos = Game.Player.Character.RearPosition;
+                _faceCam.AttachTo(Game.Player.Character.Bones[Bone.SkelHead], new Vector3(0.25f, 1, 0.7f));
+                _faceCam.PointAt(new Vector3(rearPos.X, rearPos.Y, rearPos.Z + 0.7f));
+                _trunkCam.Position = new Vector3(LittleJacob.Vehicle.RearPosition.X, LittleJacob.Vehicle.RearPosition.Y, LittleJacob.Vehicle.RearPosition.Z + 0.6f);
+                _trunkCam.PointAt(LittleJacob.Vehicle.FrontPosition);
+                Camera.Position = _trunkCam.Position;
+                Camera.PointAt(LittleJacob.Vehicle.FrontPosition);
+                _faceCam.IsActive = false;
+                _trunkCam.IsActive = false;
                 MoveCamera(0);
-                cam.IsActive = true;
+                Camera.IsActive = true;
                 Function.Call(Hash.RENDER_SCRIPT_CAMS, 1, 1, 3000, 1, 0);
 
                 LittleJacob.ToggleTrunk();
@@ -316,15 +313,11 @@ public class Main : Script
     {
         if (posIndex == 0)
         {
-            cam.Detach();
-            cam.Position = new Vector3(LittleJacob.Vehicle.RearPosition.X, LittleJacob.Vehicle.RearPosition.Y, LittleJacob.Vehicle.RearPosition.Z + 0.6f);
-            cam.PointAt(LittleJacob.Vehicle.FrontPosition);
+            Camera.InterpTo(_trunkCam, 2000, 1, 1);
         } 
         else
         {
-            var rearPos = Game.Player.Character.RearPosition;
-            cam.AttachTo(Game.Player.Character.Bones[Bone.SkelHead], new Vector3(0.25f, 1, 0.7f));
-            cam.PointAt(new Vector3(rearPos.X, rearPos.Y, rearPos.Z + 0.7f));
+            Camera.InterpTo(_faceCam, 2000, 1, 1);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace LittleJacobMod.Utils.Weapons
 
         public override bool HasScope => true;
 
-        public override bool HasCamo => false;
+        public override bool HasCamo => true;
 
         public override bool HasFlaslight => true;
 
@@ -51,7 +51,11 @@ namespace LittleJacobMod.Utils.Weapons
             { "Scope - $8000", (uint)WeaponComponentHash.AtScopeMacro02 }
         };
 
-        public override Dictionary<string, uint> Camos => throw new NotImplementedException();
+        public override Dictionary<string, uint> Camos => new Dictionary<string, uint>()
+        {
+            { "None", (uint)WeaponComponentHash.Invalid },
+            { "Luxury Finish", (uint)WeaponComponentHash.SMGVarmodLuxe },
+        };
 
         public override Dictionary<string, uint> FlashLight => new Dictionary<string, uint>()
         {

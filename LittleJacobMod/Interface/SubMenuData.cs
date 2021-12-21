@@ -53,7 +53,7 @@ namespace LittleJacobMod.Interface
                 }
 
                 item.Value.Enabled = true;
-                item.Value.Description = $"Price: ${item.Key}";
+                item.Value.Description = $"Price:{item.Key}";
             }
         }
 
@@ -84,7 +84,7 @@ namespace LittleJacobMod.Interface
                     if (i != index && !items.Values.ElementAt(i).Enabled)
                     {
                         items.Values.ElementAt(i).Enabled = true;
-                        items.Values.ElementAt(i).Description = $"Price: ${items.ElementAt(i).Key}";
+                        items.Values.ElementAt(i).Description = $"Price:{items.ElementAt(i).Key}";
                     }
                     else if (i == index)
                     {

@@ -112,7 +112,8 @@ namespace LittleJacobMod.Utils.Weapons
             new Minigun(),
             new GrenadeLauncher(),
             new HomingLauncher(),
-            new Railgun()
+            new Railgun(),
+            new CompactEMP()
         };
 
         public static List<Weapon> Explosives => new List<Weapon>()

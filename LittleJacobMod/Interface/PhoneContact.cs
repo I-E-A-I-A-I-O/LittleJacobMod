@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using iFruitAddon2;
 using GTA;
-using LittleJacobMod.Loading;
 
 namespace LittleJacobMod.Interface
 {
@@ -25,6 +24,12 @@ namespace LittleJacobMod.Interface
 
         private void JacobContact_Answered(iFruitContact contact)
         {
+            if (MissionMain.Active)
+            {
+                GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Busy", "Im busy, call me later");
+                return;
+            }
+
             if (Main.JacobActive)
             {
                 if (Main.LittleJacob.Spawned)
@@ -48,10 +53,7 @@ namespace LittleJacobMod.Interface
                 return;
             }
 
-            GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "No problem man, just meet me at the location i sent you");
-            Main.LittleJacob = Initialize.CalculateClosestSpawnpoint();
-            Main.JacobActive = true;
-
+            Main.CallMenu.Show();
             ifruit.Close();
         }
     }

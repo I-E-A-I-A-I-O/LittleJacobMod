@@ -31,13 +31,13 @@ namespace LittleJacobMod.Utils.Weapons
         public override Dictionary<string, uint> MuzzlesAndSupps => new Dictionary<string, uint>()
         {
             { "None - $199", (uint)WeaponComponentHash.Invalid },
-            { "Suppressor - $6000", (uint)WeaponComponentHash.AtArSupp }
+            { "Suppressor - $49000", (uint)WeaponComponentHash.AtArSupp }
         };
 
         public override Dictionary<string, uint> Clips => new Dictionary<string, uint>()
         {
             { "Normal - $199", 1525977990 },
-            { "Extended - $8000", 1824470811 }
+            { "Extended - $50000", 1824470811 }
         };
 
         public override Dictionary<string, uint> Barrels => throw new NotImplementedException();
@@ -45,13 +45,13 @@ namespace LittleJacobMod.Utils.Weapons
         public override Dictionary<string, uint> Grips => new Dictionary<string, uint>()
         {
             { "None - $199", (uint)WeaponComponentHash.Invalid },
-            { "Grip - $3700", (uint)WeaponComponentHash.AtArAfGrip }
+            { "Grip - $8000", (uint)WeaponComponentHash.AtArAfGrip }
         };
 
         public override Dictionary<string, uint> Scopes => new Dictionary<string, uint>()
         {
             { "Iron sights - $199", 3017917522 },
-            { "Scope - $5000", (uint)WeaponComponentHash.AtScopeMedium },
+            { "Scope - $30000", (uint)WeaponComponentHash.AtScopeMedium },
         };
 
         public override Dictionary<string, uint> Camos => new Dictionary<string, uint>()
@@ -63,7 +63,7 @@ namespace LittleJacobMod.Utils.Weapons
         public override Dictionary<string, uint> FlashLight => new Dictionary<string, uint>()
         {
             { "None - $199", (uint)WeaponComponentHash.Invalid },
-            { "Flashlight - $2000", (uint)WeaponComponentHash.AtArFlsh }
+            { "Flashlight - $10000", (uint)WeaponComponentHash.AtArFlsh }
         };
     }
 }

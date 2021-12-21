@@ -20,6 +20,7 @@ namespace LittleJacobMod.Interface
         NativeMenu _helm2;
         NativeMenu _helm3;
         int _helmColor;
+        bool _move;
 
         public static event EventHandler<ComponentPreviewEventArgs> ComponentSelected;
         public static event EventHandler<uint> SpawnWeaponObject;
@@ -75,6 +76,24 @@ namespace LittleJacobMod.Interface
             SetupHelmetMenu(_helm1, 1, 118, 60000);
             SetupHelmetMenu(_helm2, 1, 116, 40000);
             SetupHelmetMenu(_helm3, 0, 147, 20000);
+
+            gearMenu.Shown += (o, e) =>
+            {
+                if (!_move)
+                {
+                    _move = true;
+                    HelmetMenuChanged.Invoke(this, true);
+                }
+            };
+
+            _mainMenu.Shown += (o, e) =>
+            {
+                if (_move)
+                {
+                    _move = false;
+                    HelmetMenuChanged.Invoke(this, false);
+                }
+            };
 
             armorOption.Activated += (o, e) =>
             {
@@ -329,15 +348,13 @@ namespace LittleJacobMod.Interface
 
                 Game.IsNightVisionActive = false;
                 Game.IsThermalVisionActive = false;
-                GTA.UI.Notification.Show($"~g~{menu.Title.Text} {(purchased ? "Purchased" : "Equipped")}");
-                HelmetMenuChanged?.Invoke(this, true);
+                GTA.UI.Notification.Show($"~g~{menu.Title.Text} {(purchased ? "Purchased" : "Equipped")}"); 
             };
 
             menu.Closed += (o, e) =>
             {
                 int helmIndx = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
                 Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmIndx, _helmColor, 1);
-                HelmetMenuChanged?.Invoke(this, false);
             };
 
             menu.SelectedIndexChanged += (o, e) =>
@@ -424,6 +441,72 @@ namespace LittleJacobMod.Interface
 
             SubMenuData menuData = new SubMenuData(weapon.WeaponHash);
             var storeRef = LoadoutSaving.GetStoreReference(weapon.WeaponHash);
+
+            if (weapon.HasCamo)
+            {
+                AddOption("Livery", storeRef, weapon, menu, weapon.Camos, ComponentIndex.Livery, LoadoutSaving.SetCamo, menuData);
+
+                var camoColorMenu = new NativeMenu("Livery color", "Livery color");
+                int index;
+
+                if (storeRef != null)
+                {
+                    index = storeRef.GetCamoColor();
+                    index = index == -1 ? 0 : index;
+                }
+                else
+                {
+                    index = 0;
+                }
+
+                for (int i = 0; i < TintsAndCamos.CamoColor.Count; i++)
+                {
+                    var ix = i;
+
+                    var camoColorItem = new NativeItem(TintsAndCamos.CamoColor[i])
+                    {
+                        Description = "Price: $10000"
+                    };
+                    menuData.CamoColorItems.Add(camoColorItem);
+
+                    if (i == index)
+                    {
+                        camoColorItem.Enabled = false;
+                        camoColorItem.Description = "Current livery color";
+                    }
+
+                    camoColorItem.Activated += (o, e) =>
+                    {
+                        menuData.SetListIndex(menuData.CamoColorItems, "Livery color", 10000, ix);
+                        CamoColorPurchased(weapon.WeaponHash, ix);
+                        Main.LittleJacob.ProcessVoice(true);
+                    };
+
+                    camoColorMenu.Add(camoColorItem);
+                }
+
+                camoColorMenu.SelectedIndexChanged += (o, e) =>
+                {
+                    var reference = LoadoutSaving.GetStoreReference(weapon.WeaponHash);
+                    var colorIndex = reference.GetCamoColor();
+
+                    var ev = new CamoColorEventArgs
+                    {
+                        Camo = reference.Camo,
+                        ColorIndex = e.Index
+                    };
+
+                    CamoColorChanged?.Invoke(this, ev);
+                };
+
+                camoColorMenu.Closed += (o, e) =>
+                {
+                    SpawnWeaponObject?.Invoke(this, weapon.WeaponHash);
+                };
+
+                Pool.Add(camoColorMenu);
+                menu.AddSubMenu(camoColorMenu);
+            }
 
             if (weapon.WeaponHash != 1470379660 && weapon.WeaponHash != 2548703416 && weapon.WeaponHash != 2441047180)
             {
@@ -518,72 +601,6 @@ namespace LittleJacobMod.Interface
             if (weapon.HasBarrel)
             {
                 AddOption("Barrel", storeRef, weapon, menu, weapon.Barrels, ComponentIndex.Barrel, LoadoutSaving.SetBarrel, menuData);
-            }
-
-            if (weapon.HasCamo)
-            {
-                AddOption("Livery", storeRef, weapon, menu, weapon.Camos, ComponentIndex.Livery, LoadoutSaving.SetCamo, menuData);
-
-                var camoColorMenu = new NativeMenu("Livery color", "Livery color");
-                int index;
-
-                if (storeRef != null)
-                {
-                    index = storeRef.GetCamoColor();
-                    index = index == -1 ? 0 : index;
-                }
-                else
-                {
-                    index = 0;
-                }
-
-                for (int i = 0; i < TintsAndCamos.CamoColor.Count; i++)
-                {
-                    var ix = i;
-
-                    var camoColorItem = new NativeItem(TintsAndCamos.CamoColor[i])
-                    {
-                        Description = "Price: $10000"
-                    };
-                    menuData.CamoColorItems.Add(camoColorItem);
-
-                    if (i == index)
-                    {
-                        camoColorItem.Enabled = false;
-                        camoColorItem.Description = "Current livery color";
-                    }
-
-                    camoColorItem.Activated += (o, e) =>
-                    {
-                        menuData.SetListIndex(menuData.CamoColorItems, "Livery color", 10000, ix);
-                        CamoColorPurchased(weapon.WeaponHash, ix);
-                        Main.LittleJacob.ProcessVoice(true);
-                    };
-
-                    camoColorMenu.Add(camoColorItem);
-                }
-
-                camoColorMenu.SelectedIndexChanged += (o, e) =>
-                {
-                    var reference = LoadoutSaving.GetStoreReference(weapon.WeaponHash);
-                    var colorIndex = reference.GetCamoColor();
-
-                    var ev = new CamoColorEventArgs
-                    {
-                        Camo = reference.Camo,
-                        ColorIndex = e.Index
-                    };
-
-                    CamoColorChanged?.Invoke(this, ev);
-                };
-
-                camoColorMenu.Closed += (o, e) =>
-                {
-                    SpawnWeaponObject?.Invoke(this, weapon.WeaponHash);
-                };
-
-                Pool.Add(camoColorMenu);
-                menu.AddSubMenu(camoColorMenu);
             }
 
             _subMenus.Add(menuData);

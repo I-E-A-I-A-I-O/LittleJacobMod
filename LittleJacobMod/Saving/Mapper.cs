@@ -190,7 +190,6 @@ namespace LittleJacobMod.Saving
                     if (!hasWeapon)
                     {
                         changes = true;
-                        GTA.UI.Screen.ShowSubtitle($"CHANGE 2 WEAPON {weapon.WeaponHash}");
                         weapons.RemoveAt(i);
                         continue;
                     }
