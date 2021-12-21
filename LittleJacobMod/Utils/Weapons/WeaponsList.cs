@@ -1,4 +1,5 @@
 ﻿using System;
+using GTA;
 using System.Collections.Generic;
 
 namespace LittleJacobMod.Utils.Weapons
@@ -76,7 +77,8 @@ namespace LittleJacobMod.Utils.Weapons
             new Musket(),
             new SpecialCarbine(),
             new SpecialCarbineMK2(),
-            new CompactRifle()
+            new CompactRifle(),
+            new HeavyRifle()
         };
 
         public static List<Weapon> Shotguns => new List<Weapon>()
@@ -125,5 +127,46 @@ namespace LittleJacobMod.Utils.Weapons
             new Flare(),
             new SmokeGrenade()
         };
+
+        public static Weapon GetWeapon(uint weapon)
+        {
+            foreach (Weapon wp in Pistols)
+            {
+                if (wp.WeaponHash == weapon)
+                    return wp;
+            }
+
+            foreach (Weapon wp in SMGs)
+            {
+                if (wp.WeaponHash == weapon)
+                    return wp;
+            }
+
+            foreach (Weapon wp in Rifles)
+            {
+                if (wp.WeaponHash == weapon)
+                    return wp;
+            }
+
+            foreach (Weapon wp in Shotguns)
+            {
+                if (wp.WeaponHash == weapon)
+                    return wp;
+            }
+
+            foreach (Weapon wp in Snipers)
+            {
+                if (wp.WeaponHash == weapon)
+                    return wp;
+            }
+
+            foreach (Weapon wp in Heavy)
+            {
+                if (wp.WeaponHash == weapon)
+                    return wp;
+            }
+
+            return null;
+        }
     }
 }

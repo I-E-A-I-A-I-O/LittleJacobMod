@@ -13,8 +13,8 @@ class WeaponPreview : Script
     bool _doObjectSpawn;
     bool _doComponentChange;
     bool _compFromStorage;
-    WeaponHash _hash = WeaponHash.Pistol;
-    WeaponComponentHash _new = WeaponComponentHash.Invalid;
+    uint _hash = 453432689;
+    uint _new = (uint)WeaponComponentHash.Invalid;
     ComponentIndex _skipIndex;
 
     public WeaponPreview()
@@ -23,18 +23,10 @@ class WeaponPreview : Script
         Menu.SpawnWeaponObject += Menu_SpawnWeaponObject;
         Menu.CamoColorChanged += Menu_CamoColorChanged;
         Menu.TintChanged += Menu_TintChanged;
-        Menu.ReloadComponents += Menu_ReloadComponents;
 
         LittleJacob.TrunkStateChanged += LittleJacob_TrunkStateChanged;
 
         Tick += WeaponPreview_Tick;
-    }
-
-    private void Menu_ReloadComponents(object sender, WeaponHash e)
-    {
-        _doComponentReload = true;
-        _compFromStorage = true;
-        _hash = e;
     }
 
     private void WeaponPreview_Tick(object sender, EventArgs e)
@@ -57,11 +49,11 @@ class WeaponPreview : Script
         {
             GiveWeaponComponentToObject(_new);
 
-            if (_new != WeaponComponentHash.Invalid)
+            if (_new != (uint)WeaponComponentHash.Invalid)
             {
                 var slide = TintsAndCamos.ReturnSlide(_new);
 
-                if (slide != WeaponComponentHash.Invalid)
+                if (slide != (uint)WeaponComponentHash.Invalid)
                 {
                     GiveWeaponComponentToObject(slide);
                 }
@@ -90,26 +82,26 @@ class WeaponPreview : Script
 
         var slide = TintsAndCamos.ReturnSlide(e.Camo);
 
-        if (slide != WeaponComponentHash.Invalid)
+        if (slide != (uint)WeaponComponentHash.Invalid)
         {
             Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, slide, e.ColorIndex);
         }
     }
 
-    private void LoadAttachments(WeaponHash hash)
+    private void LoadAttachments(uint hash)
     {
         if (LoadoutSaving.IsWeaponInStore(hash))
         {
             var storedWeapon = LoadoutSaving.GetStoreReference(hash);
             Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, _weaponHandle.Handle, storedWeapon.GetTintIndex());
 
-            if (SkipComponent(storedWeapon.Camo, ComponentIndex.Camo))
+            if (SkipComponent(storedWeapon.Camo, ComponentIndex.Livery))
             {
                 GiveWeaponComponentToObject(storedWeapon.Camo);
 
                 var slide = TintsAndCamos.ReturnSlide(storedWeapon.Camo);
 
-                if (slide != WeaponComponentHash.Invalid)
+                if (slide != (uint)WeaponComponentHash.Invalid)
                 {
                     GiveWeaponComponentToObject(slide);
                     Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, slide, storedWeapon.GetCamoColor());
@@ -150,19 +142,19 @@ class WeaponPreview : Script
         }
     }
 
-    private bool SkipComponent(WeaponComponentHash component, ComponentIndex index)
+    private bool SkipComponent(uint component, ComponentIndex index)
     {
-        return component != WeaponComponentHash.Invalid && (_compFromStorage || (!_compFromStorage && index != _skipIndex));
+        return component != (uint)WeaponComponentHash.Invalid && (_compFromStorage || (!_compFromStorage && index != _skipIndex));
     }
 
-    private void Menu_SpawnWeaponObject(object sender, WeaponHash hash)
+    private void Menu_SpawnWeaponObject(object sender, uint hash)
     {
         _doObjectSpawn = true;
         _hash = hash;
         _compFromStorage = true;
     }
 
-    private void SpawnWeaponObject(WeaponHash hash)
+    private void SpawnWeaponObject(uint hash)
     {
         DeleteWeaponObject();
 
@@ -192,9 +184,9 @@ class WeaponPreview : Script
         _hash = component.WeaponHash;
     }
 
-    private void GiveWeaponComponentToObject(WeaponComponentHash component)
+    private void GiveWeaponComponentToObject(uint component)
     {
-        if (component == WeaponComponentHash.Invalid)
+        if (component == (uint)WeaponComponentHash.Invalid)
         {
             SpawnWeaponObject(_hash);
             return;

@@ -8,7 +8,7 @@ namespace LittleJacobMod.Utils.Weapons
     {
         public override bool SaveFileWeapon => true;
 
-        public override WeaponHash WeaponHash => WeaponHash.CeramicPistol;
+        public override uint WeaponHash => (uint)GTA.WeaponHash.CeramicPistol;
 
         public override int Price => 17000;
 
@@ -28,26 +28,26 @@ namespace LittleJacobMod.Utils.Weapons
 
         public override bool HasFlaslight => false;
 
-        public override Dictionary<string, WeaponComponentHash> MuzzlesAndSupps => new Dictionary<string, WeaponComponentHash>()
+        public override Dictionary<string, uint> MuzzlesAndSupps => new Dictionary<string, uint>()
         {
-            { "None - $199", WeaponComponentHash.Invalid },
-            { "Suppressor - $14000", WeaponComponentHash.CeramicPistolSupp }
+            { "None - $199", (uint)WeaponComponentHash.Invalid },
+            { "Suppressor - $14000", (uint)WeaponComponentHash.CeramicPistolSupp }
         };
 
-        public override Dictionary<string, WeaponComponentHash> Clips => new Dictionary<string, WeaponComponentHash>()
+        public override Dictionary<string, uint> Clips => new Dictionary<string, uint>()
         {
-            { "Normal - $199", WeaponComponentHash.CeramicPistolClip01 },
-            { "Extended - $10000", WeaponComponentHash.CeramicPistolClip02 }
+            { "Normal - $199", (uint)WeaponComponentHash.CeramicPistolClip01 },
+            { "Extended - $10000", (uint)WeaponComponentHash.CeramicPistolClip02 }
         };
 
-        public override Dictionary<string, WeaponComponentHash> Barrels => throw new NotImplementedException();
+        public override Dictionary<string, uint> Barrels => throw new NotImplementedException();
 
-        public override Dictionary<string, WeaponComponentHash> Grips => throw new NotImplementedException();
+        public override Dictionary<string, uint> Grips => throw new NotImplementedException();
 
-        public override Dictionary<string, WeaponComponentHash> Scopes => throw new NotImplementedException();
+        public override Dictionary<string, uint> Scopes => throw new NotImplementedException();
 
-        public override Dictionary<string, WeaponComponentHash> Camos => throw new NotImplementedException();
+        public override Dictionary<string, uint> Camos => throw new NotImplementedException();
 
-        public override Dictionary<string, WeaponComponentHash> FlashLight => throw new NotImplementedException();
+        public override Dictionary<string, uint> FlashLight => throw new NotImplementedException();
     }
 }

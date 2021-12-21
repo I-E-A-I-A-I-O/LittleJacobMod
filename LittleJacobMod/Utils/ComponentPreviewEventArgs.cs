@@ -5,7 +5,7 @@ namespace LittleJacobMod.Utils
 {
     public enum ComponentIndex
     {
-        Camo,
+        Livery,
         Scope,
         Clip,
         Muzzle,
@@ -16,11 +16,11 @@ namespace LittleJacobMod.Utils
 
     public class ComponentPreviewEventArgs : EventArgs
     {
-        public WeaponHash WeaponHash { get; private set; }
-        public WeaponComponentHash PreviewComponent { get; private set; }
+        public uint WeaponHash { get; private set; }
+        public uint PreviewComponent { get; private set; }
         public ComponentIndex ComponentIndex { get; private set; }
 
-        public ComponentPreviewEventArgs(WeaponHash hash, WeaponComponentHash prvw, ComponentIndex index)
+        public ComponentPreviewEventArgs(uint hash, uint prvw, ComponentIndex index)
         {
             WeaponHash = hash;
             PreviewComponent = prvw;

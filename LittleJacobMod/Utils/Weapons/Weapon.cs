@@ -7,7 +7,7 @@ namespace LittleJacobMod.Utils.Weapons
     internal abstract class Weapon
     {
         public abstract bool SaveFileWeapon { get; }
-        public abstract WeaponHash WeaponHash { get; }
+        public abstract uint WeaponHash { get; }
         public abstract int Price { get; }
         public abstract string Name { get; }
         public abstract bool HasMuzzleOrSupp { get; }
@@ -17,13 +17,13 @@ namespace LittleJacobMod.Utils.Weapons
         public abstract bool HasScope { get; }
         public abstract bool HasCamo { get; }
         public abstract bool HasFlaslight { get; }
-        public abstract Dictionary<string, WeaponComponentHash> MuzzlesAndSupps { get; }
-        public abstract Dictionary<string, WeaponComponentHash> Clips { get; }
-        public abstract Dictionary<string, WeaponComponentHash> Barrels { get; }
-        public abstract Dictionary<string, WeaponComponentHash> Grips { get; }
-        public abstract Dictionary<string, WeaponComponentHash> Scopes { get; }
-        public abstract Dictionary<string, WeaponComponentHash> Camos { get; }
-        public abstract Dictionary<string, WeaponComponentHash> FlashLight { get; }
+        public abstract Dictionary<string, uint> MuzzlesAndSupps { get; }
+        public abstract Dictionary<string, uint> Clips { get; }
+        public abstract Dictionary<string, uint> Barrels { get; }
+        public abstract Dictionary<string, uint> Grips { get; }
+        public abstract Dictionary<string, uint> Scopes { get; }
+        public abstract Dictionary<string, uint> Camos { get; }
+        public abstract Dictionary<string, uint> FlashLight { get; }
 
         public static List<WeaponTint> WeaponTints => new List<WeaponTint>()
         {

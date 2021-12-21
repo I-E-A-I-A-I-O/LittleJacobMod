@@ -87,19 +87,24 @@
   <ItemGroup>
     <Compile Include="Interface\Menu.cs" />
     <Compile Include="Interface\PhoneContact.cs" />
+    <Compile Include="Interface\SubMenuData.cs" />
     <Compile Include="Loading\Initialize.cs" />
     <Compile Include="Loading\JacobSpawnpoint.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="MapperMain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Saving\HelmetSaving.cs" />
     <Compile Include="Saving\LoadoutSaving.cs" />
     <Compile Include="Saving\Mapper.cs" />
     <Compile Include="Saving\Utils\Migrator.cs" />
     <Compile Include="Saving\Utils\StoredWeapon.cs" />
+    <Compile Include="Utils\Weapons\Normal\Rifles\HeavyRifle.cs" />
+    <Compile Include="VisionToggleMain.cs" />
     <Compile Include="Utils\ComoColorEventArgs.cs" />
     <Compile Include="Utils\ComponentPreviewEventArgs.cs" />
     <Compile Include="Utils\Controls.cs" />

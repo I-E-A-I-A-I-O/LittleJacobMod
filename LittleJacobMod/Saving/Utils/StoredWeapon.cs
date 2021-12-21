@@ -6,36 +6,36 @@ namespace LittleJacobMod.Saving.Utils
 {
     internal class StoredWeapon
     {
-        public WeaponHash WeaponHash { get; }
+        public uint WeaponHash { get; }
         public int Ammo { get; set; } = 0;
-        public WeaponComponentHash Muzzle { get; set; } = WeaponComponentHash.Invalid;
-        public WeaponComponentHash Camo { get; set; } = WeaponComponentHash.Invalid;
+        public uint Muzzle { get; set; } = (uint)WeaponComponentHash.Invalid;
+        public uint Camo { get; set; } = (uint)WeaponComponentHash.Invalid;
         public int Tint { get; set; } = 0;
         public int CamoColor { get; set; } = 0;
-        public WeaponComponentHash Grip { get; set; } = WeaponComponentHash.Invalid;
-        public WeaponComponentHash Clip { get; set; } = WeaponComponentHash.Invalid;
-        public WeaponComponentHash Barrel { get; set; } = WeaponComponentHash.Invalid;
-        public WeaponComponentHash Scope { get; set; } = WeaponComponentHash.Invalid;
-        public WeaponComponentHash Flashlight { get; set; } = WeaponComponentHash.Invalid;
+        public uint Grip { get; set; } = (uint)WeaponComponentHash.Invalid;
+        public uint Clip { get; set; } = (uint)WeaponComponentHash.Invalid;
+        public uint Barrel { get; set; } = (uint)WeaponComponentHash.Invalid;
+        public uint Scope { get; set; } = (uint)WeaponComponentHash.Invalid;
+        public uint Flashlight { get; set; } = (uint)WeaponComponentHash.Invalid;
 
-        public StoredWeapon (WeaponHash hash)
+        public StoredWeapon (uint hash)
         {
             WeaponHash = hash;
         }
 
         public int GetTintIndex()
         {
-            return Function.Call<int>(Hash.GET_PED_WEAPON_TINT_INDEX, Game.Player.Character.Handle, WeaponHash);
+            return Function.Call<int>(Hash.GET_PED_WEAPON_TINT_INDEX, Main.PPID, WeaponHash);
         }
 
-        public bool HasComponent(WeaponComponentHash componentHash)
+        public bool HasComponent(uint componentHash)
         {
-            return Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON_COMPONENT, Game.Player.Character.Handle, WeaponHash, componentHash);
+            return Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON_COMPONENT, Main.PPID, WeaponHash, componentHash);
         }
 
         public int GetCamoColor()
         {
-            return Function.Call<int>(Hash._GET_PED_WEAPON_LIVERY_COLOR, Game.Player.Character.Handle, WeaponHash, Camo);
+            return Function.Call<int>(Hash._GET_PED_WEAPON_LIVERY_COLOR, Main.PPID, WeaponHash, Camo);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace LittleJacobMod.Utils.Weapons
     {
         public override bool SaveFileWeapon => true;
 
-        public override WeaponHash WeaponHash => WeaponHash.PistolMk2;
+        public override uint WeaponHash => (uint)GTA.WeaponHash.PistolMk2;
 
         public override int Price => 65000;
 
@@ -28,53 +28,53 @@ namespace LittleJacobMod.Utils.Weapons
 
         public override bool HasFlaslight => true;
 
-        public override Dictionary<string, WeaponComponentHash> MuzzlesAndSupps => new Dictionary<string, WeaponComponentHash>()
+        public override Dictionary<string, uint> MuzzlesAndSupps => new Dictionary<string, uint>()
         {
-            { "None - $199", WeaponComponentHash.Invalid },
-            { "Suppressor - $28000", WeaponComponentHash.AtPiSupp02 },
-            { "Compensator - $21000", WeaponComponentHash.AtPiComp }
+            { "None - $199", (uint)WeaponComponentHash.Invalid },
+            { "Suppressor - $28000", (uint)WeaponComponentHash.AtPiSupp02 },
+            { "Compensator - $21000", (uint)WeaponComponentHash.AtPiComp }
         };
 
-        public override Dictionary<string, WeaponComponentHash> Clips => new Dictionary<string, WeaponComponentHash>()
+        public override Dictionary<string, uint> Clips => new Dictionary<string, uint>()
         {
-            { "Normal - $199" , WeaponComponentHash.PistolMk2Clip01 },
-            { "Extended - $15000", WeaponComponentHash.PistolMk2Clip02 },
-            { "Tracer - $28000", WeaponComponentHash.PistolMk2ClipTracer },
-            { "Incendiary - $34000", WeaponComponentHash.PistolMk2ClipIncendiary },
-            { "Hollow Point - $39000", WeaponComponentHash.PistolMk2ClipHollowPoint },
-            { "FMJ - $52000", WeaponComponentHash.PistolMk2ClipFMJ }
+            { "Normal - $199" , (uint)WeaponComponentHash.PistolMk2Clip01 },
+            { "Extended - $15000", (uint)WeaponComponentHash.PistolMk2Clip02 },
+            { "Tracer - $28000", (uint)WeaponComponentHash.PistolMk2ClipTracer },
+            { "Incendiary - $34000", (uint)WeaponComponentHash.PistolMk2ClipIncendiary },
+            { "Hollow Point - $39000", (uint)WeaponComponentHash.PistolMk2ClipHollowPoint },
+            { "FMJ - $52000", (uint)WeaponComponentHash.PistolMk2ClipFMJ }
         };
 
-        public override Dictionary<string, WeaponComponentHash> Barrels => throw new NotImplementedException();
+        public override Dictionary<string, uint> Barrels => throw new NotImplementedException();
 
-        public override Dictionary<string, WeaponComponentHash> Grips => throw new NotImplementedException();
+        public override Dictionary<string, uint> Grips => throw new NotImplementedException();
 
-        public override Dictionary<string, WeaponComponentHash> Scopes => new Dictionary<string, WeaponComponentHash>()
+        public override Dictionary<string, uint> Scopes => new Dictionary<string, uint>()
         {
-            { "None - $199", WeaponComponentHash.Invalid },
-            { "Mounted Scope - $16000", WeaponComponentHash.AtPiRail }
+            { "None - $199", (uint)WeaponComponentHash.Invalid },
+            { "Mounted Scope - $16000", (uint)WeaponComponentHash.AtPiRail }
         };
 
-        public override Dictionary<string, WeaponComponentHash> Camos => new Dictionary<string, WeaponComponentHash>()
+        public override Dictionary<string, uint> Camos => new Dictionary<string, uint>()
         {
-            { "None", WeaponComponentHash.Invalid },
-            { "Digital", WeaponComponentHash.PistolMk2Camo },
-            { "Brushstroke", WeaponComponentHash.PistolMk2Camo02 },
-            { "Woodland", WeaponComponentHash.PistolMk2Camo03 },
-            { "Skull", WeaponComponentHash.PistolMk2Camo04 },
-            { "Sessanta Nove", WeaponComponentHash.PistolMk2Camo05 },
-            { "Perseus", WeaponComponentHash.PistolMk2Camo06 },
-            { "Leopard", WeaponComponentHash.PistolMk2Camo07 },
-            { "Zebra", WeaponComponentHash.PistolMk2Camo08 },
-            { "Geometric", WeaponComponentHash.PistolMk2Camo09 },
-            { "Boom!", WeaponComponentHash.PistolMk2Camo10 },
-            { "Patriotic", WeaponComponentHash.PistolMk2CamoIndependence01 },
+            { "None", (uint)WeaponComponentHash.Invalid },
+            { "Digital", (uint)WeaponComponentHash.PistolMk2Camo },
+            { "Brushstroke", (uint)WeaponComponentHash.PistolMk2Camo02 },
+            { "Woodland", (uint)WeaponComponentHash.PistolMk2Camo03 },
+            { "Skull", (uint)WeaponComponentHash.PistolMk2Camo04 },
+            { "Sessanta Nove", (uint)WeaponComponentHash.PistolMk2Camo05 },
+            { "Perseus", (uint)WeaponComponentHash.PistolMk2Camo06 },
+            { "Leopard", (uint)WeaponComponentHash.PistolMk2Camo07 },
+            { "Zebra", (uint)WeaponComponentHash.PistolMk2Camo08 },
+            { "Geometric", (uint)WeaponComponentHash.PistolMk2Camo09 },
+            { "Boom!", (uint)WeaponComponentHash.PistolMk2Camo10 },
+            { "Patriotic", (uint)WeaponComponentHash.PistolMk2CamoIndependence01 },
         };
 
-        public override Dictionary<string, WeaponComponentHash> FlashLight => new Dictionary<string, WeaponComponentHash>()
+        public override Dictionary<string, uint> FlashLight => new Dictionary<string, uint>()
         {
-            { "None - $199", WeaponComponentHash.Invalid },
-            { "Flashlight - $7000", WeaponComponentHash.AtPiFlsh02 }
+            { "None - $199", (uint)WeaponComponentHash.Invalid },
+            { "Flashlight - $7000", (uint)WeaponComponentHash.AtPiFlsh02 }
         };
     }
 }

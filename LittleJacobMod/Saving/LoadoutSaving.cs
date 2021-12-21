@@ -9,25 +9,25 @@ namespace LittleJacobMod.Saving
 {
     internal static class LoadoutSaving
     {
-        static readonly List<StoredWeapon> StoredWeapons = new List<StoredWeapon>();
+        static readonly List<StoredWeapon> _storedWeapons = new List<StoredWeapon>();
         public static bool Busy { get; private set; } = false;
         public static event EventHandler WeaponsLoaded;
 
         public static void UpdateWeaponMap()
         {
-            Mapper.Process(StoredWeapons);
+            Mapper.Process(_storedWeapons);
         }
 
         public static int Count()
         {
-            return StoredWeapons.Count;
+            return _storedWeapons.Count;
         }
 
-        public static bool IsWeaponInStore(WeaponHash weapon)
+        public static bool IsWeaponInStore(uint weapon)
         {
-            foreach (var storedWeapon in StoredWeapons)
+            for (int i = 0; i < _storedWeapons.Count; i++)
             {
-                if (storedWeapon.WeaponHash == weapon)
+                if (_storedWeapons[i].WeaponHash == weapon)
                 {
                     return true;
                 }
@@ -37,38 +37,38 @@ namespace LittleJacobMod.Saving
 
         public static void AddWeapon (Weapon weapon)
         {
-            foreach(var weaponInStore in StoredWeapons)
+            for(int i = 0; i < _storedWeapons.Count; i++)
             {
-                if (weaponInStore.WeaponHash == weapon.Hash)
+                if (_storedWeapons[i].WeaponHash == (uint)weapon.Hash)
                 {
                     return;
                 }
             }
 
-            var storedWeapon = new StoredWeapon(weapon.Hash)
+            var storedWeapon = new StoredWeapon((uint)weapon.Hash)
             {
                 Ammo = weapon.Ammo
             };
-            StoredWeapons.Add(storedWeapon);
+            _storedWeapons.Add(storedWeapon);
         }
 
-        public static void SetAmmo(WeaponHash hash, int ammo)
+        public static void SetAmmo(uint hash, int ammo)
         {
-            for (var i = 0; i < StoredWeapons.Count; i++)
+            for (var i = 0; i < _storedWeapons.Count; i++)
             {
-                if (StoredWeapons[i].WeaponHash == hash)
+                if (_storedWeapons[i].WeaponHash == hash)
                 {
-                    StoredWeapons[i].Ammo = ammo;
+                    _storedWeapons[i].Ammo = ammo;
                     return;
                 }
             }
         }
 
-        public static void UpdateAmmo(WeaponHash hash, int ammo)
+        public static void UpdateAmmo(uint hash, int ammo)
         {
             var playerHandle = Game.Player.Character.Handle;
             var currentWeaponAmmoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, playerHandle, hash);
-            foreach (StoredWeapon weapon in StoredWeapons)
+            foreach (StoredWeapon weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
@@ -84,9 +84,9 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void SetClip(WeaponHash hash, WeaponComponentHash componentHash)
+        public static void SetClip(uint hash, uint componentHash)
         {
-            foreach (var weapon in StoredWeapons)
+            foreach (var weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
@@ -96,9 +96,9 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void SetGrip(WeaponHash hash, WeaponComponentHash componentHash)
+        public static void SetGrip(uint hash, uint componentHash)
         {
-            foreach (var weapon in StoredWeapons)
+            foreach (var weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
@@ -108,9 +108,9 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void SetBarrel(WeaponHash hash, WeaponComponentHash componentHash)
+        public static void SetBarrel(uint hash, uint componentHash)
         {
-            foreach (var weapon in StoredWeapons)
+            foreach (var weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
@@ -120,9 +120,9 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void SetCamo(WeaponHash hash, WeaponComponentHash componentHash)
+        public static void SetCamo(uint hash, uint componentHash)
         {
-            foreach (var weapon in StoredWeapons)
+            foreach (var weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
@@ -132,9 +132,9 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void SetTint(WeaponHash hash, int tint)
+        public static void SetTint(uint hash, int tint)
         {
-            foreach (var weapon in StoredWeapons)
+            foreach (var weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
@@ -144,9 +144,9 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void SetCamoColor(WeaponHash hash, int color)
+        public static void SetCamoColor(uint hash, int color)
         {
-            foreach (var weapon in StoredWeapons)
+            foreach (var weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
@@ -156,9 +156,9 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void SetFlashlight(WeaponHash hash, WeaponComponentHash flashlight)
+        public static void SetFlashlight(uint hash, uint flashlight)
         {
-            foreach (var weapon in StoredWeapons)
+            foreach (var weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
@@ -168,9 +168,9 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void SetMuzzle(WeaponHash hash, WeaponComponentHash muzzle)
+        public static void SetMuzzle(uint hash, uint muzzle)
         {
-            foreach(var weapon in StoredWeapons)
+            foreach(var weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
@@ -180,9 +180,9 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void SetScope(WeaponHash hash, WeaponComponentHash scope)
+        public static void SetScope(uint hash, uint scope)
         {
-            foreach (var weapon in StoredWeapons)
+            foreach (var weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
@@ -192,9 +192,9 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static StoredWeapon GetStoreReference(WeaponHash hash)
+        public static StoredWeapon GetStoreReference(uint hash)
         {
-            foreach (var weapon in StoredWeapons)
+            foreach (var weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
@@ -205,31 +205,26 @@ namespace LittleJacobMod.Saving
             return null;
         }
 
-        public static bool HasCamo(WeaponHash hash)
+        public static bool HasCamo(uint hash)
         {
-            foreach (var weapon in StoredWeapons)
+            foreach (var weapon in _storedWeapons)
             {
                 if (weapon.WeaponHash == hash)
                 {
-                    return weapon.Camo != WeaponComponentHash.Invalid;
+                    return weapon.Camo != (uint)WeaponComponentHash.Invalid;
                 }
             }
             return false;
         }
 
-        public static void PerformSave(PedHash ped)
+        public static void PerformSave(uint ped)
         {
-            if (!Main.SavingEnabled)
-            {
-                return;
-            }
-
             GTA.UI.LoadingPrompt.Show("Saving weapon loadout...");
             Busy = true;
             try
             {
                 var dir = Directory.GetCurrentDirectory();
-                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{(int)ped}.data";
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{ped}.data";
                 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
                 {
@@ -243,20 +238,20 @@ namespace LittleJacobMod.Saving
 
                 using (var writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
                 {
-                    writer.Write(StoredWeapons.Count);
-                    foreach (var weapon in StoredWeapons)
+                    writer.Write(_storedWeapons.Count);
+                    foreach (var weapon in _storedWeapons)
                     {
                         writer.Write(weapon.Ammo);
-                        writer.Write(weapon.Barrel.ToString());
-                        writer.Write(weapon.Camo.ToString());
+                        writer.Write(weapon.Barrel);
+                        writer.Write(weapon.Camo);
                         writer.Write(weapon.CamoColor);
-                        writer.Write(weapon.Clip.ToString());
-                        writer.Write(weapon.Flashlight.ToString());
-                        writer.Write(weapon.Grip.ToString());
-                        writer.Write(weapon.Muzzle.ToString());
-                        writer.Write(weapon.Scope.ToString());
+                        writer.Write(weapon.Clip);
+                        writer.Write(weapon.Flashlight);
+                        writer.Write(weapon.Grip);
+                        writer.Write(weapon.Muzzle);
+                        writer.Write(weapon.Scope);
                         writer.Write(weapon.Tint);
-                        writer.Write(weapon.WeaponHash.ToString());
+                        writer.Write(weapon.WeaponHash);
                     }
                 }
             } catch (Exception)
@@ -278,8 +273,7 @@ namespace LittleJacobMod.Saving
             }
 
             Busy = true;
-            StoredWeapons.Clear();
-            var characterHandle = Game.Player.Character.Handle;
+            _storedWeapons.Clear();
             var weaponsRemoved = false;
 
             if (!Main.IsMainCharacter())
@@ -291,7 +285,7 @@ namespace LittleJacobMod.Saving
             try
             {
                 var dir = Directory.GetCurrentDirectory();
-                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{Game.Player.Character.Model.Hash}.data";
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{MapperMain.CurrentPed}.data";
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
                 {
                     return;
@@ -310,112 +304,112 @@ namespace LittleJacobMod.Saving
 
                 using (var reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
                 {
-                    var count = reader.ReadInt32();
-                    for (var i = 0; i < count; i++)
+                    int count = reader.ReadInt32();
+                    for (int i = 0; i < count; i++)
                     {
-                        var ammo = reader.ReadInt32();
-                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var barrel);
-                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var camo);
-                        var camoColor = reader.ReadInt32();
-                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var clip);
-                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var flash);
-                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var grip);
-                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var muzzle);
-                        Enum.TryParse<WeaponComponentHash>(reader.ReadString(), out var scope);
-                        var tint = reader.ReadInt32();
-                        Enum.TryParse<WeaponHash>(reader.ReadString(), out var weaponHash);
+                        int ammo = reader.ReadInt32();
+                        uint barrel = reader.ReadUInt32();
+                        uint camo = reader.ReadUInt32();
+                        int camoColor = reader.ReadInt32();
+                        uint clip = reader.ReadUInt32();
+                        uint flash = reader.ReadUInt32();
+                        uint grip = reader.ReadUInt32();
+                        uint muzzle = reader.ReadUInt32();
+                        uint scope = reader.ReadUInt32();
+                        int tint = reader.ReadInt32();
+                        uint weaponHash = reader.ReadUInt32();
 
-                        if (Game.Player.Character.Weapons.HasWeapon(weaponHash))
+                        if (Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weaponHash, false))
                         {
-                            Game.Player.Character.Weapons.Remove(weaponHash);
+                            Function.Call<bool>(Hash.REMOVE_WEAPON_FROM_PED, Main.PPID, weaponHash);
                         }
-                        
-                        Game.Player.Character.Weapons.Give(weaponHash, 0, false, false);
+
+                        Function.Call<bool>(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weaponHash, 0, false, false);
 
                         var storedWeapon = new StoredWeapon(weaponHash)
                         {
                             Ammo = ammo
                         };
 
-                        if (barrel != WeaponComponentHash.Invalid)
+                        if (barrel != (uint)WeaponComponentHash.Invalid)
                         {
-                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, barrel);
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, barrel);
                             storedWeapon.Barrel = barrel;
                         }
 
-                        if (camo != WeaponComponentHash.Invalid)
+                        if (camo != (uint)WeaponComponentHash.Invalid)
                         {
-                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, camo);
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, camo);
 
-                            var slide = LittleJacobMod.Utils.TintsAndCamos.ReturnSlide(camo);
+                            uint slide = LittleJacobMod.Utils.TintsAndCamos.ReturnSlide(camo);
 
-                            if (slide != WeaponComponentHash.Invalid)
+                            if (slide != (uint)WeaponComponentHash.Invalid)
                             {
-                                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, slide);
+                                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, slide);
                             }
 
                             storedWeapon.Camo = camo;
                             
                             if (camoColor != -1)
                             {
-                                Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, characterHandle, weaponHash, camo, camoColor);
+                                Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Main.PPID, weaponHash, camo, camoColor);
                                 
-                                if (slide != WeaponComponentHash.Invalid)
+                                if (slide != (uint)WeaponComponentHash.Invalid)
                                 {
-                                    Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, characterHandle, weaponHash, slide, camoColor);
+                                    Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Main.PPID, weaponHash, slide, camoColor);
                                 }
 
                                 storedWeapon.CamoColor = camoColor;
                             }
                         }
 
-                        if (clip != WeaponComponentHash.Invalid)
+                        if (clip != (uint)WeaponComponentHash.Invalid)
                         {
-                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, clip);
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, clip);
                             storedWeapon.Clip = clip;
                         }
 
-                        if (flash != WeaponComponentHash.Invalid)
+                        if (flash != (uint)WeaponComponentHash.Invalid)
                         {
-                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, flash);
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, flash);
                             storedWeapon.Flashlight = flash;
                         }
 
-                        if (grip != WeaponComponentHash.Invalid)
+                        if (grip != (uint)WeaponComponentHash.Invalid)
                         {
-                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, grip);
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, grip);
                             storedWeapon.Grip = grip;
                         }
 
-                        if (muzzle != WeaponComponentHash.Invalid)
+                        if (muzzle != (uint)WeaponComponentHash.Invalid)
                         {
-                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, muzzle);
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, muzzle);
                             storedWeapon.Muzzle = muzzle;
                         }
 
-                        if (scope != WeaponComponentHash.Invalid)
+                        if (scope != (uint)WeaponComponentHash.Invalid)
                         {
-                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, characterHandle, weaponHash, scope);
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, scope);
                             storedWeapon.Scope = scope;
                         }
 
                         if (tint != -1)
                         {
-                            Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, characterHandle, weaponHash, tint);
+                            Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, Main.PPID, weaponHash, tint);
                             storedWeapon.Tint = tint;
                         }
 
-                        var ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weaponHash);
+                        uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weaponHash);
                         
                         if (loadedAmmoTypes.Contains(ammoType))
                         {
-                            StoredWeapons.Add(storedWeapon);
+                            _storedWeapons.Add(storedWeapon);
                             continue;
                         }
 
-                        Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Game.Player.Character.Handle, ammoType, ammo);
+                        Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Main.PPID, ammoType, ammo);
                         loadedAmmoTypes.Add(ammoType);
-                        StoredWeapons.Add(storedWeapon);
+                        _storedWeapons.Add(storedWeapon);
                     }
                 }
             }
