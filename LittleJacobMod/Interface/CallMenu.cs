@@ -9,6 +9,7 @@ namespace LittleJacobMod.Interface
 {
     public class CallMenu
     {
+        public static event EventHandler JobSelected;
         public ObjectPool Pool { get; private set; }
         NativeMenu _mainMenu;
         
@@ -32,7 +33,7 @@ namespace LittleJacobMod.Interface
             mission.Activated += (o, e) =>
             {
                 Hide();
-                MissionMain.Start();
+                JobSelected?.Invoke(this, EventArgs.Empty);
             };
 
             Pool.Add(_mainMenu);
