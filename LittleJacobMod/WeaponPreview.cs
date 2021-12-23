@@ -113,6 +113,8 @@ class WeaponPreview : Script
                     Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo, storedWeapon.GetCamoColor());
                 } else if (!luxOn)
                     GiveWeaponComponentToObject(storedWeapon.Camo, false);
+                else if (luxOn)
+                    GiveWeaponComponentToObject(storedWeapon.Camo, true);
             }
 
             if (!luxe)

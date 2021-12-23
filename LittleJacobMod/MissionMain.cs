@@ -79,6 +79,8 @@ namespace LittleJacobMod
         bool _routeTA;
         bool _TookDrugs;
         bool _blipOff;
+        bool _fightFlag;
+        bool _fail;
         int _routeST;
         uint _pedModel;
         Random _ran;
@@ -168,6 +170,7 @@ namespace LittleJacobMod
             {
                 if (MissionSaving.FProgress < 4)
                 {
+                    _fail = false;
                     string misName = $"franklin_m_{MissionSaving.FProgress}";
                     _mission = (Missions)(uint)Game.GenerateHash(misName);
                     LoadFromFile(misName);
@@ -187,6 +190,7 @@ namespace LittleJacobMod
             {
                 if (MissionSaving.MProgress < 4)
                 {
+                    _fail = false;
                     string misName = $"michael_m_{MissionSaving.MProgress}";
                     _mission = (Missions)(uint)Game.GenerateHash(misName);
                     LoadFromFile(misName);
@@ -198,10 +202,19 @@ namespace LittleJacobMod
                         return;
                     }
 
+                    if (_mission == Missions.MM2)
+                        _neutral.SetRelationshipBetweenGroups(Game.GenerateHash("AMBIENT_GANG_LOST"), Relationship.Like, true);
+                    else
+                        _neutral.SetRelationshipBetweenGroups(Game.GenerateHash("AMBIENT_GANG_LOST"), Relationship.Neutral, true);
+
                     Active = true;
                     _objective = -1;
                     return;
                 }
+            } else if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, PedHash.Trevor))
+            {
+                GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "No.");
+                return;
             }
 
             GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "I have no jobs for you atm");
@@ -212,6 +225,7 @@ namespace LittleJacobMod
             _spawned = false;
             _increased = false;
             _copsAlerted = false;
+            _fightFlag = false;
             _objtvCrtd = false;
         }
 
@@ -254,7 +268,9 @@ namespace LittleJacobMod
 
         void Complete()
         {
-            //OnMissionCompleted?.Invoke(this, EventArgs.Empty);
+            MissionSaving.Save();
+            OnMissionCompleted?.Invoke(this, EventArgs.Empty);
+            Game.Player.Money += 80000;
             RequestScaleform();
             SetScaleFormText("~y~Mission passed", "");
             _scaleFormActive = true;
@@ -267,13 +283,23 @@ namespace LittleJacobMod
             switch (_mission)
             {
                 case Missions.FM1:
+                    MissionSaving.FProgress += 1;
+                    break;
                 case Missions.FM2:
+                    MissionSaving.FProgress += 1;
+                    break;
                 case Missions.FM3:
+                    GTA.UI.Notification.Show("~g~Little Jacob mod~w~: 20% discount unlocked for Franklin");
                     MissionSaving.FProgress += 1;
                     break;
                 case Missions.MM1:
+                    MissionSaving.MProgress += 1;
+                    break;
                 case Missions.MM2:
+                    MissionSaving.MProgress += 1;
+                    break;
                 case Missions.MM3:
+                    GTA.UI.Notification.Show("~g~Little Jacob mod~w~: 20% discount unlocked for Michael");
                     MissionSaving.MProgress += 1;
                     break;
             }
@@ -283,6 +309,7 @@ namespace LittleJacobMod
 
         void Quit()
         {
+            _fail = true;
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(5));
             ToggleMusicInterrup(false);
             Clean();
@@ -534,13 +561,39 @@ namespace LittleJacobMod
             switch(code)
             {
                 case 0:
-                    msg = "Go to ~y~location~w~ and send the ~r~Vagos~w~ to mexican heaven";
+                    msg = "Go to the ~y~gas station~w~ and send the ~r~Vagos~w~ to mexican heaven";
                     break;
                 case 1:
                     msg = "A group of ~r~Vagos~w~ is getting ready to make a move on me. Get em first.";
                     break;
                 case 2:
                     msg = "These ~r~biker~w~ boys have been messing with my bussiness. Get rid of them.";
+                    break;
+                case 3:
+                    msg = "Nice one my breden. Respect.";
+                    break;
+                default:
+                    msg = "";
+                    break;
+            }
+
+            GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Job", msg);
+        }
+
+        void REP_MSG(int code)
+        {
+            string msg;
+
+            switch (code)
+            {
+                case 0:
+                    msg = "A few ~r~Ballas~w~ are moving some ~g~product~w~, bring it to me.";
+                    break;
+                case 1:
+                    msg = "The ~r~biker boys~w~ are showing off a wicked ~g~bike~w~ they just stole. Steal it from them";
+                    break;
+                case 2:
+                    msg = "Apparently the ~r~mexicans~w~ are building an ~g~armored truck~w~ in the desert. Go there and bring it to me.";
                     break;
                 case 3:
                     msg = "Nice one my breden. Respect.";
@@ -565,6 +618,15 @@ namespace LittleJacobMod
                     break;
                 case Missions.FM3:
                     ASS_MSG(2);
+                    break;
+                case Missions.MM1:
+                    REP_MSG(0);
+                    break;
+                case Missions.MM2:
+                    REP_MSG(1);
+                    break;
+                case Missions.MM3:
+                    REP_MSG(2);
                     break;
             }
         }
@@ -725,6 +787,14 @@ namespace LittleJacobMod
             }
         }
 
+        void ForceFight()
+        {
+            for (int i = 0; i < _peds.Count; i++)
+            {
+                Function.Call(Hash.TASK_COMBAT_PED, _peds[i], Main.PPID, 0, 16);
+            }
+        }
+
         string PosText(int code)
         {
             if (_mission == Missions.MM1)
@@ -735,17 +805,34 @@ namespace LittleJacobMod
                 return code == 0 ? "Phantom's location" : "Phantom";
         }
 
-        void SpawnChaser()
+        void SpawnChaser(float range)
         {
             OutputArgument outPos = new OutputArgument();
-            Vector3 arPPos = Game.Player.Character.Position.Around(100);
+            Vector3 arPPos = Game.Player.Character.Position.Around(range);
             bool result = Function.Call<bool>(Hash.GET_CLOSEST_VEHICLE_NODE, arPPos.X, arPPos.Y, arPPos.Z, outPos, 0, 3, 0);
 
             if (!result)
                 return;
 
             Vector3 vCoords = outPos.GetResult<Vector3>();
-            int v = Function.Call<int>(Hash.CREATE_VEHICLE, VehicleHash.Baller6, vCoords.X, vCoords.Y, vCoords.Z, 0, false, false);
+            int v;
+
+            switch(_mission)
+            {
+                case Missions.MM1:
+                    v = Function.Call<int>(Hash.CREATE_VEHICLE, VehicleHash.Chino2, vCoords.X, vCoords.Y, vCoords.Z, 0, false, false);
+                    Function.Call(Hash.SET_VEHICLE_MOD_KIT, v, 0);
+                    Function.Call(Hash.SET_VEHICLE_COLOURS, v, 145, 145);
+                    break;
+                case Missions.MM2:
+                    v = Function.Call<int>(Hash.CREATE_VEHICLE, VehicleHash.Hexer, vCoords.X, vCoords.Y, vCoords.Z, 0, false, false);
+                    break;
+                default:
+                    v = Function.Call<int>(Hash.CREATE_VEHICLE, VehicleHash.Baller6, vCoords.X, vCoords.Y, vCoords.Z, 0, false, false);
+                    break;
+            }
+
+            Function.Call(Hash.SET_VEHICLE_ENGINE_ON, v, true, true, false);
             Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, v);
             blip.Scale = 0.85f;
             blip.Sprite = BlipSprite.Enemy;
@@ -760,11 +847,14 @@ namespace LittleJacobMod
                 Function.Call(Hash.GIVE_WEAPON_TO_PED, ped, WeaponHash.MicroSMG, 2000, false, true);
 
                 if (i == -1)
+                {
                     Function.Call(Hash.TASK_VEHICLE_CHASE, ped, Main.PPID);
+                    Function.Call(Hash.SET_TASK_VEHICLE_CHASE_BEHAVIOR_FLAG, ped, 1, true);
+                }
                 else
                 {
                     Function.Call(Hash.TASK_VEHICLE_SHOOT_AT_PED, ped, Main.PPID, 40f);
-                    Function.Call(Hash.SET_PED_ACCURACY, ped, 30);
+                    Function.Call(Hash.SET_PED_ACCURACY, ped, 33);
                 }
 
                 _peds.Add(ped);
@@ -820,10 +910,10 @@ namespace LittleJacobMod
                             handle = Function.Call<int>(Hash.CREATE_PED, 0, data1.Hash, data2.Location.X, data2.Location.Y,
                             data2.Location.Z, 0, false, false);
 
-                            if (_mission == Missions.FM1)
-                                Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _neutral.Hash);
-                            else
+                            if (_mission == Missions.MM3)
                                 Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _dislike.Hash);
+                            else
+                                Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _neutral.Hash);
 
                             RandomScenario(handle);
                             RandomWeapon(handle);
@@ -907,6 +997,12 @@ namespace LittleJacobMod
                     {
                         GTA.UI.Screen.ShowHelpTextThisFrame($"Press ~{Main.OpenMenuKey}~ to take the ~g~drugs~w~.", false);
 
+                        if (!_fightFlag)
+                        {
+                            _fightFlag = true;
+                            ForceFight();
+                        }
+
                         if (Function.Call<bool>(Hash.IS_CONTROL_JUST_PRESSED, 0, Main.OpenMenuKey))
                         {
                             _TookDrugs = true;
@@ -935,7 +1031,7 @@ namespace LittleJacobMod
                         _props.Clear();
                         Function.Call(Hash.SET_PED_COMPONENT_VARIATION, Main.PPID, 9, 1, 0, 0);
                         Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
-                        LoadModel((uint)VehicleHash.Baller6);
+                        LoadModel((uint)VehicleHash.Chino2);
                         LoadModel(_pedModel);
                         _objective = 2;
                     }
@@ -945,7 +1041,7 @@ namespace LittleJacobMod
                 if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, _targetV))
                 {
                     RequestScaleform();
-                    SetScaleFormText("~r~Mission failed", "~g~Target destroyed");
+                    SetScaleFormText("~r~Mission failed", "Target destroyed");
                     _scaleFormActive = true;
                     _scaleFormStart = Game.GameTime;
                     Quit();
@@ -954,22 +1050,37 @@ namespace LittleJacobMod
 
                 if (Function.Call<int>(Hash.GET_PED_IN_VEHICLE_SEAT, _targetV, -1) == Main.PPID)
                 {
+                    if (!_fightFlag && _mission != Missions.MM3)
+                    {
+                        _fightFlag = true;
+                        ForceFight();
+                    }
+
                     Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
                     Blip blip = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, _targetV);
                     blip.Delete();
                     _blipOff = true;
-                    Blip wBlip = World.CreateBlip(_locations[1]);
-                    wBlip.Scale = 0.85f;
-                    wBlip.Color = BlipColor.Yellow;
-                    wBlip.Name = "Drop point";
-                    _blips.Add(wBlip);
-                    if (_mission == Missions.MM2)
+                    if (_mission == Missions.MM2 || _mission == Missions.MM1)
+                    {
+                        Blip wBlip = World.CreateBlip(_locations[1]);
+                        wBlip.Scale = 0.85f;
+                        wBlip.Color = BlipColor.Yellow;
+                        wBlip.Name = "Drop point";
+                        _blips.Add(wBlip);
                         _objective = 2;
+                    }
                     else
                     {
                         Game.Player.WantedLevel = 3;
                         _objective = 3;
                     }
+
+                    if (_mission == Missions.MM2)
+                        LoadModel((uint)VehicleHash.Hexer);
+                    else
+                        LoadModel((uint)VehicleHash.Baller6);
+
+                    LoadModel(_pedModel);
                 }
             }
         }
@@ -1008,7 +1119,7 @@ namespace LittleJacobMod
                         else if (Game.GameTime - _chaserST >= 5000)
                         {
                             _chaserTS = false;
-                            SpawnChaser();
+                            SpawnChaser(_mission == Missions.MM2 ? 70 : 100);
                         }
                     }
                 }
@@ -1016,7 +1127,7 @@ namespace LittleJacobMod
 
             if (_mission == Missions.MM1)
             {
-                if (Game.Player.Character.IsInRange(targetCoords, 2))
+                if (Game.Player.Character.IsInRange(targetCoords, 2) && !Function.Call<bool>(Hash.IS_PED_IN_ANY_VEHICLE, Main.PPID, false))
                 {
                     Function.Call(Hash.SET_PED_COMPONENT_VARIATION, Main.PPID, 9, 0, 0, 0);
                     Complete();
@@ -1026,7 +1137,7 @@ namespace LittleJacobMod
                 if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, _targetV))
                 {
                     RequestScaleform();
-                    SetScaleFormText("~r~Mission failed", "~g~Target destroyed");
+                    SetScaleFormText("~r~Mission failed", "Target destroyed");
                     _scaleFormActive = true;
                     _scaleFormStart = Game.GameTime;
                     Quit();
@@ -1036,7 +1147,15 @@ namespace LittleJacobMod
                 Vector3 vCoords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, _targetV);
 
                 if (IsInRange(vCoords, targetCoords, 2))
+                {
+                    if (Function.Call<int>(Hash.GET_PED_IN_VEHICLE_SEAT, _targetV, -1) == Main.PPID)
+                    {
+                        Function.Call(Hash.TASK_LEAVE_VEHICLE, Main.PPID, _targetV, 0);
+                    }
+
+                    Function.Call(Hash.SET_VEHICLE_DOORS_LOCKED, _targetV, 3);
                     Complete();
+                }
                 else
                 {
                     bool inVehicle = Function.Call<int>(Hash.GET_PED_IN_VEHICLE_SEAT, _targetV, -1) == Main.PPID;
@@ -1068,8 +1187,23 @@ namespace LittleJacobMod
 
             if (Game.Player.WantedLevel == 0)
             {
+                Blip wBlip = World.CreateBlip(_locations[1]);
+                wBlip.Scale = 0.85f;
+                wBlip.Color = BlipColor.Yellow;
+                wBlip.Name = "Drop point";
+                _blips.Add(wBlip);
                 _objective = 2;
                 Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(1));
+                return;
+            }
+
+            if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, _targetV))
+            {
+                RequestScaleform();
+                SetScaleFormText("~r~Mission failed", "Target destroyed");
+                _scaleFormActive = true;
+                _scaleFormStart = Game.GameTime;
+                Quit();
                 return;
             }
 
@@ -1091,7 +1225,7 @@ namespace LittleJacobMod
                         else if (Game.GameTime - _chaserST >= 5000)
                         {
                             _chaserTS = false;
-                            SpawnChaser();
+                            SpawnChaser(80);
                         }
                     }
                 }
@@ -1160,7 +1294,7 @@ namespace LittleJacobMod
 
                     if (_objective == -1)
                         _objective = 0;
-                    else
+                    else if (!_fail)
                         ASS_MSG(3);
                 }
             }

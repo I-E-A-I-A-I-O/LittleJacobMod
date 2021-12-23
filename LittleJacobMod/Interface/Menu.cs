@@ -812,6 +812,8 @@ namespace LittleJacobMod.Interface
         void TintPurchased(uint weapon, int index)
         {
             int price = 5000;
+            price = ApplyDiscount(price);
+
             if (Game.Player.Money < price)
             {
                 GTA.UI.Notification.Show("Couldn't purchase this tint. Not enough money!");
@@ -828,6 +830,7 @@ namespace LittleJacobMod.Interface
         void ComponentPurchased(uint weapon, KeyValuePair<string, uint> weaponComponent, List<uint> components, Action<uint, uint> OnSuccess, bool isCamo = false)
         {
             int price = isCamo ? 60000 : int.Parse(weaponComponent.Key.Split('$')[1]);
+            price = ApplyDiscount(price);
             string name = isCamo ? weaponComponent.Key : weaponComponent.Key.Split('-')[0];
 
             if (Game.Player.Money < price)
@@ -879,6 +882,7 @@ namespace LittleJacobMod.Interface
             }
 
             int price = 10000;
+            price = ApplyDiscount(price);
 
             if (Game.Player.Money < price)
             {
@@ -898,6 +902,26 @@ namespace LittleJacobMod.Interface
 
             GTA.UI.Notification.Show("Camo color purchased!");
             LoadoutSaving.SetCamoColor(weapon, index);
+        }
+
+        int ApplyDiscount(int price)
+        {
+            bool canApply = false;
+
+            if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, PedHash.Michael) && MissionSaving.MProgress >= 4)
+                canApply = true;
+            else if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, PedHash.Franklin) && MissionSaving.FProgress >= 4)
+                canApply = true;
+            else if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, PedHash.Trevor) && MissionSaving.TUnlocked)
+                canApply = true;
+
+            if (canApply)
+            {
+                float disc = price * 0.20f;
+                return (int)(price - disc);
+            }
+            else
+                return price;
         }
     }
 }

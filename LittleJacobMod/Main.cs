@@ -208,6 +208,17 @@ public class Main : Script
             LittleJacob.DeleteBlip();
             LoadoutSaving.PerformSave(MapperMain.CurrentPed);
             HelmetState.Save();
+
+            if (Function.Call<bool>(Hash.IS_PED_MODEL, PPID, PedHash.Trevor))
+            {
+                if (LittleJacob.Jacob.Killer.Handle == PPID && !MissionSaving.TUnlocked)
+                {
+                    GTA.UI.Notification.Show("~g~Little Jacob mod~w~: 20% discount unlocked for Trevor");
+                    MissionSaving.TUnlocked = true;
+                    MissionSaving.Save();
+                }
+            }
+
             LittleJacob.Terminate();
             return;
         }
