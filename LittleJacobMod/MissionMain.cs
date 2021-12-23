@@ -52,6 +52,7 @@ namespace LittleJacobMod
         }
 
         public static bool Active { get; private set; }
+        public static event EventHandler OnMissionCompleted;
         List<int> _peds = new List<int>();
         List<int> _vehicles = new List<int>();
         List<int> _props = new List<int>();
@@ -65,15 +66,21 @@ namespace LittleJacobMod
         string _dir;
         Missions _mission;
         Controls CancelMissionKey;
-        RelationshipGroup _hate;
+        RelationshipGroup _dislike;
         RelationshipGroup _neutral;
+        int _targetV;
         int _scaleform;
         bool _scaleFormActive;
         int _scaleFormStart;
+        bool _chaserTS;
+        int _chaserST;
         bool _scaleFormFading;
         bool _objtvCrtd;
         bool _routeTA;
+        bool _TookDrugs;
+        bool _blipOff;
         int _routeST;
+        uint _pedModel;
         Random _ran;
 
         public MissionMain()
@@ -82,9 +89,9 @@ namespace LittleJacobMod
             _dir = $"{BaseDirectory}\\LittleJacobMod\\Missions";
             CancelMissionKey = settings.GetValue("Controls", "CancelMission", Controls.INPUT_SWITCH_VISOR);
             int playerRel = Game.GenerateHash("PLAYER");
-            _hate = World.AddRelationshipGroup("JACOB_MISSION_REL_HATE");
+            _dislike = World.AddRelationshipGroup("JACOB_MISSION_REL_DISLIKE");
             _neutral = World.AddRelationshipGroup("JACOB_MISSION_REL_NEUTRAL");
-            _hate.SetRelationshipBetweenGroups(playerRel, Relationship.Hate, true);
+            _dislike.SetRelationshipBetweenGroups(playerRel, Relationship.Dislike, true);
             _neutral.SetRelationshipBetweenGroups(playerRel, Relationship.Neutral, true);
             _ran = new Random();
             Tick += OnTick;
@@ -180,9 +187,19 @@ namespace LittleJacobMod
             {
                 if (MissionSaving.MProgress < 4)
                 {
-                    //Active = true;
-                    string misName = $"michael_m_{MissionSaving.FProgress}";
-                    uint misHash = (uint)Game.GenerateHash(misName);
+                    string misName = $"michael_m_{MissionSaving.MProgress}";
+                    _mission = (Missions)(uint)Game.GenerateHash(misName);
+                    LoadFromFile(misName);
+
+                    if (Game.Player.Character.IsInRange(_locations[0], 250))
+                    {
+                        GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "I have no jobs for you atm");
+                        Clean();
+                        return;
+                    }
+
+                    Active = true;
+                    _objective = -1;
                     return;
                 }
             }
@@ -237,10 +254,30 @@ namespace LittleJacobMod
 
         void Complete()
         {
+            //OnMissionCompleted?.Invoke(this, EventArgs.Empty);
+            RequestScaleform();
+            SetScaleFormText("~y~Mission passed", "");
+            _scaleFormActive = true;
+            _scaleFormStart = Game.GameTime;
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
             ToggleMusicInterrup(false);
             Clean();
             ResetFlags();
+
+            switch (_mission)
+            {
+                case Missions.FM1:
+                case Missions.FM2:
+                case Missions.FM3:
+                    MissionSaving.FProgress += 1;
+                    break;
+                case Missions.MM1:
+                case Missions.MM2:
+                case Missions.MM3:
+                    MissionSaving.MProgress += 1;
+                    break;
+            }
+
             Active = false;
         }
 
@@ -297,6 +334,22 @@ namespace LittleJacobMod
             _blips.Clear();
             _data.ModelTypes.Clear();
             _data.Positions.Clear();
+
+            if ((_mission == Missions.MM1 || _mission == Missions.MM2 || _mission == Missions.MM3) && _objective > 1)
+            {
+                FreeModel((uint)VehicleHash.Baller6);
+                FreeModel(_pedModel);
+            }
+
+            if ((_mission == Missions.MM2 || _mission == Missions.MM3) && (_objective > 0 || _spawned))
+            {
+                int v = _targetV;
+
+                unsafe
+                {
+                    Function.Call(Hash.SET_VEHICLE_AS_NO_LONGER_NEEDED, &v);
+                }
+            }
         }
 
         string MissionTitle()
@@ -342,7 +395,7 @@ namespace LittleJacobMod
                 case 3:
                     return "FIXER_VEHICLE_ACTION";
                 case 4:
-                    return "FIXER_MUSIC_STOP";
+                    return "MP_DM_COUNTDOWN_KILL";
                 case 5:
                     return "FIXER_FAIL";
                 default:
@@ -362,6 +415,7 @@ namespace LittleJacobMod
             blip.Scale = 0.7f;
             blip.Sprite = BlipSprite.Enemy;
             blip.Color = BlipColor.Red;
+            blip.Name = "Enemy";
         }
 
         bool AnyFightingPlayer()
@@ -400,7 +454,49 @@ namespace LittleJacobMod
             Function.Call(Hash.TASK_START_SCENARIO_IN_PLACE, ped, scenario, 0, true);
         }
 
-        void RemoveDeadPeds()
+        void RemoveFarEnts(float distance)
+        {
+            for (int i = _peds.Count - 1; i > -1; i--)
+            {
+                int ped = _peds[i];
+                Vector3 coords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, ped);
+
+                if (!Game.Player.Character.IsInRange(coords, distance))
+                {
+                    unsafe
+                    {
+                        Function.Call(Hash.SET_PED_AS_NO_LONGER_NEEDED, &ped);
+                    }
+                    _peds.RemoveAt(i);
+                }
+            }
+
+            for (int i = _vehicles.Count - 1; i > -1; i--)
+            {
+                int v = _vehicles[i];
+                Vector3 coords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, v);
+
+                if (!Game.Player.Character.IsInRange(coords, distance))
+                {
+                    unsafe
+                    {
+                        Function.Call(Hash.SET_VEHICLE_AS_NO_LONGER_NEEDED, &v);
+                    }
+                    _vehicles.RemoveAt(i);
+                }
+            }
+        }
+
+        bool IsInRange(Vector3 a, Vector3 b, float range)
+        {
+            Vector3 nv3 = new Vector3();
+            nv3.X = a.X - b.X;
+            nv3.Y = a.Y - b.Y;
+            nv3.Z = a.Z - b.Z;
+            return (nv3.X * nv3.X) + (nv3.Y * nv3.Y) + (nv3.Z * nv3.Z) < range * range;
+        }
+
+        void RemoveDeadEnts()
         {
             for (int i = _peds.Count - 1; i > -1; i--)
             {
@@ -415,11 +511,67 @@ namespace LittleJacobMod
                     _peds.RemoveAt(i);
                 }
             }
+
+            for (int i = _vehicles.Count - 1; i > -1; i--)
+            {
+                int v = _vehicles[i];
+
+                if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, v))
+                {
+                    unsafe
+                    {
+                        Function.Call(Hash.SET_VEHICLE_AS_NO_LONGER_NEEDED, &v);
+                    }
+                    _vehicles.RemoveAt(i);
+                }
+            }
+        }
+
+        void ASS_MSG(int code)
+        {
+            string msg;
+
+            switch(code)
+            {
+                case 0:
+                    msg = "Go to ~y~location~w~ and send the ~r~Vagos~w~ to mexican heaven";
+                    break;
+                case 1:
+                    msg = "A group of ~r~Vagos~w~ is getting ready to make a move on me. Get em first.";
+                    break;
+                case 2:
+                    msg = "These ~r~biker~w~ boys have been messing with my bussiness. Get rid of them.";
+                    break;
+                case 3:
+                    msg = "Nice one my breden. Respect.";
+                    break;
+                default:
+                    msg = "";
+                    break;
+            }
+
+            GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Job", msg);
+        }
+
+        void StartMsg()
+        {
+            switch (_mission)
+            {
+                case Missions.FM1:
+                    ASS_MSG(0);
+                    break;
+                case Missions.FM2:
+                    ASS_MSG(1);
+                    break;
+                case Missions.FM3:
+                    ASS_MSG(2);
+                    break;
+            }
         }
 
         void ASS_0()
         {
-            GTA.UI.Screen.ShowSubtitle("Go to the ~y~Gang's Location~w~.", 1000);
+            GTA.UI.Screen.ShowSubtitle("Go to the ~y~Gang's Location~w~.", 8000);
             Vector3 pos = _locations[0];
 
             if (!_objtvCrtd)
@@ -429,7 +581,9 @@ namespace LittleJacobMod
                 blip.Scale = 0.8f;
                 blip.Color = BlipColor.Yellow;
                 blip.ShowRoute = true;
+                blip.Name = "Jacob job objective";
                 _blips.Add(blip);
+                StartMsg();
             } else
             {
                 if (!_routeTA)
@@ -454,30 +608,37 @@ namespace LittleJacobMod
                     int handle;
                     LoadModel(data1.Hash);
 
-                    if (data1.type == 0)
+                    switch (data1.type)
                     {
-                        handle = Function.Call<int>(Hash.CREATE_PED, 0, data1.Hash, data2.Location.X, data2.Location.Y,
+                        case 0:
+                            handle = Function.Call<int>(Hash.CREATE_PED, 0, data1.Hash, data2.Location.X, data2.Location.Y,
                             data2.Location.Z, 0, false, false);
-                        Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _neutral.Hash);
-                        RandomScenario(handle);
-                        RandomWeapon(handle);
-                        Function.Call(Hash.SET_PED_SUFFERS_CRITICAL_HITS, handle, false);
-                        Function.Call(Hash.SET_PED_ARMOUR, handle, 250);
-                        Function.Call(Hash.SET_ENTITY_MAX_HEALTH, handle, 200);
-                        Function.Call(Hash.SET_ENTITY_HEALTH, handle, 200);
-                        _peds.Add(handle);
-                    }
-                    else
-                    {
-                        handle = Function.Call<int>(Hash.CREATE_VEHICLE, data1.Hash, data2.Location.X, data2.Location.Y,
+
+                            if (_mission == Missions.FM1)
+                                Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _neutral.Hash);
+                            else
+                                Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _dislike.Hash);
+
+                            RandomScenario(handle);
+                            RandomWeapon(handle);
+                            Function.Call(Hash.SET_PED_SUFFERS_CRITICAL_HITS, handle, false);
+                            Function.Call(Hash.SET_PED_ARMOUR, handle, 200);
+                            Function.Call(Hash.SET_ENTITY_MAX_HEALTH, handle, 200);
+                            Function.Call(Hash.SET_ENTITY_HEALTH, handle, 200);
+                            Function.Call(Hash.SET_PED_CONFIG_FLAG, handle, 281, true);
+                            _peds.Add(handle);
+                            break;
+                        default:
+                            handle = Function.Call<int>(Hash.CREATE_VEHICLE, data1.Hash, data2.Location.X, data2.Location.Y,
                             data2.Location.Z, 0, false, false);
-                        _vehicles.Add(handle);
+                            _vehicles.Add(handle);
+                            break;
                     }
 
                     FreeModel(data1.Hash);
                     Function.Call(Hash.SET_ENTITY_ROTATION, handle, data2.Rotation.X, data2.Rotation.Y, data2.Rotation.Z, 2, 1);
                 }
-            } else if (Game.Player.Character.IsInRange(pos, 80))
+            } else if (Game.Player.Character.IsInRange(pos, 100) || AnyFightingPlayer())
             {
                 for (int i = 0; i < _peds.Count; i++)
                     EnemyBlip(_peds[i]);
@@ -491,11 +652,11 @@ namespace LittleJacobMod
 
         void ASS_1()
         {
-            GTA.UI.Screen.ShowSubtitle("Kill the ~r~targets~w~.", 3000);
+            GTA.UI.Screen.ShowSubtitle("Kill the ~r~targets~w~.", 1000);
 
             if (_peds.Count > 0)
             {
-                RemoveDeadPeds();
+                RemoveDeadEnts();
 
                 if (AnyFightingPlayer() && !_increased)
                 {
@@ -508,7 +669,10 @@ namespace LittleJacobMod
             } else
             {
                 if (!_copsAlerted)
+                {
+                    Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(0));
                     _objective = 3;
+                }
                 else
                 {
                     Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
@@ -561,6 +725,422 @@ namespace LittleJacobMod
             }
         }
 
+        string PosText(int code)
+        {
+            if (_mission == Missions.MM1)
+                return code == 0 ? "drug's location" : "drugs";
+            else if (_mission == Missions.MM2)
+                return code == 0 ? "Sanctus" : "Sanctus";
+            else
+                return code == 0 ? "Phantom's location" : "Phantom";
+        }
+
+        void SpawnChaser()
+        {
+            OutputArgument outPos = new OutputArgument();
+            Vector3 arPPos = Game.Player.Character.Position.Around(100);
+            bool result = Function.Call<bool>(Hash.GET_CLOSEST_VEHICLE_NODE, arPPos.X, arPPos.Y, arPPos.Z, outPos, 0, 3, 0);
+
+            if (!result)
+                return;
+
+            Vector3 vCoords = outPos.GetResult<Vector3>();
+            int v = Function.Call<int>(Hash.CREATE_VEHICLE, VehicleHash.Baller6, vCoords.X, vCoords.Y, vCoords.Z, 0, false, false);
+            Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, v);
+            blip.Scale = 0.85f;
+            blip.Sprite = BlipSprite.Enemy;
+            blip.Color = BlipColor.Red;
+            blip.Name = "Enemy Vehicle";
+            int seats = Function.Call<int>(Hash.GET_VEHICLE_MAX_NUMBER_OF_PASSENGERS, v);
+
+            for (int i = -1; i < seats; i++)
+            {
+                int ped = Function.Call<int>(Hash.CREATE_PED_INSIDE_VEHICLE, v, 0, _pedModel, i, false, false);
+                Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, ped, _dislike);
+                Function.Call(Hash.GIVE_WEAPON_TO_PED, ped, WeaponHash.MicroSMG, 2000, false, true);
+
+                if (i == -1)
+                    Function.Call(Hash.TASK_VEHICLE_CHASE, ped, Main.PPID);
+                else
+                {
+                    Function.Call(Hash.TASK_VEHICLE_SHOOT_AT_PED, ped, Main.PPID, 40f);
+                    Function.Call(Hash.SET_PED_ACCURACY, ped, 30);
+                }
+
+                _peds.Add(ped);
+            }
+
+            _vehicles.Add(v);
+        }
+
+        void REP_0()
+        {
+            GTA.UI.Screen.ShowSubtitle($"Go to the ~y~{PosText(0)}~w~.", 8000);
+            Vector3 pos = _locations[0];
+
+            if (!_objtvCrtd)
+            {
+                _objtvCrtd = true;
+                Blip blip = World.CreateBlip(pos);
+                blip.Scale = 0.8f;
+                blip.Color = BlipColor.Yellow;
+                blip.ShowRoute = true;
+                blip.Name = "Jacob job objective";
+                _blips.Add(blip);
+                StartMsg();
+            }
+            else
+            {
+                if (!_routeTA)
+                {
+                    _routeTA = true;
+                    _routeST = Game.GameTime;
+                }
+                else if (Game.GameTime - _routeST >= 2000)
+                {
+                    _routeTA = false;
+                    _blips[0].ShowRoute = true;
+                }
+            }
+
+            if (Game.Player.Character.IsInRange(pos, 225) && !_spawned)
+            {
+                _spawned = true;
+
+                for (int i = 0; i < _data.ModelTypes.Count; i++)
+                {
+                    ModelType data1 = _data.ModelTypes[i];
+                    Position data2 = _data.Positions[i];
+                    int handle;
+                    LoadModel(data1.Hash);
+
+                    switch (data1.type)
+                    {
+                        case 0:
+                            handle = Function.Call<int>(Hash.CREATE_PED, 0, data1.Hash, data2.Location.X, data2.Location.Y,
+                            data2.Location.Z, 0, false, false);
+
+                            if (_mission == Missions.FM1)
+                                Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _neutral.Hash);
+                            else
+                                Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _dislike.Hash);
+
+                            RandomScenario(handle);
+                            RandomWeapon(handle);
+                            Function.Call(Hash.SET_PED_SUFFERS_CRITICAL_HITS, handle, false);
+                            Function.Call(Hash.SET_PED_ARMOUR, handle, 200);
+                            Function.Call(Hash.SET_ENTITY_MAX_HEALTH, handle, 200);
+                            Function.Call(Hash.SET_ENTITY_HEALTH, handle, 200);
+                            Function.Call(Hash.SET_PED_CONFIG_FLAG, handle, 281, true);
+                            _pedModel = data1.Hash;
+                            _peds.Add(handle);
+                            break;
+                        case 1:
+                            handle = Function.Call<int>(Hash.CREATE_VEHICLE, data1.Hash, data2.Location.X, data2.Location.Y,
+                                                            data2.Location.Z, 0, false, false);
+                            if (_mission == Missions.MM1)
+                                _vehicles.Add(handle);
+                            else
+                                _targetV = handle;
+
+                            break;
+                        default:
+                            handle = Function.Call<int>(Hash.CREATE_OBJECT_NO_OFFSET, data1.Hash, data2.Location.X,
+                                data2.Location.Y, data2.Location.Z, false, false, false);
+                            _props.Add(handle);
+                            break;
+                    }
+
+                    FreeModel(data1.Hash);
+                    Function.Call(Hash.SET_ENTITY_ROTATION, handle, data2.Rotation.X, data2.Rotation.Y, data2.Rotation.Z, 2, 1);
+                }
+            }
+            else if (Game.Player.Character.IsInRange(pos, 100) || AnyFightingPlayer())
+            {
+                for (int i = 0; i < _peds.Count; i++)
+                    EnemyBlip(_peds[i]);
+
+                _blips[0].Delete();
+                _blips.Clear();
+
+                if (_mission == Missions.MM1)
+                {
+                    Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _props[0]);
+                    blip.Scale = 0.7f;
+                    blip.Color = BlipColor.Green;
+                    blip.Name = "Drugs";
+                } else
+                {
+                    Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _targetV);
+                    blip.Scale = 0.7f;
+                    blip.Color = BlipColor.Green;
+
+                    if (_mission == Missions.MM2)
+                        blip.Name = "Sanctus";
+                    else
+                        blip.Name = "Phantom";
+                }
+
+                Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(1));
+                _objective = 1;
+            }
+        }
+
+        void REP_1()
+        {
+            GTA.UI.Screen.ShowSubtitle($"Steal the ~g~{PosText(1)}~w~.", 1000);
+            RemoveDeadEnts();
+
+            if (AnyFightingPlayer() && !_increased)
+            {
+                _increased = true;
+                Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(2));
+            }
+
+            if (_mission == Missions.MM1)
+            {
+                int prop = _props[0];
+
+                if (!_TookDrugs)
+                {
+                    if (Game.Player.Character.IsInRange(Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, prop), 1.3f))
+                    {
+                        GTA.UI.Screen.ShowHelpTextThisFrame($"Press ~{Main.OpenMenuKey}~ to take the ~g~drugs~w~.", false);
+
+                        if (Function.Call<bool>(Hash.IS_CONTROL_JUST_PRESSED, 0, Main.OpenMenuKey))
+                        {
+                            _TookDrugs = true;
+                            TaskSequence sequence = new TaskSequence();
+                            //sequence.AddTask.AchieveHeading(Vector3.RelativeBack.ToHeading());
+                            sequence.AddTask.PlayAnimation("pickup_object", "pickup_low");
+                            Game.Player.Character.Task.PerformSequence(sequence);
+                            Wait(50);
+                        }
+                    }
+                } else
+                {
+                    if (Game.Player.Character.TaskSequenceProgress == -1)
+                    {
+                        _TookDrugs = false;
+                        Blip blip = World.CreateBlip(_locations[1]);
+                        blip.Scale = 0.8f;
+                        blip.Color = BlipColor.Yellow;
+                        blip.Name = "Drop point";
+                        blip.ShowRoute = true;
+                        _blips.Add(blip);
+                        unsafe
+                        {
+                            Function.Call(Hash.DELETE_OBJECT, &prop);
+                        }
+                        _props.Clear();
+                        Function.Call(Hash.SET_PED_COMPONENT_VARIATION, Main.PPID, 9, 1, 0, 0);
+                        Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
+                        LoadModel((uint)VehicleHash.Baller6);
+                        LoadModel(_pedModel);
+                        _objective = 2;
+                    }
+                }
+            } else
+            {
+                if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, _targetV))
+                {
+                    RequestScaleform();
+                    SetScaleFormText("~r~Mission failed", "~g~Target destroyed");
+                    _scaleFormActive = true;
+                    _scaleFormStart = Game.GameTime;
+                    Quit();
+                    return;
+                }
+
+                if (Function.Call<int>(Hash.GET_PED_IN_VEHICLE_SEAT, _targetV, -1) == Main.PPID)
+                {
+                    Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
+                    Blip blip = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, _targetV);
+                    blip.Delete();
+                    _blipOff = true;
+                    Blip wBlip = World.CreateBlip(_locations[1]);
+                    wBlip.Scale = 0.85f;
+                    wBlip.Color = BlipColor.Yellow;
+                    wBlip.Name = "Drop point";
+                    _blips.Add(wBlip);
+                    if (_mission == Missions.MM2)
+                        _objective = 2;
+                    else
+                    {
+                        Game.Player.WantedLevel = 3;
+                        _objective = 3;
+                    }
+                }
+            }
+        }
+
+        void REP_2()
+        {
+            GTA.UI.Screen.ShowSubtitle("Go to the ~y~drop point~w~.", 1000);
+            Vector3 targetCoords = _locations[1];
+            Function.Call(Hash.DRAW_MARKER, 1, targetCoords.X, targetCoords.Y, targetCoords.Z, 0, 0, 0, 0, 0,
+                    0, 2f, 2f, 1f, 255, 255, 0, 100, false, false, 2, false, false, false);
+            RemoveDeadEnts();
+            RemoveFarEnts(270);
+
+            if (!_routeTA)
+            {
+                _routeTA = true;
+                _routeST = Game.GameTime;
+            }
+            else if (Game.GameTime - _routeST >= 2000)
+            {
+                _routeTA = false;
+                _blips[0].ShowRoute = true;
+            }
+
+            if (!Game.Player.Character.IsInRange(_locations[0], 200) && _mission != Missions.MM3)
+            {
+                if (!Game.Player.Character.IsInRange(targetCoords, 100))
+                {
+                    if (_vehicles.Count < 3)
+                    {
+                        if (!_chaserTS)
+                        {
+                            _chaserTS = true;
+                            _chaserST = Game.GameTime;
+                        }
+                        else if (Game.GameTime - _chaserST >= 5000)
+                        {
+                            _chaserTS = false;
+                            SpawnChaser();
+                        }
+                    }
+                }
+            }
+
+            if (_mission == Missions.MM1)
+            {
+                if (Game.Player.Character.IsInRange(targetCoords, 2))
+                {
+                    Function.Call(Hash.SET_PED_COMPONENT_VARIATION, Main.PPID, 9, 0, 0, 0);
+                    Complete();
+                }
+            } else
+            {
+                if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, _targetV))
+                {
+                    RequestScaleform();
+                    SetScaleFormText("~r~Mission failed", "~g~Target destroyed");
+                    _scaleFormActive = true;
+                    _scaleFormStart = Game.GameTime;
+                    Quit();
+                    return;
+                }
+
+                Vector3 vCoords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, _targetV);
+
+                if (IsInRange(vCoords, targetCoords, 2))
+                    Complete();
+                else
+                {
+                    bool inVehicle = Function.Call<int>(Hash.GET_PED_IN_VEHICLE_SEAT, _targetV, -1) == Main.PPID;
+
+                    if (!inVehicle && _blipOff)
+                    {
+                        _blipOff = false;
+                        Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _targetV);
+                        blip.Scale = 0.7f;
+                        blip.Color = BlipColor.Green;
+
+                        if (_mission == Missions.MM2)
+                            blip.Name = "Sanctus";
+                        else
+                            blip.Name = "Phantom";
+                    } else if (inVehicle && !_blipOff)
+                    {
+                        _blipOff = true;
+                        Blip blip = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, _targetV);
+                        blip.Delete();
+                    }
+                }
+            }
+        }
+
+        void REP_3()
+        {
+            GTA.UI.Screen.ShowSubtitle("Lose the cops.", 1000);
+
+            if (Game.Player.WantedLevel == 0)
+            {
+                _objective = 2;
+                Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(1));
+                return;
+            }
+
+            Vector3 targetCoords = _locations[1];
+            RemoveDeadEnts();
+            RemoveFarEnts(270);
+
+            if (!Game.Player.Character.IsInRange(_locations[0], 200))
+            {
+                if (!Game.Player.Character.IsInRange(targetCoords, 100))
+                {
+                    if (_vehicles.Count < 3)
+                    {
+                        if (!_chaserTS)
+                        {
+                            _chaserTS = true;
+                            _chaserST = Game.GameTime;
+                        }
+                        else if (Game.GameTime - _chaserST >= 5000)
+                        {
+                            _chaserTS = false;
+                            SpawnChaser();
+                        }
+                    }
+                }
+            }
+
+            bool inVehicle = Function.Call<int>(Hash.GET_PED_IN_VEHICLE_SEAT, _targetV, -1) == Main.PPID;
+
+            if (!inVehicle && _blipOff)
+            {
+                _blipOff = false;
+                Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _targetV);
+                blip.Scale = 0.7f;
+                blip.Color = BlipColor.Green;
+
+                if (_mission == Missions.MM2)
+                    blip.Name = "Sanctus";
+                else
+                    blip.Name = "Phantom";
+            }
+            else if (inVehicle && !_blipOff)
+            {
+                _blipOff = true;
+                Blip blip = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, _targetV);
+                blip.Delete();
+            }
+        }
+
+        void REP()
+        {
+            switch (_objective)
+            {
+                case 0:
+                    Game.Player.WantedLevel = 0;
+                    REP_0();
+                    break;
+                case 1:
+                    Game.Player.WantedLevel = 0;
+                    REP_1();
+                    break;
+                case 2:
+                    Game.Player.WantedLevel = 0;
+                    REP_2();
+                    break;
+                case 3:
+                    REP_3();
+                    break;
+            }
+        }
+
         void OnTick(object sender, EventArgs args)
         {
             if (_scaleFormActive)
@@ -577,9 +1157,11 @@ namespace LittleJacobMod
                     _scaleFormActive = false;
                     _scaleFormFading = false;
                     FreeScaleform();
-                    
+
                     if (_objective == -1)
                         _objective = 0;
+                    else
+                        ASS_MSG(3);
                 }
             }
 
@@ -613,6 +1195,11 @@ namespace LittleJacobMod
                 case Missions.FM2:
                 case Missions.FM3:
                     ASS();
+                    break;
+                case Missions.MM1:
+                case Missions.MM2:
+                case Missions.MM3:
+                    REP();
                     break;
             }
         }

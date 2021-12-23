@@ -129,6 +129,9 @@ public class Main : Script
         ifruit.Phone.Update();
         CallMenu.Pool.Process();
 
+        if (CallMenu.TimerActive)
+            CallMenu.ProcessTimer();
+
         if (_processMenu)
         {
             menu.Pool.Process();
