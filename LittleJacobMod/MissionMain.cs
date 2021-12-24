@@ -396,6 +396,27 @@ namespace LittleJacobMod
             }
         }
 
+        string MissionSubtitle()
+        {
+            switch (_mission)
+            {
+                case Missions.FM1:
+                    return "Vagos: Part 1";
+                case Missions.FM2:
+                    return "Vagos: Part 2";
+                case Missions.FM3:
+                    return "The Lost";
+                case Missions.MM1:
+                    return "Drugs";
+                case Missions.MM2:
+                    return "Sanctus";
+                case Missions.MM3:
+                    return "Phantom";
+                default:
+                    return "";
+            }
+        }
+
         void LoadModel(uint model)
         {
             Function.Call(Hash.REQUEST_MODEL, model);
@@ -1309,7 +1330,7 @@ namespace LittleJacobMod
                     ToggleMusicInterrup(true);
                     Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(0));
                     RequestScaleform();
-                    SetScaleFormText(MissionTitle(), "");
+                    SetScaleFormText(MissionTitle(), MissionSubtitle());
                     _scaleFormActive = true;
                     _scaleFormStart = Game.GameTime;
                 }
