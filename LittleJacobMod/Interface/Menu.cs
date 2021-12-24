@@ -400,6 +400,7 @@ namespace LittleJacobMod.Interface
         bool WeaponSelected(Utils.Weapons.Weapon weapon, int price, NativeMenu menu)
         {
             bool hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.WeaponHash, 0);
+
             if (!hasWeapon)
             {
                 if (Game.Player.Money < price)
@@ -412,9 +413,12 @@ namespace LittleJacobMod.Interface
                 Main.LittleJacob.ProcessVoice(true, true);
                 Game.Player.Money -= price;
                 Function.Call<bool>(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weapon.WeaponHash, 0, true, true);
+            } else
+            {
+                Function.Call(Hash.SET_CURRENT_PED_WEAPON, Main.PPID, weapon.WeaponHash, true);
             }
 
-            var currentWeapon = Game.Player.Character.Weapons.Current;
+            GTA.Weapon currentWeapon = Game.Player.Character.Weapons.Current;
             LoadoutSaving.AddWeapon(currentWeapon);
 
             return true;
