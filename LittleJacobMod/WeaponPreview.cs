@@ -281,6 +281,8 @@ class WeaponPreview : Script
              || component == (uint)WeaponComponentHash.SpecialCarbineVarmodLowrider
              || component == 4052644405
              || component == 2012362801
-             || component == 1657753414;
+             || component == 1657753414
+             || component == (uint)WeaponComponentHash.RevolverVarmodBoss
+             || component == (uint)WeaponComponentHash.RevolverVarmodGoon;
     }
 }
