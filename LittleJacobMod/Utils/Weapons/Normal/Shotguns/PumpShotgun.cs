@@ -46,6 +46,7 @@ namespace LittleJacobMod.Utils.Weapons
         {
             { "None", (uint)WeaponComponentHash.Invalid },
             { "Luxury Finish", (uint)WeaponComponentHash.PumpShotgunVarmodLowrider },
+            { "Bone Finish", 4052644405 }
         };
 
         public override Dictionary<string, uint> FlashLight => new Dictionary<string, uint>()
