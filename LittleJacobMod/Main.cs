@@ -27,6 +27,8 @@ public class Main : Script
     public static bool MissionFlag;
     public bool _processMenu;
     public static int PPID { get; private set; }
+    int _bigMessageST;
+    bool _bigMessageTS;
 
     public Main()
     {
@@ -56,6 +58,7 @@ public class Main : Script
 
         Tick += ControlWatch;
         Tick += OnTick;
+        Tick += MenuTick;
         Aborted += Main_Aborted;
     }
 
@@ -123,9 +126,8 @@ public class Main : Script
         MissionSaving.Load(!firstStart);
     }
 
-    void OnTick(object o, EventArgs e)
+    void MenuTick(object o, EventArgs e)
     {
-        PPID = Function.Call<int>(Hash.PLAYER_PED_ID);
         ifruit.Phone.Update();
         CallMenu.Pool.Process();
 
@@ -136,6 +138,29 @@ public class Main : Script
         {
             menu.Pool.Process();
         }
+
+        /*if (menu.DrawScaleform)
+        {
+            if (!_bigMessageTS)
+            {
+                _bigMessageTS = true;
+                _bigMessageST = Game.GameTime;
+            }
+
+            menu.DrawBigMessage();
+
+            if (Game.GameTime - _bigMessageST >= 5000)
+            {
+                _bigMessageTS = false;
+                menu.DrawScaleform = false;
+                menu.DisposeBigMessage();
+            }
+        }*/
+    }
+
+    void OnTick(object o, EventArgs e)
+    {
+        PPID = Function.Call<int>(Hash.PLAYER_PED_ID);
 
         if (!JacobActive)
         {

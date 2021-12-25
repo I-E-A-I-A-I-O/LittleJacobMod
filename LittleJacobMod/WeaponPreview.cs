@@ -280,6 +280,7 @@ class WeaponPreview : Script
              || component == (uint)WeaponComponentHash.SNSPistolVarmodLowrider
              || component == (uint)WeaponComponentHash.SpecialCarbineVarmodLowrider
              || component == 4052644405
-             || component == 2012362801;
+             || component == 2012362801
+             || component == 1657753414;
     }
 }

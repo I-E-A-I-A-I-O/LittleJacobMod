@@ -15,6 +15,7 @@ namespace LittleJacobMod.Saving
 
         public static void Initialize()
         {
+            Weapons.AddRange(WeaponsList.Melee);
             Weapons.AddRange(WeaponsList.Pistols);
             Weapons.AddRange(WeaponsList.SMGs);
             Weapons.AddRange(WeaponsList.Rifles);
@@ -33,6 +34,7 @@ namespace LittleJacobMod.Saving
                     return weapon;
                 }
             }
+
             return null;
         }
 
@@ -185,6 +187,10 @@ namespace LittleJacobMod.Saving
                 for (int i = weapons.Count - 1; i > -1; i--)
                 {
                     StoredWeapon weapon = weapons[i];
+
+                    if (weapon.WeaponHash == (uint)WeaponHash.Unarmed)
+                        continue;
+
                     bool hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.WeaponHash, false);
 
                     if (!hasWeapon)
@@ -208,6 +214,9 @@ namespace LittleJacobMod.Saving
                     {
                         weapon.Tint = tintIndex;
                     }
+
+                    if (weaponCatalogOption == null)
+                        continue;
 
                     if (weaponCatalogOption.HasMuzzleOrSupp)
                     {
@@ -316,7 +325,7 @@ namespace LittleJacobMod.Saving
                     {
                         for (int n = 0; n < weaponCatalogOption.FlashLight.Count; n++)
                         {
-                            uint attachment = weaponCatalogOption.Camos.ElementAt(n).Value;
+                            uint attachment = weaponCatalogOption.FlashLight.ElementAt(n).Value;
 
                             if (attachment == (uint)WeaponComponentHash.Invalid || attachment == weapon.Flashlight)
                             {
@@ -329,7 +338,10 @@ namespace LittleJacobMod.Saving
                         }
                     }
                 }
-            } catch (Exception) { }
+            } catch (Exception /*e*/) 
+            {
+                //GTA.UI.Notification.Show($"{e.StackTrace}");
+            }
 
             if (changes)
             {

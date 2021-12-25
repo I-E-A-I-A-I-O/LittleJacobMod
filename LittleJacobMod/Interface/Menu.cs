@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LemonUI;
 using LemonUI.Menus;
+using LemonUI.Scaleform;
 using GTA;
 using GTA.Native;
 using LittleJacobMod.Utils;
@@ -14,6 +15,7 @@ namespace LittleJacobMod.Interface
     public class Menu
     {
         public ObjectPool Pool { get; private set; }
+        public bool DrawScaleform;
         List<SubMenuData> _subMenus = new List<SubMenuData>();
         NativeMenu _mainMenu;
         NativeMenu _helm1;
@@ -21,6 +23,7 @@ namespace LittleJacobMod.Interface
         NativeMenu _helm3;
         int _helmColor;
         bool _move;
+        BigMessage _bigMessage;
 
         public static event EventHandler<ComponentPreviewEventArgs> ComponentSelected;
         public static event EventHandler<uint> SpawnWeaponObject;
@@ -397,6 +400,17 @@ namespace LittleJacobMod.Interface
             _mainMenu.Visible = true;
         }
 
+        public void DrawBigMessage()
+        {
+            if (_bigMessage.IsLoaded)
+                _bigMessage.DrawFullScreen();
+        }
+
+        public void DisposeBigMessage()
+        {
+            _bigMessage.Dispose();
+        }
+
         bool WeaponSelected(Utils.Weapons.Weapon weapon, int price, NativeMenu menu)
         {
             bool hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.WeaponHash, 0);
@@ -409,6 +423,7 @@ namespace LittleJacobMod.Interface
                     menu.Back();
                     return false;
                 }
+
                 GTA.UI.Notification.Show($"{weapon.Name} purchased!");
                 Main.LittleJacob.ProcessVoice(true, true);
                 Game.Player.Money -= price;
