@@ -4,22 +4,28 @@ using System.Linq;
 using GTA;
 using LemonUI.Menus;
 using LittleJacobMod.Saving;
-using LittleJacobMod.Utils.Weapons;
 
 namespace LittleJacobMod.Interface
 {
+    struct ItemData
+    {
+        public int price;
+        public NativeItem item;
+        public uint Hash;
+    }
     class SubMenuData
     {
         public uint Weapon;
-        public List<NativeItem> TintItems { get; } = new List<NativeItem>();
-        public List<NativeItem> CamoColorItems { get; } = new List<NativeItem>();
-        public List<NativeItem> CamoItems { get; } = new List<NativeItem>();
-        public Dictionary<string, NativeItem> ClipItems { get; } = new Dictionary<string, NativeItem>();
-        public Dictionary<string, NativeItem> MuzzleItems { get; } = new Dictionary<string, NativeItem>();
-        public Dictionary<string, NativeItem> BarrelItems { get; } = new Dictionary<string, NativeItem>();
-        public Dictionary<string, NativeItem> GripItems { get; } = new Dictionary<string, NativeItem>();
-        public Dictionary<string, NativeItem> ScopeItems { get; } = new Dictionary<string, NativeItem>();
-        public Dictionary<string, NativeItem> FlashlightItems { get; } = new Dictionary<string, NativeItem>();
+        public List<ItemData> TintItems { get; } = new List<ItemData>();
+        public List<ItemData> CamoColorItems { get; } = new List<ItemData>();
+        public List<ItemData> CamoItems { get; } = new List<ItemData>();
+        public List<ItemData> ClipItems { get; } = new List<ItemData>();
+        public List<ItemData> MuzzleItems { get; } = new List<ItemData>();
+        public List<ItemData> BarrelItems { get; } = new List<ItemData>();
+        public List<ItemData> GripItems { get; } = new List<ItemData>();
+        public List<ItemData> ScopeItems { get; } = new List<ItemData>();
+        public List<ItemData> FlashlightItems { get; } = new List<ItemData>();
+        public List<ItemData> VarmodItems { get; } = new List<ItemData>();
 
         public SubMenuData(uint weapon)
         {
@@ -39,99 +45,63 @@ namespace LittleJacobMod.Interface
             CamoItems.Clear();
         }
 
-        void RestartDict(Dictionary<string, NativeItem> items, string text)
+        void Restart(List<ItemData> items, string text)
         {
             for (int i = 0; i < items.Count; i++)
             {
-                KeyValuePair<string, NativeItem> item = items.ElementAt(i);
+                ItemData data = items.ElementAt(i);
 
                 if (i == 0)
                 {
-                    item.Value.Enabled = false;
-                    item.Value.Description = $"Current {text}";
+                    data.item.Enabled = false;
+                    data.item.Description = $"Current {text}";
                     continue;
                 }
 
-                item.Value.Enabled = true;
-                item.Value.Description = $"Price:{item.Key}";
+                data.item.Enabled = true;
+                data.item.Description = $"Price: ${data.price}";
             }
         }
 
-        void RestartList(List<NativeItem> items, string text, int price)
-        {
-            for (int i = 0; i < items.Count; i++)
-            {
-                NativeItem item = items.ElementAt(i);
-
-                if (i == 0)
-                {
-                    item.Enabled = false;
-                    item.Description = $"Current {text}";
-                    continue;
-                }
-
-                item.Enabled = true;
-                item.Description = $"Price: ${price}";
-            }
-        }
-
-        public void SetDictIndex(Dictionary<string, NativeItem> items, string text, int index)
+        public void SetIndex(List<ItemData> items, string text, int index)
         {
             if (index != -1)
             {
                 for (int i = 0; i < items.Count; i++)
                 {
-                    if (i != index && !items.Values.ElementAt(i).Enabled)
+                    ItemData data = items.ElementAt(i);
+
+                    if (i != index && !data.item.Enabled)
                     {
-                        items.Values.ElementAt(i).Enabled = true;
-                        items.Values.ElementAt(i).Description = $"Price:{items.ElementAt(i).Key}";
+                        data.item.Enabled = true;
+                        data.item.Description = $"Price: ${data.price}";
                     }
                     else if (i == index)
                     {
-                        items.Values.ElementAt(i).Enabled = false;
-                        items.Values.ElementAt(i).Description = $"Current {text}";
+                        data.item.Enabled = false;
+                        data.item.Description = $"Current {text}";
                     }
                 }
             }
         }
 
-        public void SetListIndex(List<NativeItem> items, string text, int price, int index)
+        private void RestartLists()
         {
-            if (index != -1)
-            {
-                for (int i = 0; i < items.Count; i++)
-                {
-                    if (i != index && !items.ElementAt(i).Enabled)
-                    {
-                        items.ElementAt(i).Enabled = true;
-                        items.ElementAt(i).Description = $"Price: ${price}";
-                    }
-                    else if (i == index)
-                    {
-                        items.ElementAt(i).Enabled = false;
-                        items.ElementAt(i).Description = $"Current {text}";
-                    }
-                }
-            }
-        }
-
-        public void RestartLists()
-        {
-            RestartList(TintItems, "Tint", 5000);
-            RestartDict(ClipItems, "Clip");
-            RestartDict(MuzzleItems, "Muzzle attachment");
-            RestartDict(BarrelItems, "Barrel");
-            RestartDict(GripItems, "Grip");
-            RestartDict(ScopeItems, "Scope");
-            RestartList(CamoItems, "Livery", 60000);
-            RestartDict(FlashlightItems, "Flashlight");
-            RestartList(CamoColorItems, "Livery color", 10000);
+            Restart(TintItems, "Tint");
+            Restart(ClipItems, "Clip");
+            Restart(MuzzleItems, "Muzzle attachment");
+            Restart(BarrelItems, "Barrel");
+            Restart(GripItems, "Grip");
+            Restart(ScopeItems, "Scope");
+            Restart(CamoItems, "Livery");
+            Restart(FlashlightItems, "Flashlight");
+            Restart(CamoColorItems, "Livery color");
         }
 
         public void LoadAttachments()
         {
-            var weapon = WeaponsList.GetWeapon(Weapon);
-            var storeRef = LoadoutSaving.GetStoreReference(Weapon);
+            RestartLists();
+            Saving.Utils.StoredWeapon storeRef = LoadoutSaving.GetStoreReference(Weapon);
 
             if (storeRef == null)
             {
@@ -139,10 +109,14 @@ namespace LittleJacobMod.Interface
             }
 
             int index;
-            index = storeRef.GetTintIndex();
-            SetListIndex(TintItems, "Tint", 5000, index);
 
-            if (weapon.HasBarrel)
+            if (TintItems.Count > 0)
+            {
+                index = storeRef.GetTintIndex();
+                SetIndex(TintItems, "Tint", index);
+            }
+
+            if (BarrelItems.Count > 0)
             {
                 index = weapon.Barrels.Values.ToList().IndexOf(storeRef.Barrel);
                 SetDictIndex(BarrelItems, "Barrel", index);

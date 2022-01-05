@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
+using System.IO;
 using LemonUI;
 using LemonUI.Menus;
 using LemonUI.Scaleform;
 using GTA;
 using GTA.Native;
 using LittleJacobMod.Utils;
-using LittleJacobMod.Utils.Weapons;
 using LittleJacobMod.Saving;
 
 namespace LittleJacobMod.Interface
@@ -127,6 +128,49 @@ namespace LittleJacobMod.Interface
             _snipers.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(WeaponsList.Snipers[e.Index]); };
             _heavy.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(WeaponsList.Heavy[e.Index]); };
             _explosives.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(WeaponsList.Explosives[e.Index]); };
+        }
+
+        private void AddSubmenu(string path, NativeMenu parentMenu)
+        {
+            string[] files = Directory.GetFiles(path);
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                XElement document = XElement.Load(files[i]);
+                NativeMenu weaponMenu = new NativeMenu(
+                    (string)document.Element("Name"), $"Price: ${document.Element("Price")}"
+                );
+
+                NativeSliderItem ammoOptionItem = new NativeSliderItem("Ammo", 250, 1);
+                ammoOptionItem.Activated += (o, e) => 
+                {
+                    AmmoPurchased((uint)(int)document.Element("Hash"), ammoOptionItem.Value);
+                };
+
+                if ((bool)document.Element("Flags").Element("Tint"))
+                {
+                    XElement att = document.Element("Attachments");
+                    IEnumerable<XElement> tints = att.Element("Tints").Descendants();
+                    NativeMenu tintMenu = new NativeMenu("Weapon Tints", "Tints");
+                    int size = tints.Count();
+
+                    for (int n = 0; n < size; n++)
+                    {
+                        XElement tint = tints.ElementAt(i);
+                        NativeItem tintItem = new NativeItem(
+                            (string)tint, $"Price: ${tint.Attribute("Price")}"
+                            );
+                        
+                        tintMenu.Add(tintItem);
+                    }
+                }
+
+                if ((bool)document.Element("Flags").Element("Muzzle"))
+                {
+                    XElement att = document.Element("Attachments");
+                    IEnumerable<XElement> muzzles = document.Element("Muzzle").Descendants();
+                }
+            }
         }
 
         public void ReloadOptions()
@@ -398,17 +442,6 @@ namespace LittleJacobMod.Interface
         public void ShowMainMenu()
         {
             _mainMenu.Visible = true;
-        }
-
-        public void DrawBigMessage()
-        {
-            if (_bigMessage.IsLoaded)
-                _bigMessage.DrawFullScreen();
-        }
-
-        public void DisposeBigMessage()
-        {
-            _bigMessage.Dispose();
         }
 
         bool WeaponSelected(Utils.Weapons.Weapon weapon, int price, NativeMenu menu)
@@ -803,7 +836,7 @@ namespace LittleJacobMod.Interface
             }
         }
 
-        void AmmoPurchased(GTA.Weapon weapon, int value)
+        void AmmoPurchased(uint weapon, int value)
         {
             var purchasableAmmo = weapon.MaxAmmo - weapon.Ammo;
 
@@ -846,7 +879,7 @@ namespace LittleJacobMod.Interface
             LoadoutSaving.SetTint(weapon, index);
         }
 
-        void ComponentPurchased(uint weapon, KeyValuePair<string, uint> weaponComponent, List<uint> components, Action<uint, uint> OnSuccess, bool isCamo = false)
+        void ComponentPurchased(uint weapon, uint Component, int comPrice, string name, Action<uint, uint> OnSuccess)
         {
             int price = isCamo ? 60000 : int.Parse(weaponComponent.Key.Split('$')[1]);
             price = ApplyDiscount(price);
@@ -892,7 +925,7 @@ namespace LittleJacobMod.Interface
             }
         }
 
-        void CamoColorPurchased(uint weapon, int index)
+        void CamoColorPurchased(uint weapon, int index, string name, int price)
         {
             if (!LoadoutSaving.HasCamo(weapon))
             {
