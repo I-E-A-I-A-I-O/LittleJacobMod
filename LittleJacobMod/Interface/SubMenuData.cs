@@ -43,6 +43,7 @@ namespace LittleJacobMod.Interface
             CamoItems.Clear();
             FlashlightItems.Clear();
             CamoItems.Clear();
+            VarmodItems.Clear();
         }
 
         void Restart(List<ItemData> items, string text)
@@ -96,6 +97,7 @@ namespace LittleJacobMod.Interface
             Restart(CamoItems, "Livery");
             Restart(FlashlightItems, "Flashlight");
             Restart(CamoColorItems, "Livery color");
+            Restart(VarmodItems, "Finish");
         }
 
         public void LoadAttachments()
@@ -118,46 +120,52 @@ namespace LittleJacobMod.Interface
 
             if (BarrelItems.Count > 0)
             {
-                index = weapon.Barrels.Values.ToList().IndexOf(storeRef.Barrel);
-                SetDictIndex(BarrelItems, "Barrel", index);
+                index = BarrelItems.FindIndex((it) => it.Hash == storeRef.Barrel);
+                SetIndex(BarrelItems, "Barrel", index);
             }
 
-            if (weapon.HasClip)
+            if (ClipItems.Count > 0)
             {
-                index = weapon.Clips.Values.ToList().IndexOf(storeRef.Clip);
-                SetDictIndex(ClipItems, "Clip", index);
+                index = ClipItems.FindIndex((it) => it.Hash == storeRef.Clip);
+                SetIndex(ClipItems, "Clip", index);
             }
 
-            if (weapon.HasFlaslight)
+            if (FlashlightItems.Count > 0)
             {
-                index = weapon.FlashLight.Values.ToList().IndexOf(storeRef.Flashlight);
-                SetDictIndex(FlashlightItems, "Flashlight", index);
+                index = FlashlightItems.FindIndex((it) => it.Hash == storeRef.Flashlight);
+                SetIndex(FlashlightItems, "Flashlight", index);
             }
             
-            if (weapon.HasGrip)
+            if (GripItems.Count > 0)
             {
-                index = weapon.Grips.Values.ToList().IndexOf(storeRef.Grip);
-                SetDictIndex(GripItems, "Grip", index);
+                index = GripItems.FindIndex((it) => it.Hash == storeRef.Grip);
+                SetIndex(GripItems, "Grip", index);
             }
             
-            if (weapon.HasMuzzleOrSupp)
+            if (MuzzleItems.Count > 0)
             {
-                index = weapon.MuzzlesAndSupps.Values.ToList().IndexOf(storeRef.Muzzle);
-                SetDictIndex(MuzzleItems, "Muzzle attachment", index);
+                index = MuzzleItems.FindIndex((it) => it.Hash == storeRef.Muzzle);
+                SetIndex(MuzzleItems, "Muzzle attachment", index);
             }
 
-            if (weapon.HasScope)
+            if (ScopeItems.Count > 0)
             {
-                index = weapon.Scopes.Values.ToList().IndexOf(storeRef.Scope);
-                SetDictIndex(ScopeItems, "Scope", index);
+                index = ScopeItems.FindIndex((it) => it.Hash == storeRef.Scope);
+                SetIndex(ScopeItems, "Scope", index);
             }
 
-            if (weapon.HasCamo)
+            if (CamoItems.Count > 0)
             {
-                index = weapon.Camos.Values.ToList().IndexOf(storeRef.Camo);
-                SetListIndex(CamoItems, "Livery", 60000, index);
+                index = CamoItems.FindIndex((it) => it.Hash == storeRef.Camo);
+                SetIndex(CamoItems, "Livery", index);
                 index = storeRef.GetCamoColor();
-                SetListIndex(CamoColorItems, "Livery Color", 10000, index);
+                SetIndex(CamoColorItems, "Livery Color", index);
+            }
+
+            if (VarmodItems.Count > 0)
+            {
+                index = VarmodItems.FindIndex((it) => it.Hash == storeRef.Varmod);
+                SetIndex(VarmodItems, "Finish", index);
             }
         }
     }

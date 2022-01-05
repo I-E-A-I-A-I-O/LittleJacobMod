@@ -11,7 +11,8 @@ namespace LittleJacobMod.Utils
         Muzzle,
         Flashlight,
         Barrel,
-        Grip
+        Grip,
+        Varmod
     }
 
     public class ComponentPreviewEventArgs : EventArgs

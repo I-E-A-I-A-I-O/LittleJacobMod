@@ -17,6 +17,7 @@ namespace LittleJacobMod.Saving.Utils
         public uint Barrel { get; set; } = (uint)WeaponComponentHash.Invalid;
         public uint Scope { get; set; } = (uint)WeaponComponentHash.Invalid;
         public uint Flashlight { get; set; } = (uint)WeaponComponentHash.Invalid;
+        public uint Varmod { get; set; } = (uint)WeaponComponentHash.Invalid;
 
         public StoredWeapon (uint hash)
         {
