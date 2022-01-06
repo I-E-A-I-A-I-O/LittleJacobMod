@@ -161,8 +161,12 @@ namespace LittleJacobMod.Saving
 
         public static void PerformSave(uint ped)
         {
+            if (ped == 0)
+                return;
+
             GTA.UI.LoadingPrompt.Show("Saving weapon loadout...");
             Busy = true;
+
             try
             {
                 string dir = Directory.GetCurrentDirectory();
@@ -343,7 +347,7 @@ namespace LittleJacobMod.Saving
 
             GTA.UI.LoadingPrompt.Hide();
             Busy = false;
-            WeaponsLoaded?.Invoke(null, null);
+            WeaponsLoaded?.Invoke(null, EventArgs.Empty);
         }
 
         static void LoadNew(string path, bool constructor, bool weaponsRemoved)
@@ -480,8 +484,6 @@ namespace LittleJacobMod.Saving
                 }
             }
 
-            File.Delete(path);
-
             if (!constructor)
             {
                 Script.Wait(1000);
@@ -489,11 +491,14 @@ namespace LittleJacobMod.Saving
 
             GTA.UI.LoadingPrompt.Hide();
             Busy = false;
-            WeaponsLoaded?.Invoke(null, null);
+            WeaponsLoaded?.Invoke(null, EventArgs.Empty);
         }
 
         public static void PerformLoad(bool constructor = false)
         {
+            if (MapperMain.CurrentPed == 0)
+                return;
+
             if (!constructor)
             {
                 GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");

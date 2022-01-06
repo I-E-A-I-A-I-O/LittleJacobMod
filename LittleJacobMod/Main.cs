@@ -29,6 +29,7 @@ public class Main : Script
     public static int PPID { get; private set; }
     int _bigMessageST;
     bool _bigMessageTS;
+    public static bool MenuCreated { get; private set; } = false;
 
     public Main()
     {
@@ -40,6 +41,7 @@ public class Main : Script
         LoadoutSaving.WeaponsLoaded += LoadoutSaving_WeaponsLoaded;
         ifruit = new PhoneContact();
         menu = new Menu();
+        MenuCreated = true;
         CallMenu = new CallMenu();
 
         if (Game.IsLoading)
@@ -122,7 +124,6 @@ public class Main : Script
         PPID = Function.Call<int>(Hash.PLAYER_PED_ID);
         MapperMain.CurrentPed = Function.Call<uint>(Hash.GET_ENTITY_MODEL, PPID);
         LoadoutSaving.PerformLoad(!firstStart);
-        menu.ReloadOptions();
         HelmetState.Load(!firstStart);
         MissionSaving.Load(!firstStart);
     }

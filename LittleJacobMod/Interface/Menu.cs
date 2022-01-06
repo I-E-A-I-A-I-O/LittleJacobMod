@@ -183,7 +183,6 @@ namespace LittleJacobMod.Interface
                     IEnumerable<XElement> tints = att.Element("Tints").Descendants();
                     NativeMenu tintMenu = new NativeMenu("Weapon Tints", "Tints");
                     int size = tints.Count();
-                    data.flags.Add(true);
 
                     for (int n = 0; n < size; n++)
                     {
@@ -219,8 +218,7 @@ namespace LittleJacobMod.Interface
 
                     weaponMenu.AddSubMenu(tintMenu);
                     Pool.Add(tintMenu);
-                } else
-                    data.flags.Add(false);
+                }
 
                 if ((bool)document.Element("Flags").Element("Muzzle"))
                 {
@@ -403,6 +401,7 @@ namespace LittleJacobMod.Interface
                         weaponMenu.Back();
                 };
 
+                _subMenus.Add(subMenuData);
                 parentMenu.AddSubMenu(weaponMenu);
                 Pool.Add(weaponMenu);
                 weaponData.Add(data);

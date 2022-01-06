@@ -27,13 +27,13 @@ namespace LittleJacobMod.Saving
 
         public static void Process(List<StoredWeapon> weapons)
         {
-            if (Main.PPID == 0)
+            if (Main.PPID == 0 || !Main.MenuCreated)
                 return;
 
             bool changes = false;
 
-            try
-            {
+            /*try
+            {*/
                 for (int i = 0; i < WeaponData.Count; i++)
                 {
                     WeaponData weapon = WeaponData[i];
@@ -46,7 +46,7 @@ namespace LittleJacobMod.Saving
                         StoredWeapon storedWeapon = new StoredWeapon(weapon.weaponHash);
                         storedWeapon.Tint = storedWeapon.GetTintIndex();
                         storedWeapon.Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon.weaponHash);
-
+                        
                         if (weapon.flags[0])
                         {
                             for (int n = 0; n < weapon.muzzles.Count; n++)
@@ -117,6 +117,7 @@ namespace LittleJacobMod.Saving
 
                         if (weapon.flags[2])
                         {
+                            GTA.UI.Screen.ShowSubtitle($"{weapon.weaponHash}");
                             for (int n = 0; n < weapon.barrels.Count; n++)
                             {
                                 uint barrel = weapon.barrels.ElementAt(n);
@@ -356,10 +357,10 @@ namespace LittleJacobMod.Saving
                         }
                     }
                 }
-            } catch (Exception /*e*/) 
+            /*} catch (Exception e) 
             {
-                //GTA.UI.Notification.Show($"{e.StackTrace}");
-            }
+                GTA.UI.Notification.Show($"{e.StackTrace}");
+            }*/
 
             if (changes)
             {
