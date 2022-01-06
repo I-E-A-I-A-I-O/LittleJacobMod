@@ -111,7 +111,7 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show("Armor purchased!");
             };
 
-            string baseDir = $"{Directory.GetCurrentDirectory()}\\LittleJacobMod\\Weapons";
+            string baseDir = $"{Directory.GetCurrentDirectory()}\\scripts\\LittleJacobMod\\Weapons";
             List<WeaponData> melee = AddSubmenu($"{baseDir}\\Normal\\Melee", _melee);
             List<WeaponData> pistols = AddSubmenu($"{baseDir}\\Normal\\Pistols", _pistols);
             List<WeaponData> pistols2 = AddSubmenu($"{baseDir}\\MK2\\Pistols", _pistols);
@@ -163,8 +163,11 @@ namespace LittleJacobMod.Interface
                     (string)document.Element("Name"), $"Price: ${document.Element("Price")}"
                 );
                 uint weaponHash = (uint)document.Element("Hash");
-                WeaponData data = new WeaponData();
-                data.weaponHash = weaponHash;
+                WeaponData data = new WeaponData
+                {
+                    weaponHash = weaponHash,
+                    flags = new List<bool>()
+                };
 
                 NativeSliderItem ammoOptionItem = new NativeSliderItem("Ammo", 250, 1);
                 ammoOptionItem.Activated += (o, e) => 
