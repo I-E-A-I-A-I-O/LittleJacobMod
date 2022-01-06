@@ -159,8 +159,10 @@ namespace LittleJacobMod.Interface
             for (int i = 0; i < files.Length; i++)
             {
                 XElement document = XElement.Load(files[i]);
+                string weaponName = (string)document.Element("Name");
+                int weaponPrice = (int)document.Element("Price");
                 NativeMenu weaponMenu = new NativeMenu(
-                    (string)document.Element("Name"), $"Price: ${document.Element("Price")}"
+                    weaponName, weaponName, $"Price: ${weaponPrice}"
                 );
                 uint weaponHash = (uint)document.Element("Hash");
                 WeaponData data = new WeaponData
@@ -168,7 +170,6 @@ namespace LittleJacobMod.Interface
                     weaponHash = weaponHash,
                     flags = new List<bool>()
                 };
-
                 NativeSliderItem ammoOptionItem = new NativeSliderItem("Ammo", 250, 1);
                 ammoOptionItem.Activated += (o, e) => 
                 {
@@ -187,7 +188,7 @@ namespace LittleJacobMod.Interface
                     for (int n = 0; n < size; n++)
                     {
                         int ix = n;
-                        XElement tint = tints.ElementAt(i);
+                        XElement tint = tints.ElementAt(n);
                         NativeItem tintItem = new NativeItem(
                             (string)tint, $"Price: ${tint.Attribute("Price")}"
                             );
@@ -316,7 +317,7 @@ namespace LittleJacobMod.Interface
                     {
                         int ix = n;
                         XElement camoColor = camoColors.ElementAt(n);
-                        int price = (int)camoColor.Element("Price");
+                        int price = (int)camoColor.Attribute("Price");
                         string colorName = (string)camoColor;
                         NativeItem camoColorItem = new NativeItem(colorName)
                         {
@@ -672,13 +673,13 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show($"{name} purchased!");
                 Main.LittleJacob.ProcessVoice(true, true);
                 Game.Player.Money -= price;
-                Function.Call<bool>(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weapon, 0, true, true);
+                Function.Call<bool>(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weapon, 1, true, true);
             } else
             {
                 Function.Call(Hash.SET_CURRENT_PED_WEAPON, Main.PPID, weapon, true);
             }
 
-            GTA.Weapon currentWeapon = Game.Player.Character.Weapons.Current;
+            Weapon currentWeapon = Game.Player.Character.Weapons.Current;
             LoadoutSaving.AddWeapon(currentWeapon);
 
             return true;
