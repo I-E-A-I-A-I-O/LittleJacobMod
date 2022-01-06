@@ -1,5 +1,4 @@
-﻿using System;
-using GTA;
+﻿using GTA;
 using GTA.Native;
 
 namespace LittleJacobMod.Saving.Utils

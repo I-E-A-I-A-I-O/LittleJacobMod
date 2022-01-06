@@ -3,40 +3,19 @@ using System.Collections.Generic;
 using GTA;
 using GTA.Native;
 using LittleJacobMod.Saving.Utils;
-using LittleJacobMod.Utils.Weapons;
 using System.Linq;
-using Weapon = LittleJacobMod.Utils.Weapons.Weapon;
 
 namespace LittleJacobMod.Saving
 {
+    struct WeaponData
+    {
+        public List<bool> flags;
+        public uint weaponHash;
+    }
+
     internal class Mapper
     {
-        static List<Weapon> Weapons { get; } = new List<Weapon>();
-
-        public static void Initialize()
-        {
-            Weapons.AddRange(WeaponsList.Melee);
-            Weapons.AddRange(WeaponsList.Pistols);
-            Weapons.AddRange(WeaponsList.SMGs);
-            Weapons.AddRange(WeaponsList.Rifles);
-            Weapons.AddRange(WeaponsList.Snipers);
-            Weapons.AddRange(WeaponsList.Heavy);
-            Weapons.AddRange(WeaponsList.Shotguns);
-            Weapons.AddRange(WeaponsList.Explosives);
-        }
-
-        static Weapon GetWeapon(uint hash)
-        {
-            foreach (Weapon weapon in Weapons)
-            {
-                if (weapon.WeaponHash == hash)
-                {
-                    return weapon;
-                }
-            }
-
-            return null;
-        }
+        public static List<WeaponData> WeaponData = new List<WeaponData>();
 
         public static void Process(List<StoredWeapon> weapons)
         {
@@ -47,20 +26,20 @@ namespace LittleJacobMod.Saving
 
             try
             {
-                for (int i = 0; i < Weapons.Count; i++)
+                for (int i = 0; i < WeaponData.Count; i++)
                 {
-                    Weapon weapon = Weapons[i];
-                    bool hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.WeaponHash, false);
-                    bool isInStore = LoadoutSaving.IsWeaponInStore(weapon.WeaponHash);
+                    WeaponData weapon = WeaponData[i];
+                    bool hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.weaponHash, false);
+                    bool isInStore = LoadoutSaving.IsWeaponInStore(weapon.weaponHash);
 
                     if (hasWeapon && !isInStore)
                     {
                         changes = true;
-                        StoredWeapon storedWeapon = new StoredWeapon(weapon.WeaponHash);
+                        StoredWeapon storedWeapon = new StoredWeapon(weapon.weaponHash);
                         storedWeapon.Tint = storedWeapon.GetTintIndex();
-                        storedWeapon.Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon.WeaponHash);
+                        storedWeapon.Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon.weaponHash);
 
-                        if (weapon.HasMuzzleOrSupp)
+                        if (weapon.flags[0])
                         {
                             for (int n = 0; n < weapon.MuzzlesAndSupps.Count; n++)
                             {

@@ -16,7 +16,6 @@ class MapperMain : Script
 
     public MapperMain()
     {
-        Mapper.Initialize();
         Tick += WeaponUse;
         Tick += ModelWatcher;
         Tick += AutoSaveWatch;

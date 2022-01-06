@@ -88,37 +88,33 @@ class WeaponPreview : Script
         }
     }
 
-    private void LoadAttachments(uint hash, bool luxe, bool luxOn)
+    private void LoadAttachments(uint hash, bool luxOn)
     {
         if (LoadoutSaving.IsWeaponInStore(hash))
         {
             var storedWeapon = LoadoutSaving.GetStoreReference(hash);
 
-            if (!luxe && IsLuxe(storedWeapon.Camo))
-                luxe = true;
+            if (SkipComponent(storedWeapon.Varmod, ComponentIndex.Varmod))
+            {
+                if (!luxOn)
+                    GiveWeaponComponentToObject(storedWeapon.Varmod, false);
+            }
 
             if (SkipComponent(storedWeapon.Camo, ComponentIndex.Livery))
             {
-                if (!luxe)
+                GiveWeaponComponentToObject(storedWeapon.Camo, true);
+                uint slide = TintsAndCamos.ReturnSlide(storedWeapon.Camo);
+
+                if (slide != (uint)WeaponComponentHash.Invalid)
                 {
-                    GiveWeaponComponentToObject(storedWeapon.Camo, true);
-                    uint slide = TintsAndCamos.ReturnSlide(storedWeapon.Camo);
+                    GiveWeaponComponentToObject(slide, true);
+                    Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, slide, storedWeapon.GetCamoColor());
+                }
 
-                    if (slide != (uint)WeaponComponentHash.Invalid)
-                    {
-                        GiveWeaponComponentToObject(slide, true);
-                        Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, slide, storedWeapon.GetCamoColor());
-                    }
-
-                    Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo, storedWeapon.GetCamoColor());
-                } else if (!luxOn)
-                    GiveWeaponComponentToObject(storedWeapon.Camo, false);
-                else if (luxOn)
-                    GiveWeaponComponentToObject(storedWeapon.Camo, true);
+                Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo, storedWeapon.GetCamoColor());
             }
 
-            if (!luxe)
-                Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, _weaponHandle.Handle, storedWeapon.GetTintIndex());
+            Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, _weaponHandle.Handle, storedWeapon.GetTintIndex());
 
             if (SkipComponent(storedWeapon.Barrel, ComponentIndex.Barrel))
             {
@@ -192,8 +188,7 @@ class WeaponPreview : Script
         _weaponHandle.Heading = Main.Camera.ForwardVector.ToHeading();
         _weaponHandle.Rotation = new Vector3(_weaponHandle.Rotation.X, _weaponHandle.Rotation.Y, _weaponHandle.Rotation.Z - 10);
         Function.Call(Hash.REMOVE_WEAPON_ASSET, hash);
-
-        LoadAttachments(hash, luxe, luxOn);
+        LoadAttachments(hash, luxOn);
 
         if (luxOn)
             Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, luxModel);
@@ -228,7 +223,7 @@ class WeaponPreview : Script
 
     private void GiveWeaponComponentToObject(uint component, bool force)
     {
-        bool isLuxe = IsLuxe(component);
+        bool isLuxe = _skipIndex == ComponentIndex.Varmod && component != (uint)WeaponComponentHash.Invalid;
 
         if (!force && (component == (uint)WeaponComponentHash.Invalid || isLuxe))
         {
@@ -257,32 +252,5 @@ class WeaponPreview : Script
         {
             _weaponHandle.Delete();
         }
-    }
-
-    bool IsLuxe(uint component)
-    {
-        return component == (uint)WeaponComponentHash.AdvancedRifleVarmodLuxe
-             || component == (uint)WeaponComponentHash.APPistolVarmodLuxe
-             || component == (uint)WeaponComponentHash.AssaultRifleVarmodLuxe
-             || component == (uint)WeaponComponentHash.AssaultSMGVarmodLowrider
-             || component == (uint)WeaponComponentHash.BullpupRifleVarmodLow
-             || component == (uint)WeaponComponentHash.CarbineRifleVarmodLuxe
-             || component == (uint)WeaponComponentHash.CombatMGVarmodLowrider
-             || component == (uint)WeaponComponentHash.CombatPistolVarmodLowrider
-             || component == (uint)WeaponComponentHash.HeavyPistolVarmodLuxe
-             || component == (uint)WeaponComponentHash.MarksmanRifleVarmodLuxe
-             || component == (uint)WeaponComponentHash.MGVarmodLowrider
-             || component == (uint)WeaponComponentHash.MicroSMGVarmodLuxe
-             || component == (uint)WeaponComponentHash.Pistol50VarmodLuxe
-             || component == (uint)WeaponComponentHash.PistolVarmodLuxe
-             || component == (uint)WeaponComponentHash.PumpShotgunVarmodLowrider
-             || component == (uint)WeaponComponentHash.SMGVarmodLuxe
-             || component == (uint)WeaponComponentHash.SNSPistolVarmodLowrider
-             || component == (uint)WeaponComponentHash.SpecialCarbineVarmodLowrider
-             || component == 4052644405
-             || component == 2012362801
-             || component == 1657753414
-             || component == (uint)WeaponComponentHash.RevolverVarmodBoss
-             || component == (uint)WeaponComponentHash.RevolverVarmodGoon;
     }
 }
