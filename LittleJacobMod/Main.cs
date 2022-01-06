@@ -122,6 +122,7 @@ public class Main : Script
         PPID = Function.Call<int>(Hash.PLAYER_PED_ID);
         MapperMain.CurrentPed = Function.Call<uint>(Hash.GET_ENTITY_MODEL, PPID);
         LoadoutSaving.PerformLoad(!firstStart);
+        menu.ReloadOptions();
         HelmetState.Load(!firstStart);
         MissionSaving.Load(!firstStart);
     }

@@ -227,6 +227,9 @@ namespace LittleJacobMod.Interface
                     weaponMenu.AddSubMenu(attMenu);
                     Pool.Add(attMenu);
                     data.flags.Add(true);
+                    data.muzzles = new List<uint>();
+                    for (int c = 0; c < muzzles.Count(); c++)
+                        data.muzzles.Add((uint)muzzles.ElementAt(c));
                 } else
                     data.flags.Add(false);
 
@@ -239,6 +242,9 @@ namespace LittleJacobMod.Interface
                     weaponMenu.AddSubMenu(attMenu);
                     Pool.Add(attMenu);
                     data.flags.Add(true);
+                    data.clips = new List<uint>();
+                    for (int c = 0; c < clips.Count(); c++)
+                        data.clips.Add((uint)clips.ElementAt(c));
                 } else
                     data.flags.Add(false);
 
@@ -251,6 +257,9 @@ namespace LittleJacobMod.Interface
                     weaponMenu.AddSubMenu(attMenu);
                     Pool.Add(attMenu);
                     data.flags.Add(true);
+                    data.barrels = new List<uint>();
+                    for (int c = 0; c < barrels.Count(); c++)
+                        data.barrels.Add((uint)barrels.ElementAt(c));
                 } else
                     data.flags.Add(false);
 
@@ -263,6 +272,9 @@ namespace LittleJacobMod.Interface
                     weaponMenu.AddSubMenu(attMenu);
                     Pool.Add(attMenu);
                     data.flags.Add(true);
+                    data.grips = new List<uint>();
+                    for (int c = 0; c < grips.Count(); c++)
+                        data.grips.Add((uint)grips.ElementAt(c));
                 } else
                     data.flags.Add(false);
 
@@ -275,6 +287,9 @@ namespace LittleJacobMod.Interface
                     weaponMenu.AddSubMenu(attMenu);
                     Pool.Add(attMenu);
                     data.flags.Add(true);
+                    data.scopes = new List<uint>();
+                    for (int c = 0; c < scopes.Count(); c++)
+                        data.scopes.Add((uint)scopes.ElementAt(c));
                 } else
                     data.flags.Add(false);
 
@@ -286,6 +301,9 @@ namespace LittleJacobMod.Interface
                     ComponentIndex.Livery, LoadoutSaving.SetCamo, subMenuData);
                     weaponMenu.AddSubMenu(attMenu);
                     Pool.Add(attMenu);
+                    data.camos = new List<uint>();
+                    for (int c = 0; c < camos.Count(); c++)
+                        data.camos.Add((uint)camos.ElementAt(c));
 
                     IEnumerable<XElement> camoColors = att.Element("Camos").Element("Colors").Descendants();
                     NativeMenu camoColorMenu = new NativeMenu("Livery colors", "Livery color");
@@ -350,18 +368,24 @@ namespace LittleJacobMod.Interface
                     weaponMenu.AddSubMenu(attMenu);
                     Pool.Add(attMenu);
                     data.flags.Add(true);
+                    data.flashlights = new List<uint>();
+                    for (int c = 0; c < flash.Count(); c++)
+                        data.flashlights.Add((uint)flash.ElementAt(c));
                 } else
                     data.flags.Add(false);
 
                 if ((bool)document.Element("Flags").Element("Varmod"))
                 {
                     XElement att = document.Element("Attachments");
-                    IEnumerable<XElement> flash = att.Element("Varmod").Descendants();
-                    NativeMenu attMenu = AddOption("Weapon Finishes", "Finish", weaponHash, flash,
+                    IEnumerable<XElement> varmods = att.Element("Varmod").Descendants();
+                    NativeMenu attMenu = AddOption("Weapon Finishes", "Finish", weaponHash, varmods,
                     ComponentIndex.Varmod, LoadoutSaving.SetVarmod, subMenuData);
                     weaponMenu.AddSubMenu(attMenu);
                     Pool.Add(attMenu);
                     data.flags.Add(true);
+                    data.varmods = new List<uint>();
+                    for (int c = 0; c < varmods.Count(); c++)
+                        data.varmods.Add((uint)varmods.ElementAt(c));
                 } else
                     data.flags.Add(false);
 

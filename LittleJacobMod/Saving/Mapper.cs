@@ -10,6 +10,14 @@ namespace LittleJacobMod.Saving
     struct WeaponData
     {
         public List<bool> flags;
+        public List<uint> muzzles;
+        public List<uint> clips;
+        public List<uint> barrels;
+        public List<uint> grips;
+        public List<uint> scopes;
+        public List<uint> camos;
+        public List<uint> flashlights;
+        public List<uint> varmods;
         public uint weaponHash;
     }
 
@@ -41,9 +49,9 @@ namespace LittleJacobMod.Saving
 
                         if (weapon.flags[0])
                         {
-                            for (int n = 0; n < weapon.MuzzlesAndSupps.Count; n++)
+                            for (int n = 0; n < weapon.muzzles.Count; n++)
                             {
-                                uint muzzleOrSupp = weapon.MuzzlesAndSupps.ElementAt(n).Value;
+                                uint muzzleOrSupp = weapon.muzzles.ElementAt(n);
 
                                 if (muzzleOrSupp == (uint)WeaponComponentHash.Invalid)
                                 {
@@ -56,11 +64,11 @@ namespace LittleJacobMod.Saving
                             }
                         }
 
-                        if (weapon.HasClip)
+                        if (weapon.flags[1])
                         {
-                            for (int n = 0; n < weapon.Clips.Count; n++)
+                            for (int n = 0; n < weapon.clips.Count; n++)
                             {
-                                uint clip = weapon.Clips.ElementAt(n).Value;
+                                uint clip = weapon.clips.ElementAt(n);
 
                                 if (clip == (uint)WeaponComponentHash.Invalid)
                                 {
@@ -73,11 +81,11 @@ namespace LittleJacobMod.Saving
                             }
                         }
 
-                        if (weapon.HasScope)
+                        if (weapon.flags[4])
                         {
-                            for (int n = 0; n < weapon.Scopes.Count; n++)
+                            for (int n = 0; n < weapon.scopes.Count; n++)
                             {
-                                uint scope = weapon.Scopes.ElementAt(n).Value;
+                                uint scope = weapon.scopes.ElementAt(n);
 
                                 if (scope == (uint)WeaponComponentHash.Invalid)
                                 {
@@ -90,11 +98,11 @@ namespace LittleJacobMod.Saving
                             }
                         }
 
-                        if (weapon.HasGrip)
+                        if (weapon.flags[3])
                         {
-                            for (int n = 0; n < weapon.Grips.Count; n++)
+                            for (int n = 0; n < weapon.grips.Count; n++)
                             {
-                                uint grip = weapon.Grips.ElementAt(n).Value;
+                                uint grip = weapon.grips.ElementAt(n);
 
                                 if (grip == (uint)WeaponComponentHash.Invalid)
                                 {
@@ -107,11 +115,11 @@ namespace LittleJacobMod.Saving
                             }
                         }
 
-                        if (weapon.HasBarrel)
+                        if (weapon.flags[2])
                         {
-                            for (int n = 0; n < weapon.Barrels.Count; n++)
+                            for (int n = 0; n < weapon.barrels.Count; n++)
                             {
-                                uint barrel = weapon.Barrels.ElementAt(n).Value;
+                                uint barrel = weapon.barrels.ElementAt(n);
 
                                 if (barrel == (uint)WeaponComponentHash.Invalid)
                                 {
@@ -124,11 +132,11 @@ namespace LittleJacobMod.Saving
                             }
                         }
 
-                        if (weapon.HasCamo)
+                        if (weapon.flags[5])
                         {
-                            for (int n = 0; n < weapon.Camos.Count; n++)
+                            for (int n = 0; n < weapon.camos.Count; n++)
                             {
-                                uint camo = weapon.Camos.ElementAt(n).Value;
+                                uint camo = weapon.camos.ElementAt(n);
 
                                 if (camo == (uint)WeaponComponentHash.Invalid)
                                 {
@@ -142,11 +150,11 @@ namespace LittleJacobMod.Saving
                             }
                         }
 
-                        if (weapon.HasFlaslight)
+                        if (weapon.flags[6])
                         {
-                            for (int n = 0; n < weapon.FlashLight.Count; n++)
+                            for (int n = 0; n < weapon.flashlights.Count; n++)
                             {
-                                uint flash = weapon.FlashLight.ElementAt(n).Value;
+                                uint flash = weapon.flashlights.ElementAt(n);
 
                                 if (flash == (uint)WeaponComponentHash.Invalid)
                                 {
@@ -155,6 +163,23 @@ namespace LittleJacobMod.Saving
                                 else if (storedWeapon.HasComponent(flash))
                                 {
                                     storedWeapon.Flashlight = flash;
+                                }
+                            }
+                        }
+
+                        if (weapon.flags[7])
+                        {
+                            for (int n = 0; n < weapon.varmods.Count; n++)
+                            {
+                                uint varmod = weapon.varmods.ElementAt(n);
+
+                                if (varmod == (uint)WeaponComponentHash.Invalid)
+                                {
+                                    continue;
+                                }
+                                else if (storedWeapon.HasComponent(varmod))
+                                {
+                                    storedWeapon.Varmod = varmod;
                                 }
                             }
                         }
@@ -179,7 +204,7 @@ namespace LittleJacobMod.Saving
                         continue;
                     }
 
-                    Weapon weaponCatalogOption = GetWeapon(weapons[i].WeaponHash);
+                    WeaponData weaponCatalogOption = WeaponData.Find((ti) => ti.weaponHash == weapon.WeaponHash);
                     int ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon.WeaponHash);
 
                     if (ammo > weapon.Ammo && MapperMain.CurrentPed == Function.Call<uint>(Hash.GET_ENTITY_MODEL, Main.PPID))
@@ -194,14 +219,11 @@ namespace LittleJacobMod.Saving
                         weapon.Tint = tintIndex;
                     }
 
-                    if (weaponCatalogOption == null)
-                        continue;
-
-                    if (weaponCatalogOption.HasMuzzleOrSupp)
+                    if (weaponCatalogOption.flags[0])
                     {
-                        for (int n = 0; n < weaponCatalogOption.MuzzlesAndSupps.Count; n++)
+                        for (int n = 0; n < weaponCatalogOption.muzzles.Count; n++)
                         {
-                            uint attachment = weaponCatalogOption.MuzzlesAndSupps.ElementAt(n).Value;
+                            uint attachment = weaponCatalogOption.muzzles.ElementAt(n);
 
                             if (attachment == (uint)WeaponComponentHash.Invalid || attachment == weapon.Muzzle)
                             {
@@ -214,11 +236,11 @@ namespace LittleJacobMod.Saving
                         }
                     }
 
-                    if (weaponCatalogOption.HasClip)
+                    if (weaponCatalogOption.flags[1])
                     {
-                        for (int n = 0; n < weaponCatalogOption.Clips.Count; n++)
+                        for (int n = 0; n < weaponCatalogOption.clips.Count; n++)
                         {
-                            uint attachment = weaponCatalogOption.Clips.ElementAt(n).Value;
+                            uint attachment = weaponCatalogOption.clips.ElementAt(n);
 
                             if (attachment == (uint)WeaponComponentHash.Invalid || attachment == weapon.Clip)
                             {
@@ -231,11 +253,11 @@ namespace LittleJacobMod.Saving
                         }
                     }
 
-                    if (weaponCatalogOption.HasScope)
+                    if (weaponCatalogOption.flags[4])
                     {
-                        for (int n = 0; n < weaponCatalogOption.Scopes.Count; n++)
+                        for (int n = 0; n < weaponCatalogOption.scopes.Count; n++)
                         {
-                            uint attachment = weaponCatalogOption.Scopes.ElementAt(n).Value;
+                            uint attachment = weaponCatalogOption.scopes.ElementAt(n);
 
                             if (attachment == (uint)WeaponComponentHash.Invalid || attachment == weapon.Scope)
                             {
@@ -248,11 +270,11 @@ namespace LittleJacobMod.Saving
                         }
                     }
 
-                    if (weaponCatalogOption.HasGrip)
+                    if (weaponCatalogOption.flags[3])
                     {
-                        for (int n = 0; n < weaponCatalogOption.Grips.Count; n++)
+                        for (int n = 0; n < weaponCatalogOption.grips.Count; n++)
                         {
-                            uint attachment = weaponCatalogOption.Grips.ElementAt(n).Value;
+                            uint attachment = weaponCatalogOption.grips.ElementAt(n);
 
                             if (attachment == (uint)WeaponComponentHash.Invalid || attachment == weapon.Grip)
                             {
@@ -265,11 +287,11 @@ namespace LittleJacobMod.Saving
                         }
                     }
 
-                    if (weaponCatalogOption.HasBarrel)
+                    if (weaponCatalogOption.flags[2])
                     {
-                        for (int n = 0; n < weaponCatalogOption.Barrels.Count; n++)
+                        for (int n = 0; n < weaponCatalogOption.barrels.Count; n++)
                         {
-                            uint attachment = weaponCatalogOption.Barrels.ElementAt(n).Value;
+                            uint attachment = weaponCatalogOption.barrels.ElementAt(n);
 
                             if (attachment == (uint)WeaponComponentHash.Invalid || attachment == weapon.Barrel)
                             {
@@ -282,11 +304,11 @@ namespace LittleJacobMod.Saving
                         }
                     }
 
-                    if (weaponCatalogOption.HasCamo)
+                    if (weaponCatalogOption.flags[5])
                     {
-                        for (int n = 0; n < weaponCatalogOption.Camos.Count; n++)
+                        for (int n = 0; n < weaponCatalogOption.camos.Count; n++)
                         {
-                            uint attachment = weaponCatalogOption.Camos.ElementAt(n).Value;
+                            uint attachment = weaponCatalogOption.camos.ElementAt(n);
 
                             if (attachment == (uint)WeaponComponentHash.Invalid || attachment == weapon.Camo)
                             {
@@ -300,11 +322,11 @@ namespace LittleJacobMod.Saving
                         }
                     }
 
-                    if (weaponCatalogOption.HasFlaslight)
+                    if (weaponCatalogOption.flags[6])
                     {
-                        for (int n = 0; n < weaponCatalogOption.FlashLight.Count; n++)
+                        for (int n = 0; n < weaponCatalogOption.flashlights.Count; n++)
                         {
-                            uint attachment = weaponCatalogOption.FlashLight.ElementAt(n).Value;
+                            uint attachment = weaponCatalogOption.flashlights.ElementAt(n);
 
                             if (attachment == (uint)WeaponComponentHash.Invalid || attachment == weapon.Flashlight)
                             {
@@ -313,6 +335,23 @@ namespace LittleJacobMod.Saving
                             else if (weapon.HasComponent(attachment))
                             {
                                 weapon.Flashlight = attachment;
+                            }
+                        }
+                    }
+
+                    if (weaponCatalogOption.flags[7])
+                    {
+                        for (int n = 0; n < weaponCatalogOption.varmods.Count; n++)
+                        {
+                            uint attachment = weaponCatalogOption.varmods.ElementAt(n);
+
+                            if (attachment == (uint)WeaponComponentHash.Invalid || attachment == weapon.Varmod)
+                            {
+                                continue;
+                            }
+                            else if (weapon.HasComponent(attachment))
+                            {
+                                weapon.Varmod = attachment;
                             }
                         }
                     }
