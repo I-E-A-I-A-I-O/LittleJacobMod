@@ -35,19 +35,19 @@ namespace LittleJacobMod.Saving
             return false;
         }
 
-        public static void AddWeapon (Weapon weapon)
+        public static void AddWeapon (uint weapon)
         {
             for(int i = 0; i < _storedWeapons.Count; i++)
             {
-                if (_storedWeapons[i].WeaponHash == (uint)weapon.Hash)
+                if (_storedWeapons[i].WeaponHash == weapon)
                 {
                     return;
                 }
             }
 
-            var storedWeapon = new StoredWeapon((uint)weapon.Hash)
+            StoredWeapon storedWeapon = new StoredWeapon(weapon)
             {
-                Ammo = weapon.Ammo
+                Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon)
             };
             _storedWeapons.Add(storedWeapon);
         }
@@ -403,34 +403,26 @@ namespace LittleJacobMod.Saving
 
                     if (camo != (uint)WeaponComponentHash.Invalid)
                     {
-                        if (TakesCamo(weaponHash))
-                        {
-                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, camo);
+                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, camo);
+                        uint slide = LittleJacobMod.Utils.TintsAndCamos.ReturnSlide(camo);
 
-                            uint slide = LittleJacobMod.Utils.TintsAndCamos.ReturnSlide(camo);
+                        if (slide != (uint)WeaponComponentHash.Invalid)
+                        {
+                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, slide);
+                        }
+
+                        storedWeapon.Camo = camo;
+
+                        if (camoColor != -1)
+                        {
+                            Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Main.PPID, weaponHash, camo, camoColor);
 
                             if (slide != (uint)WeaponComponentHash.Invalid)
                             {
-                                Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, slide);
+                                Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Main.PPID, weaponHash, slide, camoColor);
                             }
 
-                            storedWeapon.Camo = camo;
-
-                            if (camoColor != -1)
-                            {
-                                Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Main.PPID, weaponHash, camo, camoColor);
-
-                                if (slide != (uint)WeaponComponentHash.Invalid)
-                                {
-                                    Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Main.PPID, weaponHash, slide, camoColor);
-                                }
-
-                                storedWeapon.CamoColor = camoColor;
-                            }
-                        }
-                        else
-                        {
-                            storedWeapon.Camo = (uint)WeaponComponentHash.Invalid;
+                            storedWeapon.CamoColor = camoColor;
                         }
                     }
 
@@ -555,7 +547,8 @@ namespace LittleJacobMod.Saving
                 || weapon == (uint)WeaponHash.RevolverMk2
                 || weapon == (uint)WeaponHash.SMGMk2
                 || weapon == (uint)WeaponHash.SNSPistolMk2
-                || weapon == (uint)WeaponHash.SpecialCarbineMk2;
+                || weapon == (uint)WeaponHash.SpecialCarbineMk2
+                || weapon == 3347935668;
         }
 
         public static void RemoveWeapons()

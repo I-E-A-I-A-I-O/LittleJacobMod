@@ -175,6 +175,7 @@ namespace LittleJacobMod.Interface
                 {
                     AmmoPurchased(weaponHash, ammoOptionItem.Value);
                 };
+                weaponMenu.Add(ammoOptionItem);
                 SubMenuData subMenuData = new SubMenuData(weaponHash);
 
                 if ((bool)document.Element("Flags").Element("Tint"))
@@ -678,8 +679,7 @@ namespace LittleJacobMod.Interface
                 Function.Call(Hash.SET_CURRENT_PED_WEAPON, Main.PPID, weapon, true);
             }
 
-            Weapon currentWeapon = Game.Player.Character.Weapons.Current;
-            LoadoutSaving.AddWeapon(currentWeapon);
+            LoadoutSaving.AddWeapon(weapon);
 
             return true;
         }
