@@ -17,8 +17,43 @@ class MapperMain : Script
 
     public MapperMain()
     {
+        if (Game.IsLoading)
+        {
+            Tick += WaitForGameLoad;
+        }
+        else
+        {
+            Initialize(false);
+        }
+    }
+
+    private void Initialize(bool firstStart)
+    {
+        int id = Function.Call<int>(Hash.PLAYER_PED_ID);
+        CurrentPed = Function.Call<uint>(Hash.GET_ENTITY_MODEL, id);
+
+        if (id == 0 || CurrentPed == 0)
+            return;
+
+        if (firstStart)
+        {
+            Tick -= WaitForGameLoad;
+        }
+
+        Main.PPID = id;
+        LoadoutSaving.PerformLoad(!firstStart);
+        HelmetState.Load(!firstStart);
+        MissionSaving.Load(!firstStart);
         Tick += ModelWatcher;
         Tick += AutoSaveWatch;
+    }
+
+    private void WaitForGameLoad(object o, EventArgs e)
+    {
+        if (!Game.IsLoading)
+        {
+            Initialize(true);
+        }
     }
 
     private bool IsPlayerAtGunRange()

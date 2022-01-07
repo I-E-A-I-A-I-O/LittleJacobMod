@@ -115,7 +115,6 @@ namespace LittleJacobMod.Saving
 
                     if (weapon.flags[2])
                     {
-                        GTA.UI.Screen.ShowSubtitle($"{weapon.weaponHash}");
                         for (int n = 0; n < weapon.barrels.Count; n++)
                         {
                             uint barrel = weapon.barrels.ElementAt(n);

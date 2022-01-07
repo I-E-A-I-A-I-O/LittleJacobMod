@@ -26,7 +26,7 @@ public class Main : Script
     public static Controls OpenMenuKey { get; private set; }
     public static bool MissionFlag;
     public bool _processMenu;
-    public static int PPID { get; private set; }
+    public static int PPID { get; set; }
     int _bigMessageST;
     bool _bigMessageTS;
     public static bool MenuCreated { get; private set; } = false;
@@ -43,15 +43,6 @@ public class Main : Script
         menu = new Menu();
         MenuCreated = true;
         CallMenu = new CallMenu();
-
-        if (Game.IsLoading)
-        {
-            Tick += WaitForGameLoad;
-        }
-        else
-        {
-            Initialize();
-        }
 
         Menu.HelmetMenuChanged += (o, e) =>
         {
@@ -104,28 +95,6 @@ public class Main : Script
             Game.Player.Character.Task.ClearAll();
             LittleJacob.DeleteJacob();
         }
-    }
-
-    void WaitForGameLoad(object o, EventArgs e)
-    {
-        if (!Game.IsLoading)
-        {
-            Initialize(true);
-        }
-    }
-
-    void Initialize(bool firstStart = false)
-    {
-        if (firstStart)
-        {
-            Tick -= WaitForGameLoad;
-        }
-
-        PPID = Function.Call<int>(Hash.PLAYER_PED_ID);
-        MapperMain.CurrentPed = Function.Call<uint>(Hash.GET_ENTITY_MODEL, PPID);
-        LoadoutSaving.PerformLoad(!firstStart);
-        HelmetState.Load(!firstStart);
-        MissionSaving.Load(!firstStart);
     }
 
     void MenuTick(object o, EventArgs e)

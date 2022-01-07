@@ -49,6 +49,7 @@ namespace LittleJacobMod.Saving
             {
                 Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon)
             };
+
             _storedWeapons.Add(storedWeapon);
         }
 
