@@ -27,10 +27,10 @@ class WeaponPreview : Script
     public WeaponPreview()
     {
         ScriptSettings settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
-        _yawRight = settings.GetValue("Controls", "RotateRight", Controls.INPUT_VEH_FLY_ROLL_RIGHT_ONLY);
-        _yawLeft = settings.GetValue("Controls", "RotateLeft", Controls.INPUT_VEH_FLY_ROLL_LEFT_ONLY);
-        _pitchUp = settings.GetValue("Controls", "RotateUp", Controls.INPUT_VEH_FLY_PITCH_UP_ONLY);
-        _pitchDown = settings.GetValue("Controls", "RotateDown", Controls.INPUT_VEH_FLY_PITCH_DOWN_ONLY);
+        _yawRight = settings.GetValue("Controls", "RotateDown", Controls.INPUT_VEH_FLY_ROLL_RIGHT_ONLY);
+        _yawLeft = settings.GetValue("Controls", "RotateUp", Controls.INPUT_VEH_FLY_ROLL_LEFT_ONLY);
+        _pitchUp = settings.GetValue("Controls", "RotateBack", Controls.INPUT_VEH_FLY_PITCH_UP_ONLY);
+        _pitchDown = settings.GetValue("Controls", "RotateFront", Controls.INPUT_VEH_FLY_PITCH_DOWN_ONLY);
         Menu.ComponentSelected += Menu_ComponentSelected;
         Menu.SpawnWeaponObject += Menu_SpawnWeaponObject;
         Menu.CamoColorChanged += Menu_CamoColorChanged;
