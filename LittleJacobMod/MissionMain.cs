@@ -166,58 +166,68 @@ namespace LittleJacobMod
 
         void Start(object o, EventArgs e)
         {
-            if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, PedHash.Franklin))
-            {
-                if (MissionSaving.FProgress < 4)
-                {
-                    _fail = false;
-                    string misName = $"franklin_m_{MissionSaving.FProgress}";
-                    _mission = (Missions)(uint)Game.GenerateHash(misName);
-                    LoadFromFile(misName);
+            uint model = Function.Call<uint>(Hash.GET_ENTITY_MODEL, Main.PPID);
 
-                    if (Game.Player.Character.IsInRange(_locations[0], 250))
+            switch (model)
+            {
+                case (uint)PedHash.Franklin:
                     {
-                        GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "I have no jobs for you atm");
-                        Clean();
-                        return;
+                        if (MissionSaving.FProgress < 4)
+                        {
+                            _fail = false;
+                            string misName = $"franklin_m_{MissionSaving.FProgress}";
+                            _mission = (Missions)(uint)Game.GenerateHash(misName);
+                            LoadFromFile(misName);
+
+                            if (Game.Player.Character.IsInRange(_locations[0], 250))
+                            {
+                                GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "I have no jobs for you atm");
+                                Clean();
+                                return;
+                            }
+
+                            Active = true;
+                            _objective = -1;
+                            return;
+                        }
+                        break;
                     }
-
-                    Active = true;
-                    _objective = -1;
-                    return;
-                }
-            } else if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, PedHash.Michael))
-            {
-                if (MissionSaving.MProgress < 4)
-                {
-                    _fail = false;
-                    string misName = $"michael_m_{MissionSaving.MProgress}";
-                    _mission = (Missions)(uint)Game.GenerateHash(misName);
-                    LoadFromFile(misName);
-
-                    if (Game.Player.Character.IsInRange(_locations[0], 250))
+                case (uint)PedHash.Michael:
                     {
-                        GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "I have no jobs for you atm");
-                        Clean();
-                        return;
+                        if (MissionSaving.MProgress < 4)
+                        {
+                            _fail = false;
+                            string misName = $"michael_m_{MissionSaving.MProgress}";
+                            _mission = (Missions)(uint)Game.GenerateHash(misName);
+                            LoadFromFile(misName);
+
+                            if (Game.Player.Character.IsInRange(_locations[0], 250))
+                            {
+                                GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "I have no jobs for you atm");
+                                Clean();
+                                return;
+                            }
+
+                            if (_mission == Missions.MM2)
+                                _neutral.SetRelationshipBetweenGroups(Game.GenerateHash("AMBIENT_GANG_LOST"), Relationship.Like, true);
+                            else
+                                _neutral.SetRelationshipBetweenGroups(Game.GenerateHash("AMBIENT_GANG_LOST"), Relationship.Neutral, true);
+
+                            Active = true;
+                            _objective = -1;
+                            return;
+                        }
+                        break;
                     }
-
-                    if (_mission == Missions.MM2)
-                        _neutral.SetRelationshipBetweenGroups(Game.GenerateHash("AMBIENT_GANG_LOST"), Relationship.Like, true);
-                    else
-                        _neutral.SetRelationshipBetweenGroups(Game.GenerateHash("AMBIENT_GANG_LOST"), Relationship.Neutral, true);
-
-                    Active = true;
-                    _objective = -1;
-                    return;
-                }
-            } else if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, PedHash.Trevor))
-            {
-                GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "No.");
-                return;
+                case (uint)PedHash.Trevor:
+                    {
+                        GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "No.");
+                        break;
+                    }
+                default:
+                    GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "I have no jobs for you atm");
+                    break;
             }
-
-            GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "I have no jobs for you atm");
         }
 
         void ResetFlags()
