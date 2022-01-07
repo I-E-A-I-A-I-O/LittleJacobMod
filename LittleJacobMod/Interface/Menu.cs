@@ -112,7 +112,7 @@ namespace LittleJacobMod.Interface
             };
 
             string baseDir = $"{Directory.GetCurrentDirectory()}\\scripts\\LittleJacobMod\\Weapons";
-            List<WeaponData> melee = AddSubmenu($"{baseDir}\\Normal\\Melee", _melee);
+            List<WeaponData> melee = AddSubmenu($"{baseDir}\\Normal\\Melee", _melee, true);
             List<WeaponData> pistols = AddSubmenu($"{baseDir}\\Normal\\Pistols", _pistols);
             List<WeaponData> pistols2 = AddSubmenu($"{baseDir}\\MK2\\Pistols", _pistols);
             List<WeaponData> mg = AddSubmenu($"{baseDir}\\Normal\\Machine Guns", _mg);
@@ -151,7 +151,7 @@ namespace LittleJacobMod.Interface
             _explosives.SelectedIndexChanged += (o, e) => { SelectedIndexChanged(explosives[e.Index].weaponHash); };
         }
 
-        private List<WeaponData> AddSubmenu(string path, NativeMenu parentMenu)
+        private List<WeaponData> AddSubmenu(string path, NativeMenu parentMenu, bool melee = false)
         {
             string[] files = Directory.GetFiles(path);
             List<WeaponData> weaponData = new List<WeaponData>();
@@ -170,12 +170,17 @@ namespace LittleJacobMod.Interface
                     weaponHash = weaponHash,
                     flags = new List<bool>()
                 };
-                NativeSliderItem ammoOptionItem = new NativeSliderItem("Ammo", 250, 1);
-                ammoOptionItem.Activated += (o, e) => 
+
+                if (!melee)
                 {
-                    AmmoPurchased(weaponHash, ammoOptionItem.Value);
-                };
-                weaponMenu.Add(ammoOptionItem);
+                    NativeSliderItem ammoOptionItem = new NativeSliderItem("Ammo", 250, 1);
+                    ammoOptionItem.Activated += (o, e) =>
+                    {
+                        AmmoPurchased(weaponHash, ammoOptionItem.Value);
+                    };
+                    weaponMenu.Add(ammoOptionItem);
+                }
+                
                 SubMenuData subMenuData = new SubMenuData(weaponHash);
 
                 if ((bool)document.Element("Flags").Element("Tint"))

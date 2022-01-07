@@ -714,10 +714,9 @@ namespace LittleJacobMod
 
                             RandomScenario(handle);
                             RandomWeapon(handle);
-                            Function.Call(Hash.SET_PED_SUFFERS_CRITICAL_HITS, handle, false);
-                            Function.Call(Hash.SET_PED_ARMOUR, handle, 200);
-                            Function.Call(Hash.SET_ENTITY_MAX_HEALTH, handle, 200);
-                            Function.Call(Hash.SET_ENTITY_HEALTH, handle, 200);
+                            Function.Call(Hash.SET_PED_ARMOUR, handle, 250);
+                            Function.Call(Hash.SET_ENTITY_MAX_HEALTH, handle, 250);
+                            Function.Call(Hash.SET_ENTITY_HEALTH, handle, 250);
                             Function.Call(Hash.SET_PED_CONFIG_FLAG, handle, 281, true);
                             _peds.Add(handle);
                             break;
@@ -948,9 +947,8 @@ namespace LittleJacobMod
 
                             RandomScenario(handle);
                             RandomWeapon(handle);
-                            Function.Call(Hash.SET_PED_SUFFERS_CRITICAL_HITS, handle, false);
-                            Function.Call(Hash.SET_PED_ARMOUR, handle, 200);
-                            Function.Call(Hash.SET_ENTITY_MAX_HEALTH, handle, 200);
+                            Function.Call(Hash.SET_PED_ARMOUR, handle, 250);
+                            Function.Call(Hash.SET_ENTITY_MAX_HEALTH, handle, 250);
                             Function.Call(Hash.SET_ENTITY_HEALTH, handle, 200);
                             Function.Call(Hash.SET_PED_CONFIG_FLAG, handle, 281, true);
                             _pedModel = data1.Hash;
