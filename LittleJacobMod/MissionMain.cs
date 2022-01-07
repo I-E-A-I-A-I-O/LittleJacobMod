@@ -87,7 +87,7 @@ namespace LittleJacobMod
 
         public MissionMain()
         {
-            var settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+            ScriptSettings settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
             _dir = $"{BaseDirectory}\\LittleJacobMod\\Missions";
             CancelMissionKey = settings.GetValue("Controls", "CancelMission", Controls.INPUT_SWITCH_VISOR);
             int playerRel = Game.GenerateHash("PLAYER");

@@ -169,6 +169,16 @@ public class Main : Script
             return;
         }
 
+        /*if (MenuOpened)
+        {
+            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 30, true);
+            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 31, true);
+            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 32, true);
+            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 33, true);
+            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 34, true);
+            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 35, true);
+        }*/
+
         LittleJacob.ProcessVoice();
 
         if (LittleJacob.Spawned && !LittleJacob.Left)

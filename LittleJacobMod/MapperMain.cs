@@ -12,11 +12,11 @@ class MapperMain : Script
     Vector3 _gunRange2 = new Vector3(826.2507f, -2162.014f, 28.61901f);
     bool SaveTriggered;
     bool MissionFlag;
+    bool updating;
     public static uint CurrentPed;
 
     public MapperMain()
     {
-        Tick += WeaponUse;
         Tick += ModelWatcher;
         Tick += AutoSaveWatch;
     }
@@ -63,24 +63,12 @@ class MapperMain : Script
         {
             if (!LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
             {
-                LoadoutSaving.UpdateWeaponMap();
+                LoadoutSaving.UpdateWeaponMap(updating);
             }
 
             if (Timers.AutoSaveTimer() && !LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
             {
                 LoadoutSaving.PerformSave(CurrentPed);
-            }
-        }
-    }
-
-    void WeaponUse(object o, EventArgs e)
-    {
-        if (Function.Call<bool>(Hash.IS_PED_SHOOTING, Main.PPID))
-        {
-            var currentWeapon = Game.Player.Character.Weapons.Current;
-            if (LoadoutSaving.IsWeaponInStore((uint)currentWeapon.Hash))
-            {
-                LoadoutSaving.UpdateAmmo((uint)currentWeapon.Hash, currentWeapon.Ammo);
             }
         }
     }
@@ -92,10 +80,12 @@ class MapperMain : Script
             return;
         }
 
+        updating = true;
         Game.IsNightVisionActive = false;
         Game.IsThermalVisionActive = false;
         LoadoutSaving.PerformSave(CurrentPed);
         CurrentPed = Function.Call<uint>(Hash.GET_ENTITY_MODEL, Main.PPID);
         LoadoutSaving.PerformLoad();
+        updating = false;
     }
 }

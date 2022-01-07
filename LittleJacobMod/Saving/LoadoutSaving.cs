@@ -13,9 +13,9 @@ namespace LittleJacobMod.Saving
         public static bool Busy { get; private set; } = false;
         public static event EventHandler WeaponsLoaded;
 
-        public static void UpdateWeaponMap()
+        public static void UpdateWeaponMap(bool updating)
         {
-            Mapper.Process(_storedWeapons);
+            Mapper.Process(_storedWeapons, updating);
         }
 
         public static int Count()

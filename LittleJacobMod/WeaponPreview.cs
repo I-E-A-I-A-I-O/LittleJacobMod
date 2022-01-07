@@ -13,12 +13,24 @@ class WeaponPreview : Script
     bool _doObjectSpawn;
     bool _doComponentChange;
     bool _compFromStorage;
-    uint _hash = 453432689;
+    uint _hash = 0;
     uint _new = (uint)WeaponComponentHash.Invalid;
+    float currentTime;
+    float oldTime;
+    Vector3 _rotation;
     ComponentIndex _skipIndex;
+    Controls _yawRight;
+    Controls _yawLeft;
+    Controls _pitchUp;
+    Controls _pitchDown;
 
     public WeaponPreview()
     {
+        ScriptSettings settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+        _yawRight = settings.GetValue("Controls", "RotateRight", Controls.INPUT_VEH_FLY_ROLL_RIGHT_ONLY);
+        _yawLeft = settings.GetValue("Controls", "RotateLeft", Controls.INPUT_VEH_FLY_ROLL_LEFT_ONLY);
+        _pitchUp = settings.GetValue("Controls", "RotateUp", Controls.INPUT_VEH_FLY_PITCH_UP_ONLY);
+        _pitchDown = settings.GetValue("Controls", "RotateDown", Controls.INPUT_VEH_FLY_PITCH_DOWN_ONLY);
         Menu.ComponentSelected += Menu_ComponentSelected;
         Menu.SpawnWeaponObject += Menu_SpawnWeaponObject;
         Menu.CamoColorChanged += Menu_CamoColorChanged;
@@ -31,6 +43,10 @@ class WeaponPreview : Script
 
     private void WeaponPreview_Tick(object sender, EventArgs e)
     {
+        oldTime = currentTime;
+        currentTime = Game.GameTime;
+        float deltaTime = currentTime - oldTime;
+
         if (_doComponentReload)
         {
             SpawnWeaponObject(_hash, false, 0);
@@ -60,6 +76,44 @@ class WeaponPreview : Script
             }
 
             _doComponentChange = false;
+        }
+
+        if (_weaponHandle == null || _weaponHandle.Handle == 0)
+            return;
+
+        if (Game.LastInputMethod != InputMethod.MouseAndKeyboard)
+            return;
+
+        if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, _yawLeft))
+        {
+            float y = _weaponHandle.Rotation.Y;
+            y -= 1.0f * 0.05f * deltaTime;
+            _rotation = new Vector3(_weaponHandle.Rotation.X, y, _weaponHandle.Rotation.Z);
+            _weaponHandle.Rotation = _rotation;
+        }
+
+        if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, _yawRight))
+        {
+            float y = _weaponHandle.Rotation.Y;
+            y += 1.0f * 0.05f * deltaTime;
+            _rotation = new Vector3(_weaponHandle.Rotation.X, y, _weaponHandle.Rotation.Z);
+            _weaponHandle.Rotation = _rotation;
+        }
+
+        if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, _pitchUp))
+        {
+            float x = _weaponHandle.Rotation.X;
+            x -= 1.0f * 0.05f * deltaTime;
+            _rotation = new Vector3(x, _weaponHandle.Rotation.Y, _weaponHandle.Rotation.Z);
+            _weaponHandle.Rotation = _rotation;
+        }
+
+        if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, _pitchDown))
+        {
+            float x = _weaponHandle.Rotation.X;
+            x += 1.0f * 0.05f * deltaTime;
+            _rotation = new Vector3(x, _weaponHandle.Rotation.Y, _weaponHandle.Rotation.Z);
+            _weaponHandle.Rotation = _rotation;
         }
     }
 
@@ -155,8 +209,11 @@ class WeaponPreview : Script
 
     private void Menu_SpawnWeaponObject(object sender, uint hash)
     {
-        _doObjectSpawn = true;
+        if (_hash != hash)
+            _rotation = Vector3.Zero;
+
         _hash = hash;
+        _doObjectSpawn = true;
         _compFromStorage = true;
     }
 
@@ -186,7 +243,8 @@ class WeaponPreview : Script
         _weaponHandle.HasGravity = false;
         _weaponHandle.IsCollisionEnabled = false;
         _weaponHandle.Heading = Main.Camera.ForwardVector.ToHeading();
-        _weaponHandle.Rotation = new Vector3(_weaponHandle.Rotation.X, _weaponHandle.Rotation.Y, _weaponHandle.Rotation.Z - 10);
+        float z = _weaponHandle.Rotation.Z - 10;
+        _weaponHandle.Rotation = new Vector3(_rotation.X, _rotation.Y, z);
         Function.Call(Hash.REMOVE_WEAPON_ASSET, hash);
         LoadAttachments(hash, luxOn);
 

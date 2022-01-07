@@ -25,7 +25,7 @@ namespace LittleJacobMod.Saving
     {
         public static List<WeaponData> WeaponData = new List<WeaponData>();
 
-        public static void Process(List<StoredWeapon> weapons)
+        public static void Process(List<StoredWeapon> weapons, bool updating)
         {
             if (Main.PPID == 0 || !Main.MenuCreated)
                 return;
@@ -206,7 +206,7 @@ namespace LittleJacobMod.Saving
                 WeaponData weaponCatalogOption = WeaponData.Find((ti) => ti.weaponHash == weapon.WeaponHash);
                 int ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon.WeaponHash);
 
-                if (ammo != weapon.Ammo)
+                if (ammo != weapon.Ammo && !updating)
                 {
                     weapon.Ammo = ammo;
                 }
