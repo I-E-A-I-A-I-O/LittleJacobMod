@@ -347,7 +347,6 @@ namespace LittleJacobMod.Saving
             }
 
             GTA.UI.LoadingPrompt.Hide();
-            Busy = false;
             WeaponsLoaded?.Invoke(null, EventArgs.Empty);
         }
 
@@ -483,7 +482,6 @@ namespace LittleJacobMod.Saving
             }
 
             GTA.UI.LoadingPrompt.Hide();
-            Busy = false;
             WeaponsLoaded?.Invoke(null, EventArgs.Empty);
         }
 
@@ -510,17 +508,27 @@ namespace LittleJacobMod.Saving
             string dir = Directory.GetCurrentDirectory();
             string filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{MapperMain.CurrentPed}";
 
-            if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
+            if (Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
             {
-                return;
-            }
+                if (File.Exists($"{filePath}.data"))
+                {
+                    LoadOld($"{filePath}.data", constructor, weaponsRemoved);
+                }
+                else if (File.Exists($"{filePath}.loadout"))
+                {
+                    LoadNew($"{filePath}.loadout", constructor, weaponsRemoved);
+                }
+                else
+                {
+                    GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ No weapon loadouts saved for this ped!");
 
-            if (File.Exists($"{filePath}.data"))
-            {
-                LoadOld($"{filePath}.data", constructor, weaponsRemoved);
-            } else if (File.Exists($"{filePath}.loadout"))
-            {
-                LoadNew($"{filePath}.loadout", constructor, weaponsRemoved);
+                    if (!constructor)
+                    {
+                        Script.Wait(1000);
+                    }
+
+                    GTA.UI.LoadingPrompt.Hide();
+                }
             } else
             {
                 GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ No weapon loadouts saved for this ped!");
@@ -531,8 +539,9 @@ namespace LittleJacobMod.Saving
                 }
 
                 GTA.UI.LoadingPrompt.Hide();
-                return;
             }
+
+            Busy = false;
         }
 
         static bool TakesCamo(uint weapon)

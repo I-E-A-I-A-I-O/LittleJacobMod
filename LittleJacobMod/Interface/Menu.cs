@@ -86,7 +86,7 @@ namespace LittleJacobMod.Interface
                 if (!_move)
                 {
                     _move = true;
-                    HelmetMenuChanged.Invoke(this, true);
+                    HelmetMenuChanged?.Invoke(this, true);
                 }
             };
 
@@ -95,7 +95,7 @@ namespace LittleJacobMod.Interface
                 if (_move)
                 {
                     _move = false;
-                    HelmetMenuChanged.Invoke(this, false);
+                    HelmetMenuChanged?.Invoke(this, false);
                 }
             };
 
@@ -206,7 +206,7 @@ namespace LittleJacobMod.Interface
                         {
                             subMenuData.SetIndex(subMenuData.TintItems, "Tint", ix);
                             TintPurchased(weaponHash, ix);
-                            Main.LittleJacob.ProcessVoice(true);
+                            //Main.LittleJacob.ProcessVoice(true);
                         };
 
                         tintMenu.Add(tintItem);
@@ -336,7 +336,7 @@ namespace LittleJacobMod.Interface
                         {
                             subMenuData.SetIndex(subMenuData.CamoColorItems, colorName, ix);
                             CamoColorPurchased(weaponHash, ix, colorName, price);
-                            Main.LittleJacob.ProcessVoice(true);
+                            //Main.LittleJacob.ProcessVoice(true);
                         };
 
                         camoColorMenu.Add(camoColorItem);
@@ -676,7 +676,7 @@ namespace LittleJacobMod.Interface
                 }
 
                 GTA.UI.Notification.Show($"{name} purchased!");
-                Main.LittleJacob.ProcessVoice(true, true);
+                //Main.LittleJacob.ProcessVoice(true, true);
                 Game.Player.Money -= price;
                 Function.Call<bool>(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weapon, 1, true, true);
             } else
@@ -776,7 +776,7 @@ namespace LittleJacobMod.Interface
                             break;
                     }
 
-                    Main.LittleJacob.ProcessVoice(true);
+                    //Main.LittleJacob.ProcessVoice(true);
                 };
 
                 atcmntMenu.Add(menuItem);

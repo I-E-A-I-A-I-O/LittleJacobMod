@@ -17,9 +17,6 @@ namespace LittleJacobMod.Utils
         public Ped Jacob => jacob;
         public Vehicle Vehicle => vehicle;
         public JacobSpawnpoint JacobSpawnpoint => jacobSpawnpoint;
-        bool HelloPlayed { get; set; }
-        bool ByePlayed { get; set; }
-        bool SmokeOffered { get; set; }
         Random Ran => new Random();
         public static event EventHandler<bool> TrunkStateChanged;
 
@@ -64,7 +61,7 @@ namespace LittleJacobMod.Utils
             spawned = true;
         }
 
-        public void ProcessVoice(bool bought = false, bool force = false)
+        /*public void ProcessVoice(bool bought = false, bool force = false)
         {
             if (!spawned || Voice.Playing)
             {
@@ -105,7 +102,7 @@ namespace LittleJacobMod.Utils
                     Voice.PlayPurchase();
                 }
             }
-        }
+        }*/
 
         public void DriveAway()
         {

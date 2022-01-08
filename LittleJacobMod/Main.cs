@@ -25,7 +25,7 @@ public class Main : Script
     public static VehicleHash JacobsCarHash { get; private set; }
     public static Controls OpenMenuKey { get; private set; }
     public static bool MissionFlag;
-    public bool _processMenu;
+    public bool _processMenu = true;
     public static int PPID { get; set; }
     int _bigMessageST;
     bool _bigMessageTS;
@@ -148,7 +148,7 @@ public class Main : Script
             Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 35, true);
         }*/
 
-        LittleJacob.ProcessVoice();
+        //LittleJacob.ProcessVoice();
 
         if (LittleJacob.Spawned && !LittleJacob.Left)
         {
@@ -281,7 +281,7 @@ public class Main : Script
             return;
         }
 
-        if (Function.Call<bool>(Hash.IS_CONTROL_JUST_RELEASED, 0, (int)OpenMenuKey))
+        if (Function.Call<bool>(Hash.IS_CONTROL_JUST_PRESSED, 0, (int)OpenMenuKey))
         {
             if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.PlayerNearTrunk() && !menu.Pool.AreAnyVisible && !MenuOpened)
             {
