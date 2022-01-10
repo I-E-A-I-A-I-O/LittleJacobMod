@@ -17,7 +17,6 @@ namespace LittleJacobMod.Utils
         public Ped Jacob => jacob;
         public Vehicle Vehicle => vehicle;
         public JacobSpawnpoint JacobSpawnpoint => jacobSpawnpoint;
-        Random Ran => new Random();
         public static event EventHandler<bool> TrunkStateChanged;
 
         public LittleJacob(JacobSpawnpoint jacobSpawnpoint)

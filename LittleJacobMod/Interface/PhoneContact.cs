@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using iFruitAddon2;
+﻿using iFruitAddon2;
 using GTA;
 
 namespace LittleJacobMod.Interface

@@ -27,9 +27,15 @@ public class Main : Script
     public static bool MissionFlag;
     public bool _processMenu = true;
     public static int PPID { get; set; }
-    int _bigMessageST;
-    bool _bigMessageTS;
     public static bool MenuCreated { get; private set; } = false;
+    int _scaleform;
+    bool _scaleformFading;
+    bool _scaleformRequested;
+    int _scaleformST;
+    static string _scaleformTitle;
+    static string _scaleformSubtitle;
+    public static bool ScaleformActive { get; private set; }
+    static int _scaleformType;
 
     public Main()
     {
@@ -52,7 +58,85 @@ public class Main : Script
         Tick += ControlWatch;
         Tick += OnTick;
         Tick += MenuTick;
+        Tick += ScaleformTick;
         Aborted += Main_Aborted;
+    }
+
+    void SetScaleFormText(string title, string description)
+    {
+        Function.Call(Hash.BEGIN_SCALEFORM_MOVIE_METHOD, _scaleform, "SHOW_SHARD_CENTERED_TOP_MP_MESSAGE");
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, title);
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, description);
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, 5);
+        Function.Call(Hash.END_SCALEFORM_MOVIE_METHOD);
+    }
+
+    void FadeOutScaleform()
+    {
+        Function.Call(Hash.CALL_SCALEFORM_MOVIE_METHOD, _scaleform, "SHARD_ANIM_OUT");
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, 5);
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, 3000);
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_BOOL, true);
+        Function.Call(Hash.END_SCALEFORM_MOVIE_METHOD);
+    }
+
+    int RequestScaleform()
+    {
+        _scaleform = Function.Call<int>(Hash.REQUEST_SCALEFORM_MOVIE, "mp_big_message_freemode");
+
+        while (!Function.Call<bool>(Hash.HAS_SCALEFORM_MOVIE_LOADED, _scaleform))
+            Wait(1);
+
+        return _scaleform;
+    }
+
+    void FreeScaleform()
+    {
+        int s = _scaleform;
+        unsafe
+        {
+            Function.Call(Hash.SET_SCALEFORM_MOVIE_AS_NO_LONGER_NEEDED, &s);
+        }
+    }
+
+    public static void ShowScaleform(string title, string subtitle, int type)
+    {
+        if (ScaleformActive)
+            return;
+
+        _scaleformTitle = title;
+        _scaleformSubtitle = subtitle;
+        _scaleformType = type;
+        ScaleformActive = true;
+    }
+
+    void ScaleformTick(object o, EventArgs e)
+    {
+        if (!ScaleformActive)
+            return;
+
+        if (!_scaleformRequested)
+        {
+            RequestScaleform();
+            SetScaleFormText(_scaleformTitle, _scaleformSubtitle);
+            _scaleformRequested = true;
+            _scaleformST = Game.GameTime;
+        }
+
+        Function.Call(Hash.DRAW_SCALEFORM_MOVIE_FULLSCREEN, _scaleform, 232, 207, 20, 255);
+
+        if (Game.GameTime - _scaleformST >= 8000 && !_scaleformFading)
+        {
+            FadeOutScaleform();
+            _scaleformFading = true;
+        }
+        else if (Game.GameTime - _scaleformST >= 12000)
+        {
+            ScaleformActive = false;
+            _scaleformFading = false;
+            _scaleformRequested = false;
+            FreeScaleform();
+        }
     }
 
     private void LoadoutSaving_WeaponsLoaded(object sender, EventArgs e)
@@ -101,32 +185,12 @@ public class Main : Script
     {
         ifruit.Phone.Update();
         CallMenu.Pool.Process();
-
-        if (CallMenu.TimerActive)
-            CallMenu.ProcessTimer();
+        CallMenu.ProcessTimer();
 
         if (_processMenu)
         {
             menu.Pool.Process();
         }
-
-        /*if (menu.DrawScaleform)
-        {
-            if (!_bigMessageTS)
-            {
-                _bigMessageTS = true;
-                _bigMessageST = Game.GameTime;
-            }
-
-            menu.DrawBigMessage();
-
-            if (Game.GameTime - _bigMessageST >= 5000)
-            {
-                _bigMessageTS = false;
-                menu.DrawScaleform = false;
-                menu.DisposeBigMessage();
-            }
-        }*/
     }
 
     void OnTick(object o, EventArgs e)
@@ -137,16 +201,6 @@ public class Main : Script
         {
             return;
         }
-
-        /*if (MenuOpened)
-        {
-            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 30, true);
-            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 31, true);
-            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 32, true);
-            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 33, true);
-            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 34, true);
-            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, 35, true);
-        }*/
 
         //LittleJacob.ProcessVoice();
 

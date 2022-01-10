@@ -10,10 +10,14 @@ namespace LittleJacobMod.Interface
     public class CallMenu
     {
         public static event EventHandler JobSelected;
+        public static event EventHandler DeliverySelected;
         public ObjectPool Pool { get; private set; }
-        public bool TimerActive { get; private set; }
+        bool _jobsTimer;
+        bool _deliveryTimer;
         int _startT;
+        int _startD;
         NativeItem _jobs;
+        NativeItem _delivery;
         NativeMenu _mainMenu;
         
         public CallMenu()
@@ -21,8 +25,10 @@ namespace LittleJacobMod.Interface
             Pool = new ObjectPool();
             _mainMenu = new NativeMenu("Little Jacob", "Contact options");
             _jobs = new NativeItem("Jobs", "Complete jobs for Jacob and earn a especial reward.");
+            _delivery = new NativeItem("Delivery", "Earn money delivering product for Jacob.");
             NativeItem shop = new NativeItem("Weapons", "Meet with Jacob to buy weapons from him.");
             _mainMenu.Add(_jobs);
+            _mainMenu.Add(_delivery);
             _mainMenu.Add(shop);
 
             shop.Activated += (o, e) =>
@@ -39,12 +45,26 @@ namespace LittleJacobMod.Interface
                 JobSelected?.Invoke(this, EventArgs.Empty);
             };
 
+            _delivery.Activated += (o, e) =>
+            {
+                Hide();
+                DeliverySelected?.Invoke(this, EventArgs.Empty);
+            };
+
             MissionMain.OnMissionCompleted += (o, e) =>
             {
                 _jobs.Enabled = false;
                 _jobs.Description = "Next job available in 15:00";
-                TimerActive = true;
+                _jobsTimer = true;
                 _startT = Game.GameTime;
+            };
+
+            DeliveryMain.OnDeliveryCompleted += (o, e) =>
+            {
+                _delivery.Enabled = false;
+                _delivery.Description = "Next delivery available in 15:00";
+                _deliveryTimer = true;
+                _startD = Game.GameTime;
             };
 
             Pool.Add(_mainMenu);
@@ -52,28 +72,60 @@ namespace LittleJacobMod.Interface
 
         public void ProcessTimer()
         {
-            if (Game.GameTime - _startT >= 900000)
+            if (_jobsTimer)
             {
-                TimerActive = false;
-                _jobs.Enabled = true;
-                _jobs.Description = "Complete jobs for Jacob and earn a especial reward.";
-            } else
+                if (Game.GameTime - _startT >= 900000)
+                {
+                    _jobsTimer = false;
+                    _jobs.Enabled = true;
+                    _jobs.Description = "Complete jobs for Jacob and earn a especial reward.";
+                }
+                else
+                {
+                    int rem = 900000 - (Game.GameTime - _startT);
+                    string des = "Next job available in ";
+                    int val = rem / 1000 / 60;
+
+                    if (val < 10)
+                        des = string.Concat(des, "0");
+
+                    des = string.Concat(des, $"{val}:");
+                    val = rem / 1000 % 60;
+
+                    if (val < 10)
+                        des = string.Concat(des, "0");
+
+                    des = string.Concat(des, val.ToString());
+                    _jobs.Description = des;
+                }
+            }
+
+            if (_deliveryTimer)
             {
-                int rem = 900000 - (Game.GameTime - _startT);
-                string des = "Next job available in ";
-                int val = rem / 1000 / 60;
+                if (Game.GameTime - _startD >= 900000)
+                {
+                    _deliveryTimer = false;
+                    _delivery.Enabled = true;
+                    _delivery.Description = "Earn money delivering product for Jacob.";
+                }
+                else
+                {
+                    int rem = 900000 - (Game.GameTime - _startT);
+                    string des = "Next delivery available in ";
+                    int val = rem / 1000 / 60;
 
-                if (val < 10)
-                    des = string.Concat(des, "0");
+                    if (val < 10)
+                        des = string.Concat(des, "0");
 
-                des = string.Concat(des, $"{val}:");
-                val = rem / 1000 % 60;
+                    des = string.Concat(des, $"{val}:");
+                    val = rem / 1000 % 60;
 
-                if (val < 10)
-                    des = string.Concat(des, "0");
+                    if (val < 10)
+                        des = string.Concat(des, "0");
 
-                des = string.Concat(des, val.ToString());
-                _jobs.Description = des;
+                    des = string.Concat(des, val.ToString());
+                    _delivery.Description = des;
+                }
             }
         }
 

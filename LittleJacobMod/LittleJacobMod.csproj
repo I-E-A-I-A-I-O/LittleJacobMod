@@ -35,6 +35,9 @@
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="iFruitAddon2">
       <HintPath>..\..\..\..\..\..\Program Files\Epic Games\GTAV\scripts\iFruitAddon2.dll</HintPath>
@@ -51,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeliveryMain.cs" />
     <Compile Include="Interface\CallMenu.cs" />
     <Compile Include="Interface\Menu.cs" />
     <Compile Include="Interface\PhoneContact.cs" />

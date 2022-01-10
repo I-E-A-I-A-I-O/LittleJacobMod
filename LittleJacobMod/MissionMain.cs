@@ -69,12 +69,8 @@ namespace LittleJacobMod
         RelationshipGroup _dislike;
         RelationshipGroup _neutral;
         int _targetV;
-        int _scaleform;
-        bool _scaleFormActive;
-        int _scaleFormStart;
         bool _chaserTS;
         int _chaserST;
-        bool _scaleFormFading;
         bool _objtvCrtd;
         bool _routeTA;
         bool _TookDrugs;
@@ -96,7 +92,6 @@ namespace LittleJacobMod
             _dislike.SetRelationshipBetweenGroups(playerRel, Relationship.Dislike, true);
             _neutral.SetRelationshipBetweenGroups(playerRel, Relationship.Neutral, true);
             _ran = new Random();
-            Tick += OnTick;
             Aborted += MissionMain_Aborted;
             CallMenu.JobSelected += Start;
         }
@@ -167,7 +162,7 @@ namespace LittleJacobMod
         void Start(object o, EventArgs e)
         {
             uint model = Function.Call<uint>(Hash.GET_ENTITY_MODEL, Main.PPID);
-
+            
             switch (model)
             {
                 case (uint)PedHash.Franklin:
@@ -188,7 +183,6 @@ namespace LittleJacobMod
 
                             Active = true;
                             _objective = -1;
-                            return;
                         }
                         break;
                     }
@@ -215,19 +209,23 @@ namespace LittleJacobMod
 
                             Active = true;
                             _objective = -1;
-                            return;
                         }
                         break;
                     }
                 case (uint)PedHash.Trevor:
                     {
                         GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "No.");
-                        break;
+                        return;
                     }
                 default:
                     GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "I have no jobs for you atm");
-                    break;
+                    return;
             }
+
+            ToggleMusicInterrup(true);
+            Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(0));
+            Main.ShowScaleform(MissionTitle(), MissionSubtitle(), 0);
+            Tick += OnTick;
         }
 
         void ResetFlags()
@@ -239,52 +237,12 @@ namespace LittleJacobMod
             _objtvCrtd = false;
         }
 
-        void SetScaleFormText(string title, string description)
-        {
-            Function.Call(Hash.BEGIN_SCALEFORM_MOVIE_METHOD, _scaleform, "SHOW_SHARD_CENTERED_TOP_MP_MESSAGE");
-            Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, title);
-            Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, description);
-            Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, 5);
-            Function.Call(Hash.END_SCALEFORM_MOVIE_METHOD);
-        }
-
-        void FadeOutScaleform()
-        {
-            Function.Call(Hash.CALL_SCALEFORM_MOVIE_METHOD, _scaleform, "SHARD_ANIM_OUT");
-            Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, 5);
-            Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, 3000);
-            Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_BOOL, true);
-            Function.Call(Hash.END_SCALEFORM_MOVIE_METHOD);
-        }
-
-        int RequestScaleform()
-        {
-            _scaleform = Function.Call<int>(Hash.REQUEST_SCALEFORM_MOVIE, "mp_big_message_freemode");
-
-            while (!Function.Call<bool>(Hash.HAS_SCALEFORM_MOVIE_LOADED, _scaleform))
-                Wait(1);
-
-            return _scaleform;
-        }
-
-        void FreeScaleform()
-        {
-            int s = _scaleform;
-            unsafe
-            {
-                Function.Call(Hash.SET_SCALEFORM_MOVIE_AS_NO_LONGER_NEEDED, &s);
-            }
-        }
-
         void Complete()
         {
             MissionSaving.Save();
             OnMissionCompleted?.Invoke(this, EventArgs.Empty);
             Game.Player.Money += 80000;
-            RequestScaleform();
-            SetScaleFormText("~y~Mission passed", "");
-            _scaleFormActive = true;
-            _scaleFormStart = Game.GameTime;
+            Main.ShowScaleform("~y~Mission passed", "", 0);
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
             ToggleMusicInterrup(false);
             Clean();
@@ -314,7 +272,9 @@ namespace LittleJacobMod
                     break;
             }
 
+            ASS_MSG(3);
             Active = false;
+            Tick -= OnTick;
         }
 
         void Quit()
@@ -325,11 +285,7 @@ namespace LittleJacobMod
             Clean();
             ResetFlags();
             Active = false;
-        }
-
-        void Input()
-        {
-
+            Tick -= OnTick;
         }
 
         void Clean()
@@ -1069,10 +1025,7 @@ namespace LittleJacobMod
             {
                 if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, _targetV))
                 {
-                    RequestScaleform();
-                    SetScaleFormText("~r~Mission failed", "Target destroyed");
-                    _scaleFormActive = true;
-                    _scaleFormStart = Game.GameTime;
+                    Main.ShowScaleform("~r~Mission failed", "Target destroyed", 0);
                     Quit();
                     return;
                 }
@@ -1165,10 +1118,7 @@ namespace LittleJacobMod
             {
                 if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, _targetV))
                 {
-                    RequestScaleform();
-                    SetScaleFormText("~r~Mission failed", "Target destroyed");
-                    _scaleFormActive = true;
-                    _scaleFormStart = Game.GameTime;
+                    Main.ShowScaleform("~r~Mission failed", "Target destroyed", 0);
                     Quit();
                     return;
                 }
@@ -1228,10 +1178,7 @@ namespace LittleJacobMod
 
             if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, _targetV))
             {
-                RequestScaleform();
-                SetScaleFormText("~r~Mission failed", "Target destroyed");
-                _scaleFormActive = true;
-                _scaleFormStart = Game.GameTime;
+                Main.ShowScaleform("~r~Mission failed", "Target destroyed", 0);
                 Quit();
                 return;
             }
@@ -1306,43 +1253,15 @@ namespace LittleJacobMod
 
         void OnTick(object sender, EventArgs args)
         {
-            if (_scaleFormActive)
-            {
-                Function.Call(Hash.DRAW_SCALEFORM_MOVIE_FULLSCREEN, _scaleform, 232, 207, 20, 255);
-
-                if (Game.GameTime - _scaleFormStart >= 8000 && !_scaleFormFading)
-                {
-                    FadeOutScaleform();
-                    _scaleFormFading = true;
-                }
-                else if (Game.GameTime - _scaleFormStart >= 12000)
-                {
-                    _scaleFormActive = false;
-                    _scaleFormFading = false;
-                    FreeScaleform();
-
-                    if (_objective == -1)
-                        _objective = 0;
-                    else if (!_fail)
-                        ASS_MSG(3);
-                }
-            }
-
             if (!Active)
                 return;
 
             if (_objective == -1)
             {
-                if (!_scaleFormActive)
+                if (!Main.ScaleformActive)
                 {
-                    ToggleMusicInterrup(true);
-                    Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(0));
-                    RequestScaleform();
-                    SetScaleFormText(MissionTitle(), MissionSubtitle());
-                    _scaleFormActive = true;
-                    _scaleFormStart = Game.GameTime;
+                    _objective = 0;
                 }
-
                 return;
             }
 
