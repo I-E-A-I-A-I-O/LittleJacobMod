@@ -174,10 +174,28 @@ namespace LittleJacobMod.Interface
                 if (!melee)
                 {
                     NativeSliderItem ammoOptionItem = new NativeSliderItem("Ammo", 250, 1);
+
                     ammoOptionItem.Activated += (o, e) =>
                     {
                         AmmoPurchased(weaponHash, ammoOptionItem.Value);
                     };
+
+                    ammoOptionItem.Selected += (o, e) =>
+                    {
+                        uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weaponHash);
+                        ScriptSettings ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+                        int price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
+                        ammoOptionItem.Description = $"Selected ammo: {ammoOptionItem.Value}\nPrice: ${price * ammoOptionItem.Value}";
+                    };
+
+                    ammoOptionItem.ValueChanged += (o, e) =>
+                    {
+                        uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weaponHash);
+                        ScriptSettings ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+                        int price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
+                        ammoOptionItem.Description = $"Selected ammo: {ammoOptionItem.Value}\nPrice: ${price * ammoOptionItem.Value}";
+                    };
+
                     weaponMenu.Add(ammoOptionItem);
                 }
                 
@@ -813,7 +831,14 @@ namespace LittleJacobMod.Interface
             }
 
             int ammoToPurchase = value >= purchasableAmmo ? value - purchasableAmmo : value;
-            int ammoPrice = ammoToPurchase * 2;
+            uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weapon);
+            ScriptSettings ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+            int price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
+
+            if (price == 0)
+                price = 50000;
+
+            int ammoPrice = ammoToPurchase * price;
 
             if (Game.Player.Money < ammoPrice)
             {
@@ -822,7 +847,6 @@ namespace LittleJacobMod.Interface
             }
 
             Game.Player.Money -= ammoPrice;
-            uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weapon);
             Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Main.PPID, ammoType, ammoToPurchase);
             LoadoutSaving.SetAmmo(weapon, Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon));
         }
