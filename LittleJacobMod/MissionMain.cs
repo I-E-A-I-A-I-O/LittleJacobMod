@@ -243,7 +243,8 @@ namespace LittleJacobMod
             OnMissionCompleted?.Invoke(this, EventArgs.Empty);
             Game.Player.Money += 80000;
             Main.ShowScaleform("~y~Mission passed", "", 0);
-            Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Mission_Pass_Notify", "DLC_HEISTS_GENERAL_FRONTEND_SOUNDS", true);
+            //Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
             ToggleMusicInterrup(false);
             Clean();
             ResetFlags();
@@ -1026,6 +1027,7 @@ namespace LittleJacobMod
                 if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, _targetV))
                 {
                     Main.ShowScaleform("~r~Mission failed", "Target destroyed", 0);
+                    Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
                     Quit();
                     return;
                 }
@@ -1119,6 +1121,7 @@ namespace LittleJacobMod
                 if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, _targetV))
                 {
                     Main.ShowScaleform("~r~Mission failed", "Target destroyed", 0);
+                    Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
                     Quit();
                     return;
                 }
@@ -1179,6 +1182,7 @@ namespace LittleJacobMod
             if (Function.Call<bool>(Hash.IS_ENTITY_DEAD, _targetV))
             {
                 Main.ShowScaleform("~r~Mission failed", "Target destroyed", 0);
+                Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
                 Quit();
                 return;
             }

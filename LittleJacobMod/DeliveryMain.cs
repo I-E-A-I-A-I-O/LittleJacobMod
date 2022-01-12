@@ -300,12 +300,14 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         if (_buyer.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Buyer is dead", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
         }
         else if (_car.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Car Destroyed", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
         } else if (Game.Player.WantedLevel > 0 && !_pigFlag)
@@ -365,12 +367,14 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         if (_buyer.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Buyer is dead", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
         }
         else if (_car.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Car Destroyed", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
         } else if (Game.Player.WantedLevel > 0)
@@ -442,12 +446,14 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         if (_buyer.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Buyer is dead", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
         }
         else if (_car.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Car Destroyed", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
         }
@@ -512,12 +518,14 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         if (_buyer.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Buyer is dead", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
         }
         else if (_car.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Car Destroyed", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
         } else if (Game.Player.WantedLevel > 0)
@@ -590,6 +598,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             else
             {
                 Main.ShowScaleform("~r~Mission failed", "Car Destroyed", 0);
+                Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
                 Quit();
             }
 
@@ -619,6 +628,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             else
             {
                 Main.ShowScaleform("~r~Mission failed", "Car Destroyed", 0);
+                Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
                 Quit();
             }
 
@@ -658,6 +668,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             else
             {
                 Main.ShowScaleform("~r~Mission failed", "Car Destroyed", 0);
+                Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
                 Quit();
             }
 
@@ -741,7 +752,8 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         }
 
         Main.ShowScaleform("~g~Delivery Completed", "", 0);
-        Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
+        Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Mission_Pass_Notify", "DLC_HEISTS_GENERAL_FRONTEND_SOUNDS", true);
+        //Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
         ToggleMusicInterrup(false);
         Clean();
         UnloadSprites();
@@ -831,6 +843,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
                     {
                         Game.Player.Character.Task.PlayAnimation("pickup_object", "pickup_low");
                         Wait(1000);
+                        Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Bus_Schedule_Pickup", "DLC_PRISON_BREAK_HEIST_SOUNDS", false);
                         _bag.Delete();
                         _bagTaken = true;
 
@@ -861,6 +874,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
                 if (Game.GameTime - _travelStartTime >= _travelTime)
                 {
                     Main.ShowScaleform("~r~Delivery Failed", "The buyer left.", 0);
+                    Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
                     Quit();
                     return;
                 }
