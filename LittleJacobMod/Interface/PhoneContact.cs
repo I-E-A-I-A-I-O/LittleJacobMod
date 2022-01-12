@@ -22,7 +22,7 @@ namespace LittleJacobMod.Interface
 
         private void JacobContact_Answered(iFruitContact contact)
         {
-            if (MissionMain.Active)
+            if (MissionMain.Active || DeliveryMain.Active)
             {
                 GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Busy", "Im busy, call me later");
                 return;

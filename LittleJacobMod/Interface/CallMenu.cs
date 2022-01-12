@@ -110,7 +110,7 @@ namespace LittleJacobMod.Interface
                 }
                 else
                 {
-                    int rem = 900000 - (Game.GameTime - _startT);
+                    int rem = 900000 - (Game.GameTime - _startD);
                     string des = "Next delivery available in ";
                     int val = rem / 1000 / 60;
 
