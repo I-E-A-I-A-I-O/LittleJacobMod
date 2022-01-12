@@ -30,7 +30,7 @@ class DeliveryMain : Script
     Vehicle _car;
     int _objective;
     int _blipST;
-    int _pChanceL = 8;
+    int _pChanceL = 9;
     int _pChanceH = 30;
     Prop _bag;
     bool _htShown;
@@ -318,7 +318,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             return;
         } else if (Game.Player.WantedLevel > 0 && _pigFlag)
         {
-            GTA.UI.Screen.ShowSubtitle("Lose the cops");
+            GTA.UI.Screen.ShowSubtitle("Lose the cops.");
             return;
         } else if (Game.Player.WantedLevel == 0 && _pigFlag)
         {
@@ -338,6 +338,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         if (ran.Next(1, 101) <= _pChanceL)
         {
             GTA.UI.Screen.ShowHelpText("The police were watching this car. Lose them!", 8000);
+            Game.Player.WantedLevel = 2;
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
             float distance = World.CalculateTravelDistance(Game.Player.Character.Position, _destination);
             _travelTime = (int)Math.Ceiling(distance * 60);
@@ -345,6 +346,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             if (_travelTime > 330000)
                 _travelTime = 330000;
 
+            _travelTime += 35000;
             _travelStartTime = Game.GameTime;
             _objective = 2;
         } else
