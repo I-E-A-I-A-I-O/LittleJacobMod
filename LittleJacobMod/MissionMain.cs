@@ -244,7 +244,7 @@ namespace LittleJacobMod
             Game.Player.Money += 80000;
             Main.ShowScaleform("~y~Mission passed", "", 0);
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Mission_Pass_Notify", "DLC_HEISTS_GENERAL_FRONTEND_SOUNDS", true);
-            //Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
+            Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
             ToggleMusicInterrup(false);
             Clean();
             ResetFlags();
@@ -410,7 +410,7 @@ namespace LittleJacobMod
                 case 3:
                     return "FIXER_VEHICLE_ACTION";
                 case 4:
-                    return "MP_DM_COUNTDOWN_KILL";
+                    return "FIXER_MUSIC_STOP";
                 case 5:
                     return "FIXER_FAIL";
                 default:
