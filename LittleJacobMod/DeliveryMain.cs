@@ -169,7 +169,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             case 3:
                 return "VWC_VEHICLE_ACTION";
             case 4:
-                return "MP_DM_COUNTDOWN_KILL";
+                return "VWC_MUSIC_STOP";
             case 5:
                 return "VWC_FAIL";
             default:
@@ -445,6 +445,11 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
 
     void DEL_2()
     {
+        bool farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
+
+        if (farAway)
+            _car.IsConsideredDestroyed = true;
+
         if (_buyer.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Buyer is dead", 0);
@@ -454,7 +459,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         }
         else if (_car.IsDead)
         {
-            Main.ShowScaleform("~r~Delivery failed", "Car Destroyed", 0);
+            Main.ShowScaleform("~r~Delivery failed", farAway ? "Car abandoned" : "Car Destroyed", 0);
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
@@ -556,13 +561,12 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
     void DEL_4()
     {
         GTA.UI.Screen.ShowSubtitle("Take the ~g~money~w~ and leave the area.", 1000);
-
         bool buyerLeft = !_buyer.IsInRange(_destination, 50) || !_buyer.IsInRange(Game.Player.Character.Position, 50);
 
         if (_bagTaken && buyerLeft)
         {
             Clean();
-            Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(2));
+            Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(-1));
             _destination = _dropPoint;
             CreateDestinationBlip(1);
             _objective = 8;
@@ -589,6 +593,11 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
 
     void DEL_5()
     {
+        bool farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
+
+        if (farAway)
+            _car.IsConsideredDestroyed = true;
+
         if (_car.IsDead)
         {
             if (_bagTaken)
@@ -599,7 +608,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             }
             else
             {
-                Main.ShowScaleform("~r~Mission failed", "Car Destroyed", 0);
+                Main.ShowScaleform("~r~Mission failed", farAway ? "Car abandoned" : "Car Destroyed", 0);
                 Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
                 Quit();
             }
@@ -619,6 +628,11 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
 
     void DEL_6()
     {
+        bool farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
+
+        if (farAway)
+            _car.IsConsideredDestroyed = true;
+
         if (_car.IsDead)
         {
             if (_bagTaken)
@@ -629,7 +643,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             }
             else
             {
-                Main.ShowScaleform("~r~Mission failed", "Car Destroyed", 0);
+                Main.ShowScaleform("~r~Mission failed", farAway ? "Car abandoned" : "Car Destroyed", 0);
                 Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
                 Quit();
             }
@@ -708,7 +722,10 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         if (Game.Player.WantedLevel > 0)
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
-            _routeBlip.Delete();
+
+            if (_routeBlip != null && _routeBlip.Handle != 0)
+                _routeBlip.Delete();
+
             _objective = 9;
             return;
         }
@@ -727,7 +744,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
 
         if (Game.Player.WantedLevel == 0)
         {
-            Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(2));
+            Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(-1));
             CreateDestinationBlip(1);
             _objective = 8;
         }
@@ -754,8 +771,8 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         }
 
         Main.ShowScaleform("~g~Delivery Completed", "", 0);
+        Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
         Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Mission_Pass_Notify", "DLC_HEISTS_GENERAL_FRONTEND_SOUNDS", true);
-        //Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
         ToggleMusicInterrup(false);
         Clean();
         UnloadSprites();
