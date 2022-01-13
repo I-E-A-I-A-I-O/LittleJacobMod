@@ -183,7 +183,12 @@ namespace LittleJacobMod
 
                             Active = true;
                             _objective = -1;
+                        } else
+                        {
+                            GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "I have no jobs for you atm");
+                            return;
                         }
+
                         break;
                     }
                 case (uint)PedHash.Michael:
@@ -209,7 +214,13 @@ namespace LittleJacobMod
 
                             Active = true;
                             _objective = -1;
+                        } else
+                        {
+                            GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Jobs", "I have no jobs for you atm");
+                            return;
                         }
+
+
                         break;
                     }
                 case (uint)PedHash.Trevor:
@@ -239,7 +250,6 @@ namespace LittleJacobMod
 
         void Complete()
         {
-            MissionSaving.Save();
             OnMissionCompleted?.Invoke(this, EventArgs.Empty);
             Game.Player.Money += 80000;
             Main.ShowScaleform("~y~Mission passed", "", 0);
@@ -273,6 +283,7 @@ namespace LittleJacobMod
                     break;
             }
 
+            MissionSaving.Save();
             ASS_MSG(3);
             Active = false;
             Tick -= OnTick;
@@ -647,7 +658,7 @@ namespace LittleJacobMod
                 }
             }
 
-            if (Game.Player.Character.IsInRange(pos, 225) && !_spawned)
+            if (!_spawned)
             {
                 _spawned = true;
 
@@ -663,6 +674,7 @@ namespace LittleJacobMod
                         case 0:
                             handle = Function.Call<int>(Hash.CREATE_PED, 0, data1.Hash, data2.Location.X, data2.Location.Y,
                             data2.Location.Z, 0, false, false);
+                            Function.Call(Hash.SET_ENTITY_LOAD_COLLISION_FLAG, handle, true);
 
                             if (_mission == Missions.FM1)
                                 Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _neutral.Hash);
@@ -680,6 +692,7 @@ namespace LittleJacobMod
                         default:
                             handle = Function.Call<int>(Hash.CREATE_VEHICLE, data1.Hash, data2.Location.X, data2.Location.Y,
                             data2.Location.Z, 0, false, false);
+                            Function.Call(Hash.SET_ENTITY_LOAD_COLLISION_FLAG, handle, true);
                             _vehicles.Add(handle);
                             break;
                     }
@@ -880,7 +893,7 @@ namespace LittleJacobMod
                 }
             }
 
-            if (Game.Player.Character.IsInRange(pos, 225) && !_spawned)
+            if (!_spawned)
             {
                 _spawned = true;
 
@@ -896,6 +909,7 @@ namespace LittleJacobMod
                         case 0:
                             handle = Function.Call<int>(Hash.CREATE_PED, 0, data1.Hash, data2.Location.X, data2.Location.Y,
                             data2.Location.Z, 0, false, false);
+                            Function.Call(Hash.SET_ENTITY_LOAD_COLLISION_FLAG, handle, true);
 
                             if (_mission == Missions.MM3)
                                 Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _dislike.Hash);
@@ -914,6 +928,8 @@ namespace LittleJacobMod
                         case 1:
                             handle = Function.Call<int>(Hash.CREATE_VEHICLE, data1.Hash, data2.Location.X, data2.Location.Y,
                                                             data2.Location.Z, 0, false, false);
+                            Function.Call(Hash.SET_ENTITY_LOAD_COLLISION_FLAG, handle, true);
+
                             if (_mission == Missions.MM1)
                                 _vehicles.Add(handle);
                             else
@@ -923,6 +939,7 @@ namespace LittleJacobMod
                         default:
                             handle = Function.Call<int>(Hash.CREATE_OBJECT_NO_OFFSET, data1.Hash, data2.Location.X,
                                 data2.Location.Y, data2.Location.Z, false, false, false);
+                            Function.Call(Hash.SET_ENTITY_LOAD_COLLISION_FLAG, handle, true);
                             _props.Add(handle);
                             break;
                     }
@@ -1015,7 +1032,11 @@ namespace LittleJacobMod
                             Function.Call(Hash.DELETE_OBJECT, &prop);
                         }
                         _props.Clear();
-                        Function.Call(Hash.SET_PED_COMPONENT_VARIATION, Main.PPID, 9, 1, 0, 0);
+
+                        if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, PedHash.Michael))
+                            Function.Call(Hash.SET_PED_COMPONENT_VARIATION, Main.PPID, 9, 1, 0, 0);
+
+
                         Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
                         LoadModel((uint)VehicleHash.Chino2);
                         LoadModel(_pedModel);

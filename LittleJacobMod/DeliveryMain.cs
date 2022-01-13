@@ -247,7 +247,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             _buyer.Task.StartScenario("WORLD_HUMAN_STAND_IMPATIENT", 0);
             _buyer.RelationshipGroup = _neutral;
             _buyer.Weapons.Give(WeaponHash.Pistol, 100, false, true);
-            Vector3 bagLocation = _buyer.Position.Around(1.5f);
+            Vector3 bagLocation = _buyer.Position.Around(0.6f);
             RequestModel(3898412430);
             _bag = Function.Call<Prop>(Hash.CREATE_OBJECT, 3898412430, bagLocation.X, bagLocation.Y,
                 bagLocation.Z, false, false, false);

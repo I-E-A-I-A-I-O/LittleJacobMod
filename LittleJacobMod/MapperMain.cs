@@ -17,14 +17,14 @@ class MapperMain : Script
 
     public MapperMain()
     {
-        if (Game.IsLoading)
-        {
+        /*if (Game.IsLoading)
+        {*/
             Tick += WaitForGameLoad;
-        }
-        else
+        //}
+        /*else
         {
             Initialize(false);
-        }
+        }*/
     }
 
     private void Initialize(bool firstStart)
