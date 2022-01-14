@@ -358,6 +358,8 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
 
             if (_travelTime > 330000)
                 _travelTime = 330000;
+            else
+                _travelTime += 20000;
 
             _travelStartTime = Game.GameTime;
             _objective = 1;
