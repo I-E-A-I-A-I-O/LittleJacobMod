@@ -904,10 +904,8 @@ namespace LittleJacobMod
                             data2.Location.Z, 0, false, false);
                             Function.Call(Hash.SET_ENTITY_LOAD_COLLISION_FLAG, handle, true);
 
-                            if (_mission == Missions.Mm3)
-                                Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _dislike.Hash);
-                            else
-                                Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle, _neutral.Hash);
+                            Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, handle,
+                                _mission == Missions.Mm3 ? _dislike.Hash : _neutral.Hash);
 
                             RandomScenario(handle);
                             RandomWeapon(handle);

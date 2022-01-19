@@ -9,6 +9,7 @@ namespace LittleJacobMod.Saving
         public static int PoliceChanceHigh = 30;
         public static int PoliceChanceLow = 8;
         public static int BadDealChance = 5;
+        public static int HighSpeedChance = 5;
 
         public static void GoodDeal()
         {
@@ -18,6 +19,8 @@ namespace LittleJacobMod.Saving
                 PoliceChanceLow -= 1;
             if (BadDealChance > 5)
                 BadDealChance -= 1;
+            if (HighSpeedChance > 5)
+                HighSpeedChance -= 1;
         }
 
         public static void BadDeal()
@@ -28,6 +31,8 @@ namespace LittleJacobMod.Saving
                 PoliceChanceLow += 1;
             if (BadDealChance < 30)
                 BadDealChance += 2;
+            if (HighSpeedChance < 30)
+                HighSpeedChance += 1;
         }
         
         public static void Save()
@@ -53,6 +58,7 @@ namespace LittleJacobMod.Saving
                     writer.Write(PoliceChanceHigh);
                     writer.Write(PoliceChanceLow);
                     writer.Write(BadDealChance);
+                    writer.Write(HighSpeedChance);
                 }
             }
             catch (Exception)
@@ -88,6 +94,7 @@ namespace LittleJacobMod.Saving
                     PoliceChanceHigh = reader.ReadInt32();
                     PoliceChanceLow = reader.ReadInt32();
                     BadDealChance = reader.ReadInt32();
+                    HighSpeedChance = reader.ReadInt32();
                 }
             }
             catch (Exception)
