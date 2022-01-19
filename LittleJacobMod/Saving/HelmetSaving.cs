@@ -6,14 +6,14 @@ namespace LittleJacobMod.Saving
 {
     public struct HelmetState
     {
-        static public bool MPFTVOwned;
-        static public bool MPFNV1Owned;
-        static public bool MPFNV2Owned;
-        static public bool MPMTVOwned;
-        static public bool MPMNV1Owned;
-        static public bool MPMNV2Owned;
+        public static bool MpftvOwned;
+        public static bool Mpfnv1Owned;
+        public static bool Mpfnv2Owned;
+        public static bool MpmtvOwned;
+        public static bool Mpmnv1Owned;
+        public static bool Mpmnv2Owned;
 
-        static public void Load(bool constructor = false)
+        public static void Load(bool constructor = false)
         {
             if (!constructor)
             {
@@ -44,12 +44,12 @@ namespace LittleJacobMod.Saving
                     bool mpMNV1 = reader.ReadBoolean();
                     bool mpMNV2 = reader.ReadBoolean();
 
-                    MPFTVOwned = mpFTV;
-                    MPFNV1Owned = mpFNV1;
-                    MPFNV2Owned = mpFNV2;
-                    MPMTVOwned = mpMTV;
-                    MPMNV1Owned = mpMNV1;
-                    MPMNV2Owned = mpMNV2;
+                    MpftvOwned = mpFTV;
+                    Mpfnv1Owned = mpFNV1;
+                    Mpfnv2Owned = mpFNV2;
+                    MpmtvOwned = mpMTV;
+                    Mpmnv1Owned = mpMNV1;
+                    Mpmnv2Owned = mpMNV2;
                 }
             }
             catch (Exception)
@@ -67,7 +67,7 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        static public void Save()
+        public static void Save()
         {
             GTA.UI.LoadingPrompt.Show("Saving helmets...");
             try
@@ -87,12 +87,12 @@ namespace LittleJacobMod.Saving
 
                 using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
                 {
-                    writer.Write(MPFTVOwned);
-                    writer.Write(MPFNV1Owned);
-                    writer.Write(MPFNV2Owned);
-                    writer.Write(MPMTVOwned);
-                    writer.Write(MPMNV1Owned);
-                    writer.Write(MPMNV2Owned);
+                    writer.Write(MpftvOwned);
+                    writer.Write(Mpfnv1Owned);
+                    writer.Write(Mpfnv2Owned);
+                    writer.Write(MpmtvOwned);
+                    writer.Write(Mpmnv1Owned);
+                    writer.Write(Mpmnv2Owned);
                 }
             }
             catch (Exception)

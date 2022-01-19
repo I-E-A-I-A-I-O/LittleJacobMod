@@ -8,7 +8,7 @@ namespace LittleJacobMod.Loading
 {
     static internal class Initialize
     {
-        static List<JacobSpawnpoint> jacobSpawnpoints = new List<JacobSpawnpoint>()
+        private static List<JacobSpawnpoint> jacobSpawnpoints = new List<JacobSpawnpoint>()
         {
             new JacobSpawnpoint(new Vector3(1625.764f, 1002.065f, 104.7569f), -163.9208f, new Vector3(1627.689f, 1003.179f, 104.6205f), -14.01786f),
             new JacobSpawnpoint(new Vector3(700.1344f, 222.0037f, 92.46917f), 91.96848f, new Vector3(699.8804f, 219.7696f, 91.87753f), -118.9912f),
@@ -36,8 +36,7 @@ namespace LittleJacobMod.Loading
             new JacobSpawnpoint(new Vector3(1724.354f, 4804.543f, 41.67359f), 117.8686f, new Vector3(1725.49f, 4802.246f, 41.17456f), -108.6089f)
         };
 
-        static JacobSpawnpoint currentSpawnpoint;
-        public static JacobSpawnpoint CurrentSpawnpoint => currentSpawnpoint;
+        private static JacobSpawnpoint CurrentSpawnpoint { get; set; }
 
         public static LittleJacob CalculateClosestSpawnpoint()
         {
@@ -57,7 +56,7 @@ namespace LittleJacobMod.Loading
                     closestPoint = spawnpoint;
                 }
             }
-            currentSpawnpoint = closestPoint;
+            CurrentSpawnpoint = closestPoint;
             return new LittleJacob(CurrentSpawnpoint);
         }
     }

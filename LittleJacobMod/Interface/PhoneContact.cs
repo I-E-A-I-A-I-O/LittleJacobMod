@@ -5,19 +5,18 @@ namespace LittleJacobMod.Interface
 {
     internal class PhoneContact
     {
-        CustomiFruit ifruit;
-        public CustomiFruit Phone => ifruit;
+        public CustomiFruit Phone { get; }
 
         public PhoneContact()
         {
-            ifruit = new CustomiFruit();
+            Phone = new CustomiFruit();
             var jacobContact = new iFruitContact("Little Jacob")
             {
                 DialTimeout = 4000,
                 Active = true
             };
             jacobContact.Answered += JacobContact_Answered;
-            ifruit.Contacts.Add(jacobContact);
+            Phone.Contacts.Add(jacobContact);
         }
 
         private void JacobContact_Answered(iFruitContact contact)
@@ -40,19 +39,19 @@ namespace LittleJacobMod.Interface
                     Main.JacobActive = false;
                     Main.TimerStarted = false;
                 }
-                ifruit.Close();
+                Phone.Close();
                 return;
             }
 
             if (Game.Player.WantedLevel > 0)
             {
                 GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "my friend told me the police is after u. we cant meet like this, call me again when you lose them. Peace");
-                ifruit.Close();
+                Phone.Close();
                 return;
             }
 
             Main.CallMenu.Show();
-            ifruit.Close();
+            Phone.Close();
         }
     }
 }

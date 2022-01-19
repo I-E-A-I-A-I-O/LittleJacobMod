@@ -1,62 +1,63 @@
 ﻿using System;
-using System.Xml.Linq;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Linq;
 using GTA;
 using GTA.Math;
 using GTA.Native;
+using GTA.UI;
 using LittleJacobMod.Interface;
+using LittleJacobMod.Saving;
 
-class DeliveryMain : Script
+internal class DeliveryMain : Script
 {
-    struct HeadingPoint
+    private struct HeadingPoint
     {
         public float X;
         public float Y;
         public float Z;
         public float Heading;
         public int Hash;
-    };
+    }
 
     public static bool Active { get; private set; }
     public static event EventHandler OnDeliveryCompleted;
-    int _startTime;
-    RelationshipGroup _neutral;
-    RelationshipGroup _hateCops;
-    int _cop;
-    Blip _routeBlip;
-    Ped _buyer;
-    Vector3 _destination;
-    Vehicle _car;
-    int _objective;
-    int _blipST;
-    int _pChanceL = 9;
-    int _pChanceH = 30;
-    Prop _bag;
-    bool _htShown;
-    bool _bagTaken;
-    bool _pigFlag;
-    int _lockedAt;
-    bool _carRecovered;
-    bool _fighting;
-    int _travelTime;
-    int _intensity;
-    int _travelStartTime = 1;
-    int _health;
-    readonly Vector3 _dropPoint = new Vector3(6.828116f, -1405.562f, 28.26828f);
-    Dictionary<int, Vector3> _badgeSlots = new Dictionary<int, Vector3>()
+    private readonly RelationshipGroup _neutral;
+    private readonly RelationshipGroup _hateCops;
+    private readonly int _cop;
+    private Blip _routeBlip;
+    private Ped _buyer;
+    private Vector3 _destination;
+    private Vehicle _car;
+    private int _objective;
+    private int _blipSt;
+    private Prop _bag;
+    private bool _bagTaken;
+    private bool _pigFlag;
+    private int _lockedAt;
+    private bool _carRecovered;
+    private bool _fighting;
+    private int _travelTime;
+    private int _intensity;
+    private bool _badDeal;
+    private bool _rainyDay;
+    private int _travelStartTime = 1;
+    private int _health;
+    private readonly Vector3 _dropPoint = new Vector3(6.828116f, -1405.562f, 28.26828f);
+
+    private readonly Dictionary<int, Vector3> _badgeSlots = new Dictionary<int, Vector3>
     {
         {0, new Vector3(0.91f, 0.97f, 0)},
         {1, new Vector3(0.91f, 0.918f, 0)}
     };
 
-    Dictionary<int, Vector3> _contentSlots = new Dictionary<int, Vector3>()
+    private readonly Dictionary<int, Vector3> _contentSlots = new Dictionary<int, Vector3>
     {
         {0, new Vector3(0.75f, 0.952f, 0)},
         {1, new Vector3(0.75f, 0.90f, 0)}
     };
 
-    Dictionary<int, Vector3> _titleSlots = new Dictionary<int, Vector3>()
+    private readonly Dictionary<int, Vector3> _titleSlots = new Dictionary<int, Vector3>
     {
         {0, new Vector3(0.855f, 0.96f, 0)},
         {1, new Vector3(0.855f, 0.91f, 0)}
@@ -76,7 +77,7 @@ class DeliveryMain : Script
         Aborted += DeliveryMain_Aborted;
     }
 
-    void LoadSprites()
+    private static void LoadSprites()
     {
         Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "timerbars", false);
 
@@ -84,12 +85,12 @@ class DeliveryMain : Script
             Wait(1);
     }
 
-    void UnloadSprites()
+    private static void UnloadSprites()
     {
         Function.Call(Hash.SET_STREAMED_TEXTURE_DICT_AS_NO_LONGER_NEEDED, "timerbars");
     }
 
-    void DrawSprite(float x, float y, bool red)
+    private static void DrawSprite(float x, float y, bool red)
     {
         if (!Function.Call<bool>(Hash.HAS_STREAMED_TEXTURE_DICT_LOADED, "timerbars"))
             LoadSprites();
@@ -100,25 +101,23 @@ class DeliveryMain : Script
             Function.Call(Hash.DRAW_SPRITE, "timerbars", "all_red_bg", x, y, 0.15f, 0.045f, 0, 165, 15, 1, 255);
     }
 
-    void DrawSpriteText(float x, float y, float scale, string text, bool right)
+    private static void DrawSpriteText(float x, float y, float scale, string text, bool right)
     {
-    
         Function.Call(Hash.BEGIN_TEXT_COMMAND_DISPLAY_TEXT, "STRING");
-    	Function.Call(Hash.ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME,  text);
-        
-    	if (right)
-    	{
-    		Function.Call(Hash.SET_TEXT_WRAP, 0.6f, 0.975f);
-    		Function.Call(Hash.SET_TEXT_JUSTIFICATION, 2);
-    	}
+        Function.Call(Hash.ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME, text);
+
+        if (right)
+        {
+            Function.Call(Hash.SET_TEXT_WRAP, 0.6f, 0.975f);
+            Function.Call(Hash.SET_TEXT_JUSTIFICATION, 2);
+        }
 
         Function.Call(Hash.SET_TEXT_SCALE, 1.0f, scale);
         Function.Call(Hash.END_TEXT_COMMAND_DISPLAY_TEXT, x, y);
     }
 
-    void DrawBadge(string title, string content, bool red, int slot)
+    private void DrawBadge(string title, string content, bool red, int slot)
     {
-    
         Vector3 bPos = _badgeSlots[slot];
         Vector3 cPos = _contentSlots[slot];
         Vector3 tPos = _titleSlots[slot];
@@ -127,18 +126,16 @@ class DeliveryMain : Script
         DrawSpriteText(tPos.X, tPos.Y, 0.295f, title, false);
     }
 
-private void DeliveryMain_Aborted(object sender, EventArgs e)
+    private void DeliveryMain_Aborted(object sender, EventArgs e)
     {
-        if (Active)
-        {
-            Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(5));
-            ToggleMusicInterrup(false);
-            UnloadSprites();
-            Clean();
-        }
+        if (!Active) return;
+        Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(5));
+        ToggleMusicInterrup(false);
+        UnloadSprites();
+        Clean();
     }
 
-    void RequestModel(int model)
+    private static void RequestModel(int model)
     {
         Function.Call(Hash.REQUEST_MODEL, model);
 
@@ -146,7 +143,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             Wait(1);
     }
 
-    void RequestModel(uint model)
+    private static void RequestModel(uint model)
     {
         Function.Call(Hash.REQUEST_MODEL, model);
 
@@ -154,7 +151,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             Wait(1);
     }
 
-    string GetEvent(int param)
+    private static string GetEvent(int param)
     {
         switch (param)
         {
@@ -177,22 +174,26 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         }
     }
 
-    void Start(object o, EventArgs e)
+    private void Start(object o, EventArgs e)
     {
         XElement doc = XElement.Load($"{BaseDirectory}\\LittleJacobMod\\Missions\\drug_delivery.xml");
-        IEnumerable<XElement> cars = doc.Element("CarLocations").Descendants("Location");
-        int size = cars.Count();
+        IEnumerable<XElement> cars = doc.Element("CarLocations")?.Descendants("Location");
+        var xElements = cars?.ToList();
+
+        if (xElements == null) return;
+
+        int size = xElements.Count();
         List<HeadingPoint> points = new List<HeadingPoint>();
         Random ran = new Random();
 
         for (int i = 0; i < size; i++)
         {
             HeadingPoint point = new HeadingPoint();
-            XElement el = cars.ElementAt(i);
-            point.X = (float)el.Element("X");
-            point.Y = (float)el.Element("Y");
-            point.Z = (float)el.Element("Z");
-            point.Heading = (float)el.Element("Heading");
+            XElement el = xElements.ElementAt(i);
+            point.X = (float) el.Element("X");
+            point.Y = (float) el.Element("Y");
+            point.Z = (float) el.Element("Z");
+            point.Heading = (float) el.Element("Heading");
 
             if (Game.Player.Character.IsInRange(new Vector3(point.X, point.Y, point.Z), 70))
                 continue;
@@ -203,39 +204,46 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         HeadingPoint carPoint = points.ElementAt(ran.Next(0, points.Count));
         points.Clear();
         IEnumerable<XElement> buyers = doc.Elements("BuyerLocations").Descendants("Location");
-        size = buyers.Count();
+        var enumerable = buyers.ToList();
+        size = enumerable.Count();
         List<HeadingPoint> validBuyers = new List<HeadingPoint>();
         List<Vector3> markers = new List<Vector3>();
         Vector3 carVector = new Vector3(carPoint.X, carPoint.Y, carPoint.Z);
 
         for (int i = 0; i < size; i++)
         {
-            XElement el = buyers.ElementAt(i);
+            XElement el = enumerable.ElementAt(i);
             XElement buyer = el.Element("Buyer");
             XElement marker = el.Element("Marker");
-            Vector3 markerPoint = new Vector3();
-            markerPoint.X = (float)marker.Element("X");
-            markerPoint.Y = (float)marker.Element("Y");
-            markerPoint.Z = (float)marker.Element("Z");
+            Vector3 markerPoint = new Vector3
+            {
+                X = (float) marker?.Element("X"),
+                Y = (float) marker?.Element("Y"),
+                Z = (float) marker?.Element("Z")
+            };
             float dist = World.CalculateTravelDistance(carVector, markerPoint);
 
             if (dist < 1500)
                 continue;
 
-            HeadingPoint buyerPoint = new HeadingPoint();
-            buyerPoint.X = (float)buyer.Element("X");
-            buyerPoint.Y = (float)buyer.Element("Y");
-            buyerPoint.Z = (float)buyer.Element("Z");
-            buyerPoint.Heading = (float)buyer.Element("Heading");
-            buyerPoint.Hash = (int)buyer.Element("Hash");
+            HeadingPoint buyerPoint = new HeadingPoint
+            {
+                X = (float) buyer?.Element("X"),
+                Y = (float) buyer?.Element("Y"),
+                Z = (float) buyer?.Element("Z"),
+                Heading = (float) buyer?.Element("Heading"),
+                Hash = (int) buyer?.Element("Hash")
+            };
             validBuyers.Add(buyerPoint);
             markers.Add(markerPoint);
         }
-        
+
         if (validBuyers.Count == 0)
         {
-            GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Delivery", "Sorry man. I don't have any deliveries to make.");
-        } else
+            Notification.Show(NotificationIcon.Default, "Little Jacob", "Delivery",
+                "Sorry man. I don't have any deliveries to make.");
+        }
+        else
         {
             int index = ran.Next(0, validBuyers.Count);
             HeadingPoint selectedBuyer = validBuyers.ElementAt(index);
@@ -255,10 +263,10 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             Function.Call(Hash.SET_ENTITY_LOAD_COLLISION_FLAG, _bag.Handle, true);
             Function.Call(Hash.PLACE_OBJECT_ON_GROUND_PROPERLY, _bag.Handle);
             _destination = markers.ElementAt(index);
-            RequestModel((uint)VehicleHash.Tornado3);
-            _car = Function.Call<Vehicle>(Hash.CREATE_VEHICLE, VehicleHash.Tornado3, carPoint.X, carPoint.Y,
+            RequestModel((uint) VehicleHash.Tornado3);
+            _car = Function.Call<Vehicle>(Hash.CREATE_VEHICLE, (uint) VehicleHash.Tornado3, carPoint.X, carPoint.Y,
                 carPoint.Z, carPoint.Heading, false, false);
-            Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, VehicleHash.Tornado3);
+            Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, (uint) VehicleHash.Tornado3);
             Function.Call(Hash.SET_ENTITY_LOAD_COLLISION_FLAG, _car.Handle, true);
             CreateCarBlip();
             Main.ShowScaleform("~g~Weed Delivery", "", 0);
@@ -276,17 +284,17 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         }
     }
 
-    void CreateDestinationBlip(int type)
+    private void CreateDestinationBlip(int type)
     {
         _routeBlip = World.CreateBlip(_destination);
         _routeBlip.Scale = 0.8f;
         _routeBlip.Color = BlipColor.Yellow;
         _routeBlip.Name = type == 0 ? "Buyer" : "Drop point";
         _routeBlip.ShowRoute = true;
-        _blipST = Game.GameTime;
+        _blipSt = Game.GameTime;
     }
 
-    void CreateCarBlip()
+    private void CreateCarBlip()
     {
         _car.AddBlip();
         _car.AttachedBlip.Scale = 0.8f;
@@ -295,7 +303,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         _car.AttachedBlip.Name = "Jacob's car";
     }
 
-    void DEL_0()
+    private void DEL_0()
     {
         if (_buyer.IsDead)
         {
@@ -304,30 +312,37 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             Quit();
             return;
         }
-        else if (_car.IsDead)
+
+        if (_car.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Car Destroyed", 0);
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
-        } else if (Game.Player.WantedLevel > 0 && !_pigFlag)
+        }
+
+        if (Game.Player.WantedLevel > 0 && !_pigFlag)
         {
             _pigFlag = true;
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
             _car.AttachedBlip.Delete();
             return;
-        } else if (Game.Player.WantedLevel > 0 && _pigFlag)
+        }
+
+        if (Game.Player.WantedLevel > 0 && _pigFlag)
         {
-            GTA.UI.Screen.ShowSubtitle("Lose the cops.");
+            Screen.ShowSubtitle("Lose the cops.");
             return;
-        } else if (Game.Player.WantedLevel == 0 && _pigFlag)
+        }
+
+        if (Game.Player.WantedLevel == 0 && _pigFlag)
         {
             _pigFlag = false;
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(-1));
             CreateCarBlip();
         }
 
-        GTA.UI.Screen.ShowSubtitle("Get in the ~g~car.", 1000);
+        Screen.ShowSubtitle("Get in the ~g~car.", 1000);
 
         if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
             return;
@@ -335,13 +350,13 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         _car.AttachedBlip.Delete();
         Random ran = new Random();
 
-        if (ran.Next(1, 101) <= _pChanceL)
+        if (ran.Next(1, 101) <= DeliverySaving.PoliceChanceLow)
         {
-            GTA.UI.Screen.ShowHelpText("The police were watching this car. Lose them!", 8000);
+            Screen.ShowHelpText("The police were watching this car. Lose them!", 8000);
             Game.Player.WantedLevel = 2;
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
             float distance = World.CalculateTravelDistance(Game.Player.Character.Position, _destination);
-            _travelTime = (int)Math.Ceiling(distance * 60);
+            _travelTime = (int) Math.Ceiling(distance * 60);
 
             if (_travelTime > 330000)
                 _travelTime = 330000;
@@ -349,12 +364,13 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             _travelTime += 35000;
             _travelStartTime = Game.GameTime;
             _objective = 2;
-        } else
+        }
+        else
         {
             CreateDestinationBlip(0);
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(1));
             float distance = World.CalculateTravelDistance(Game.Player.Character.Position, _destination);
-            _travelTime = (int)Math.Ceiling(distance * 60);
+            _travelTime = (int) Math.Ceiling(distance * 60);
 
             if (_travelTime > 330000)
                 _travelTime = 330000;
@@ -366,7 +382,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         }
     }
 
-    void DEL_1()
+    private void DEL_1()
     {
         if (_buyer.IsDead)
         {
@@ -375,13 +391,16 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             Quit();
             return;
         }
-        else if (_car.IsDead)
+
+        if (_car.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Car Destroyed", 0);
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
-        } else if (Game.Player.WantedLevel > 0)
+        }
+
+        if (Game.Player.WantedLevel > 0)
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
             _routeBlip.Delete();
@@ -389,34 +408,39 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             return;
         }
 
-        GTA.UI.Screen.ShowSubtitle($"Go to the ~y~buyer.", 1000);
+        Screen.ShowSubtitle("Go to the ~y~buyer.", 1000);
         Function.Call(Hash.DRAW_MARKER, 1, _destination.X, _destination.Y, _destination.Z, 0, 0, 0, 0, 0,
-                    0, 5f, 5f, 2f, 255, 255, 0, 100, false, false, 2, false, false, false);
+            0, 5f, 5f, 2f, 255, 255, 0, 100, false, false, 2, false, false, false);
 
         if (_car.IsInRange(_destination, 5))
         {
             _routeBlip.Delete();
             Random ran = new Random();
-            
-            if (ran.Next(0, 101) <= _pChanceL)
+
+            if (ran.Next(0, 101) <= DeliverySaving.PoliceChanceLow)
             {
-                if (ran.Next(0, 101) <= _pChanceH)
+                if (ran.Next(0, 101) <= DeliverySaving.PoliceChanceHigh)
                 {
-                    GTA.UI.Screen.ShowHelpText("The buyer is a cop. Get out of there!", 8000);
+                    Screen.ShowHelpText("The buyer is a cop. Get out of there!", 16000);
                     Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, _buyer.Handle, _cop);
                     Function.Call(Hash.SET_PED_AS_COP, _buyer.Handle, true);
                     _buyer.Task.FightAgainst(Game.Player.Character);
+                    _rainyDay = true;
                     Game.Player.WantedLevel = 4;
-                } else
+                }
+                else
                 {
-                    GTA.UI.Screen.ShowHelpText("The cops were alerted of the deal. Lose them!", 8000);
+                    Screen.ShowHelpText("The cops were alerted of the deal. Lose them!", 16000);
                     _buyer.RelationshipGroup = _hateCops;
                     _buyer.Task.FightAgainstHatedTargets(100);
                     Game.Player.WantedLevel = 3;
                 }
+
+                _rainyDay = true;
                 _objective = 5;
                 _destination = _dropPoint;
-            } else
+            }
+            else
             {
                 Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(-1));
                 Game.Player.Character.Task.LeaveVehicle();
@@ -434,9 +458,8 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
                 _buyer.Task.PerformSequence(sequence);
                 _objective = 4;
             }
-
-            return;
-        } else if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
+        }
+        else if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(-1));
             _routeBlip.Delete();
@@ -445,7 +468,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         }
     }
 
-    void DEL_2()
+    private void DEL_2()
     {
         bool farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
 
@@ -459,7 +482,8 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             Quit();
             return;
         }
-        else if (_car.IsDead)
+
+        if (_car.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", farAway ? "Car abandoned" : "Car Destroyed", 0);
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
@@ -467,7 +491,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             return;
         }
 
-        GTA.UI.Screen.ShowSubtitle("Lose the cops.", 1000);
+        Screen.ShowSubtitle("Lose the cops.", 1000);
 
         if (Game.Player.WantedLevel == 0)
         {
@@ -477,52 +501,50 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             return;
         }
 
-        if (Game.Player.Character.IsInRange(_destination, 50))
-        {
-            if (Game.Player.Character.IsInRange(_destination, 20))
-            {
-                Random ran = new Random();
+        if (!Game.Player.Character.IsInRange(_destination, 50)) return;
+        if (!Game.Player.Character.IsInRange(_destination, 20)) return;
+        Random ran = new Random();
 
-                if (ran.Next(0, 101) <= _pChanceH)
-                {
-                    GTA.UI.Screen.ShowHelpText("The buyer is a cop. Get out of there!", 8000);
-                    Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, _buyer.Handle, _cop);
-                    Function.Call(Hash.SET_PED_AS_COP, _buyer.Handle, true);
-                    _buyer.Task.FightAgainst(Game.Player.Character);
-                    Game.Player.WantedLevel = 4;
-                    _objective = 5;
-                    _destination = _dropPoint;
-                } else
-                {
-                    if (!Function.Call<bool>(Hash.ARE_PLAYER_STARS_GREYED_OUT, Game.Player.Handle))
-                    {
-                        _buyer.Task.FleeFrom(_destination);
-                        _destination = _dropPoint;
-                        GTA.UI.Screen.ShowHelpText("Deal canceled. Buyer was scared.", 8000);
-                        _objective = 5;
-                    }
-                    else
-                    {
-                        Game.Player.Character.Task.LeaveVehicle();
-                        _car.Velocity = Vector3.Zero;
-                        _car.LockStatus = VehicleLockStatus.PlayerCannotEnter;
-                        _bag.AddBlip();
-                        _bag.AttachedBlip.Scale = 0.75f;
-                        _bag.AttachedBlip.Color = BlipColor.Green;
-                        _bag.AttachedBlip.Name = "Money";
-                        Wait(1000);
-                        TaskSequence sequence = new TaskSequence();
-                        sequence.AddTask.ClearAllImmediately();
-                        sequence.AddTask.CruiseWithVehicle(_car, 50, DrivingStyle.Rushed);
-                        _buyer.Task.PerformSequence(sequence);
-                        _objective = 4;
-                    }
-                }
+        if (ran.Next(0, 101) <= DeliverySaving.PoliceChanceHigh)
+        {
+            Screen.ShowHelpText("The buyer is a cop. Get out of there!", 16000);
+            Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, _buyer.Handle, _cop);
+            Function.Call(Hash.SET_PED_AS_COP, _buyer.Handle, true);
+            _buyer.Task.FightAgainst(Game.Player.Character);
+            Game.Player.WantedLevel = 4;
+            _rainyDay = true;
+            _objective = 5;
+            _destination = _dropPoint;
+        }
+        else
+        {
+            if (!Function.Call<bool>(Hash.ARE_PLAYER_STARS_GREYED_OUT, Game.Player.Handle))
+            {
+                _buyer.Task.FleeFrom(_destination);
+                _destination = _dropPoint;
+                Screen.ShowHelpText("Deal canceled. Buyer was scared.", 16000);
+                _objective = 5;
+            }
+            else
+            {
+                Game.Player.Character.Task.LeaveVehicle();
+                _car.Velocity = Vector3.Zero;
+                _car.LockStatus = VehicleLockStatus.PlayerCannotEnter;
+                _bag.AddBlip();
+                _bag.AttachedBlip.Scale = 0.75f;
+                _bag.AttachedBlip.Color = BlipColor.Green;
+                _bag.AttachedBlip.Name = "Money";
+                Wait(1000);
+                TaskSequence sequence = new TaskSequence();
+                sequence.AddTask.ClearAllImmediately();
+                sequence.AddTask.CruiseWithVehicle(_car, 50, DrivingStyle.Rushed);
+                _buyer.Task.PerformSequence(sequence);
+                _objective = 4;
             }
         }
     }
 
-    void DEL_3()
+    private void DEL_3()
     {
         if (_buyer.IsDead)
         {
@@ -531,13 +553,16 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             Quit();
             return;
         }
-        else if (_car.IsDead)
+
+        if (_car.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Car Destroyed", 0);
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
             Quit();
             return;
-        } else if (Game.Player.WantedLevel > 0)
+        }
+
+        if (Game.Player.WantedLevel > 0)
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
             _car.AttachedBlip.Delete();
@@ -545,7 +570,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             return;
         }
 
-        GTA.UI.Screen.ShowSubtitle("Go back to the ~g~car.", 1000);
+        Screen.ShowSubtitle("Go back to the ~g~car.", 1000);
 
         if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
             return;
@@ -560,9 +585,9 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         _objective = 1;
     }
 
-    void DEL_4()
+    private void DEL_4()
     {
-        GTA.UI.Screen.ShowSubtitle("Take the ~g~money~w~ and leave the area.", 1000);
+        Screen.ShowSubtitle("Take the ~g~money~w~ and leave the area.", 1000);
         bool buyerLeft = !_buyer.IsInRange(_destination, 50) || !_buyer.IsInRange(Game.Player.Character.Position, 50);
 
         if (_bagTaken && buyerLeft)
@@ -572,7 +597,8 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             _destination = _dropPoint;
             CreateDestinationBlip(1);
             _objective = 8;
-        } else if (_bagTaken && !buyerLeft && _buyer.IsDead)
+        }
+        else if (_bagTaken && !buyerLeft && _buyer.IsDead)
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
             _car.LockStatus = VehicleLockStatus.None;
@@ -581,19 +607,16 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             _objective = 6;
         }
 
-        if (!_fighting)
-        {
-            if (Game.Player.Character.IsTryingToEnterALockedVehicle && Game.Player.Character.VehicleTryingToEnter == _car)
-            {
-                _fighting = true;
-                _buyer.Task.ClearAllImmediately();
-                _buyer.Task.FightAgainst(Game.Player.Character);
-                Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(2));
-            }
-        }
+        if (_fighting) return;
+        if (!Game.Player.Character.IsTryingToEnterALockedVehicle ||
+            Game.Player.Character.VehicleTryingToEnter != _car) return;
+        _fighting = true;
+        _buyer.Task.ClearAllImmediately();
+        _buyer.Task.FightAgainst(Game.Player.Character);
+        Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(2));
     }
 
-    void DEL_5()
+    private void DEL_5()
     {
         bool farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
 
@@ -618,17 +641,15 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             return;
         }
 
-        GTA.UI.Screen.ShowSubtitle("Lose the cops.", 1000);
+        Screen.ShowSubtitle("Lose the cops.", 1000);
 
-        if (Game.Player.WantedLevel == 0)
-        {
-            Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(1));
-            CreateCarBlip();
-            _objective = 6;
-        }
+        if (Game.Player.WantedLevel != 0) return;
+        Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(1));
+        CreateCarBlip();
+        _objective = 6;
     }
 
-    void DEL_6()
+    private void DEL_6()
     {
         bool farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
 
@@ -651,14 +672,16 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             }
 
             return;
-        } else if (Game.Player.WantedLevel > 0)
+        }
+
+        if (Game.Player.WantedLevel > 0)
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
             _objective = 5;
             return;
         }
 
-        GTA.UI.Screen.ShowSubtitle("Go back to the ~g~car.", 1000);
+        Screen.ShowSubtitle("Go back to the ~g~car.", 1000);
 
         if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
             return;
@@ -673,7 +696,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         _objective = 7;
     }
 
-    void DEL_7()
+    private void DEL_7()
     {
         if (_car.IsDead)
         {
@@ -692,7 +715,8 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
 
             return;
         }
-        else if (Game.Player.WantedLevel > 0)
+
+        if (Game.Player.WantedLevel > 0)
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
             _routeBlip.Delete();
@@ -700,9 +724,9 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             return;
         }
 
-        GTA.UI.Screen.ShowSubtitle("Take the car to the ~y~drop point.", 1000);
+        Screen.ShowSubtitle("Take the car to the ~y~drop point.", 1000);
         Function.Call(Hash.DRAW_MARKER, 1, _destination.X, _destination.Y, _destination.Z, 0, 0, 0, 0, 0,
-                            0, 5f, 5f, 2f, 255, 255, 0, 100, false, false, 2, false, false, false);
+            0, 5f, 5f, 2f, 255, 255, 0, 100, false, false, 2, false, false, false);
 
         if (_car.IsInRange(_destination, 5))
         {
@@ -710,7 +734,8 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             Game.Player.Character.Task.LeaveVehicle();
             _car.LockStatus = VehicleLockStatus.PlayerCannotEnter;
             Complete(0);
-        } else if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
+        }
+        else if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(-1));
             _routeBlip.Delete();
@@ -719,7 +744,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         }
     }
 
-    void DEL_8()
+    private void DEL_8()
     {
         if (Game.Player.WantedLevel > 0)
         {
@@ -732,17 +757,17 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             return;
         }
 
-        GTA.UI.Screen.ShowSubtitle("Deliver the money to Jacob.");
+        Screen.ShowSubtitle("Deliver the money to Jacob.");
         Function.Call(Hash.DRAW_MARKER, 1, _destination.X, _destination.Y, _destination.Z, 0, 0, 0, 0, 0,
-                           0, 5f, 5f, 2f, 255, 255, 0, 100, false, false, 2, false, false, false);
+            0, 5f, 5f, 2f, 255, 255, 0, 100, false, false, 2, false, false, false);
 
         if (Game.Player.Character.IsInRange(_destination, 5) && !Game.Player.Character.IsInVehicle())
             Complete(0);
     }
 
-    void DEL_9()
+    private void DEL_9()
     {
-        GTA.UI.Screen.ShowSubtitle("Lose the cops.");
+        Screen.ShowSubtitle("Lose the cops.");
 
         if (Game.Player.WantedLevel == 0)
         {
@@ -752,26 +777,34 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         }
     }
 
-    void ToggleMusicInterrup(bool value)
+    private void ToggleMusicInterrup(bool value)
     {
         Function.Call(Hash.SET_AUDIO_FLAG, "DisableFlightMusic", value);
         Function.Call(Hash.SET_AUDIO_FLAG, "WantedMusicDisabled", value);
     }
 
-    void Complete(int bonus)
+    private void Complete(int bonus)
     {
         OnDeliveryCompleted?.Invoke(this, EventArgs.Empty);
 
         if (_bagTaken && _carRecovered)
         {
             float multiplier = _health / 10 * 0.01f;
-            int carBonus = (int)(80000 * multiplier);
+            int carBonus = (int) (80000 * multiplier);
             Game.Player.Money += _lockedAt + carBonus;
-        } else
+
+            if (!_rainyDay && !_badDeal)
+                DeliverySaving.BadDeal();
+        }
+        else
         {
             Game.Player.Money += _lockedAt;
+            
+            if (!_rainyDay && !_badDeal)
+                DeliverySaving.GoodDeal();
         }
-
+        
+        DeliverySaving.Save();
         Main.ShowScaleform("~g~Delivery Completed", "", 0);
         Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
         Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Mission_Pass_Notify", "DLC_HEISTS_GENERAL_FRONTEND_SOUNDS", true);
@@ -782,7 +815,7 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         Tick -= DeliveryMain_Tick;
     }
 
-    void Quit()
+    private void Quit()
     {
         Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(5));
         ToggleMusicInterrup(false);
@@ -792,8 +825,10 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         Tick -= DeliveryMain_Tick;
     }
 
-    void Clean()
+    private void Clean()
     {
+        _rainyDay = false;
+        _badDeal = false;
         if (_car != null && _car.Handle != 0)
             _car.MarkAsNoLongerNeeded();
 
@@ -806,15 +841,14 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
         if (_bag != null && _bag.Handle != 0)
             _bag.Delete();
     }
-    
-    string ColorModifier(int value, int baseVal)
+
+    private string ColorModifier(int value, int baseVal)
     {
         if (value >= baseVal / 3 * 2)
             return "~g~";
-        else if (value >= baseVal / 3)
+        if (value >= baseVal / 3)
             return "~y~";
-        else
-            return "~r~";
+        return "~r~";
     }
 
     private void DeliveryMain_Tick(object sender, EventArgs e)
@@ -824,7 +858,8 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
 
         if (!Main.ScaleformActive && _objective == -1)
         {
-            GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Delivery", "Ok, rasta. Just get the ~g~car~w~ and deliver it to the ~y~buyer~w~. The ~y~buyer~w~ is waiting so you better hurry.");
+            Notification.Show(NotificationIcon.Default, "Little Jacob", "Delivery",
+                "Ok, rasta. Just get the ~g~car~w~ and deliver it to the ~y~buyer~w~. The ~y~buyer~w~ is waiting so you better hurry.");
             _objective = 0;
             return;
         }
@@ -837,10 +872,10 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
 
         if (_routeBlip != null && _routeBlip.Handle != 0)
         {
-            if (Game.GameTime - _blipST >= 2000)
+            if (Game.GameTime - _blipSt >= 2000)
             {
                 _routeBlip.ShowRoute = true;
-                _blipST = Game.GameTime;
+                _blipSt = Game.GameTime;
             }
         }
 
@@ -854,17 +889,18 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
             if (!_bagTaken)
             {
                 float multiplier = _health / 10 * 0.01f;
-                _lockedAt = (int)(80000 * multiplier);
+                _lockedAt = (int) (80000 * multiplier);
 
                 if (Game.Player.Character.IsInRange(_bag.Position, 1.25f) && !Game.Player.Character.IsInVehicle())
                 {
-                    GTA.UI.Screen.ShowHelpTextThisFrame("Press ~INPUT_CONTEXT~ to pick up the ~g~money.", false);
+                    Screen.ShowHelpTextThisFrame("Press ~INPUT_CONTEXT~ to pick up the ~g~money.", false);
 
                     if (Function.Call<bool>(Hash.IS_CONTROL_JUST_PRESSED, 0, 51))
                     {
                         Game.Player.Character.Task.PlayAnimation("pickup_object", "pickup_low");
                         Wait(1000);
-                        Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Bus_Schedule_Pickup", "DLC_PRISON_BREAK_HEIST_SOUNDS", false);
+                        Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Bus_Schedule_Pickup",
+                            "DLC_PRISON_BREAK_HEIST_SOUNDS", false);
                         _bag.Delete();
                         _bagTaken = true;
 
@@ -873,25 +909,27 @@ private void DeliveryMain_Aborted(object sender, EventArgs e)
                     }
                 }
 
-                DrawBadge($"{mod}REWARD", $"{mod}${_lockedAt}", mod == "~r~", 0);
-            } else
+                DrawBadge($"{mod}REWARD", $"{mod}${_lockedAt.ToString()}", mod == "~r~", 0);
+            }
+            else
             {
                 if (_carRecovered)
                 {
                     float multiplier = _health / 10 * 0.01f;
-                    int carBonus = (int)(80000 * multiplier);
+                    int carBonus = (int) (80000 * multiplier);
                     mod = ColorModifier(_lockedAt + carBonus, 160000);
-                    DrawBadge($"{mod}REWARD", $"{mod}${_lockedAt + carBonus}", mod == "~r~", 0);
-                } else
+                    DrawBadge($"{mod}REWARD", $"{mod}${(_lockedAt + carBonus).ToString()}", mod == "~r~", 0);
+                }
+                else
                 {
-                    DrawBadge($"{mod}REWARD", $"{mod}${_lockedAt}", mod == "~r~", 0);
+                    DrawBadge($"{mod}REWARD", $"{mod}${_lockedAt.ToString()}", mod == "~r~", 0);
                 }
             }
 
             if (_objective < 4)
             {
                 int remaining = _travelTime - (Game.GameTime - _travelStartTime);
-                
+
                 if (Game.GameTime - _travelStartTime >= _travelTime)
                 {
                     Main.ShowScaleform("~r~Delivery Failed", "The buyer left.", 0);

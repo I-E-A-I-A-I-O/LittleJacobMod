@@ -7,15 +7,16 @@ using LittleJacobMod.Saving;
 
 namespace LittleJacobMod.Interface
 {
-    struct ItemData
+    internal struct ItemData
     {
-        public int price;
-        public NativeItem item;
+        public int Price;
+        public NativeItem Item;
         public uint Hash;
     }
-    class SubMenuData
+
+    internal class SubMenuData
     {
-        public uint Weapon;
+        private readonly uint _weapon;
         public List<ItemData> TintItems { get; } = new List<ItemData>();
         public List<ItemData> CamoColorItems { get; } = new List<ItemData>();
         public List<ItemData> CamoItems { get; } = new List<ItemData>();
@@ -29,7 +30,7 @@ namespace LittleJacobMod.Interface
 
         public SubMenuData(uint weapon)
         {
-            Weapon = weapon;
+            _weapon = weapon;
         }
 
         public void ClearLists()
@@ -46,7 +47,7 @@ namespace LittleJacobMod.Interface
             VarmodItems.Clear();
         }
 
-        void Restart(List<ItemData> items, string text)
+        private static void Restart(IReadOnlyCollection<ItemData> items, string text)
         {
             for (int i = 0; i < items.Count; i++)
             {
@@ -54,34 +55,32 @@ namespace LittleJacobMod.Interface
 
                 if (i == 0)
                 {
-                    data.item.Enabled = false;
-                    data.item.Description = $"Current {text}";
+                    data.Item.Enabled = false;
+                    data.Item.Description = $"Current {text}";
                     continue;
                 }
 
-                data.item.Enabled = true;
-                data.item.Description = $"Price: ${data.price}";
+                data.Item.Enabled = true;
+                data.Item.Description = $"Price: ${data.Price.ToString()}";
             }
         }
 
-        public void SetIndex(List<ItemData> items, string text, int index)
+        public static void SetIndex(List<ItemData> items, string text, int index)
         {
-            if (index != -1)
+            if (index == -1) return;
+            for (int i = 0; i < items.Count; i++)
             {
-                for (int i = 0; i < items.Count; i++)
-                {
-                    ItemData data = items.ElementAt(i);
+                ItemData data = items.ElementAt(i);
 
-                    if (i != index && !data.item.Enabled)
-                    {
-                        data.item.Enabled = true;
-                        data.item.Description = $"Price: ${data.price}";
-                    }
-                    else if (i == index)
-                    {
-                        data.item.Enabled = false;
-                        data.item.Description = $"Current {text}";
-                    }
+                if (i != index && !data.Item.Enabled)
+                {
+                    data.Item.Enabled = true;
+                    data.Item.Description = $"Price: ${data.Price.ToString()}";
+                }
+                else if (i == index)
+                {
+                    data.Item.Enabled = false;
+                    data.Item.Description = $"Current {text}";
                 }
             }
         }
@@ -103,7 +102,7 @@ namespace LittleJacobMod.Interface
         public void LoadAttachments()
         {
             RestartLists();
-            Saving.Utils.StoredWeapon storeRef = LoadoutSaving.GetStoreReference(Weapon);
+            var storeRef = LoadoutSaving.GetStoreReference(_weapon);
 
             if (storeRef == null)
             {
@@ -162,7 +161,7 @@ namespace LittleJacobMod.Interface
                 SetIndex(CamoColorItems, "Livery Color", index);
             }
 
-            if (VarmodItems.Count > 0)
+            if (VarmodItems.Count <= 0) return;
             {
                 index = VarmodItems.FindIndex((it) => it.Hash == storeRef.Varmod);
                 SetIndex(VarmodItems, "Finish", index);

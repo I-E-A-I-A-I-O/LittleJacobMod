@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using GTA;
 using GTA.Native;
 using GTA.Math;
 using LittleJacobMod.Saving;
 using LittleJacobMod.Utils;
 
-class MapperMain : Script
+internal class MapperMain : Script
 {
-    Vector3 _gunRange1 = new Vector3(9.053967f, -1097.277f, 28.79702f);
-    Vector3 _gunRange2 = new Vector3(826.2507f, -2162.014f, 28.61901f);
-    bool SaveTriggered;
-    bool MissionFlag;
-    bool updating;
+    private readonly Vector3 _gunRange1 = new Vector3(9.053967f, -1097.277f, 28.79702f);
+    private readonly Vector3 _gunRange2 = new Vector3(826.2507f, -2162.014f, 28.61901f);
+    private bool _saveTriggered;
+    private bool _missionFlag;
+    private bool _updating;
     public static uint CurrentPed;
 
     public MapperMain()
@@ -44,6 +43,7 @@ class MapperMain : Script
         LoadoutSaving.PerformLoad(!firstStart);
         HelmetState.Load(!firstStart);
         MissionSaving.Load(!firstStart);
+        DeliverySaving.Load(!firstStart);
         Tick += ModelWatcher;
         Tick += AutoSaveWatch;
     }
@@ -61,66 +61,73 @@ class MapperMain : Script
         return Game.Player.Character.IsInRange(_gunRange1, 12) || Game.Player.Character.IsInRange(_gunRange2, 12);
     }
 
-    void AutoSaveWatch(object o, EventArgs e)
+    private void AutoSaveWatch(object o, EventArgs e)
     {
         bool atRange = IsPlayerAtGunRange();
 
-        if (!Function.Call<bool>(Hash.GET_MISSION_FLAG) && MissionFlag && !atRange)
+        if (!Function.Call<bool>(Hash.GET_MISSION_FLAG) && _missionFlag && !atRange)
         {
             LoadoutSaving.PerformLoad();
-            MissionFlag = false;
+            _missionFlag = false;
         }
         else if (Function.Call<bool>(Hash.GET_MISSION_FLAG) || atRange)
         {
-            if (!MissionFlag)
+            if (!_missionFlag)
             {
-                MissionFlag = true;
+                _missionFlag = true;
             }
             return;
         }
 
         if (Function.Call<bool>(Hash.IS_AUTO_SAVE_IN_PROGRESS))
         {
-            if (!SaveTriggered)
+            if (!_saveTriggered)
             {
                 LoadoutSaving.PerformSave(CurrentPed);
-                SaveTriggered = true;
+                _saveTriggered = true;
             }
             return;
         }
 
-        if (SaveTriggered)
+        if (_saveTriggered)
         {
-            SaveTriggered = false;
+            _saveTriggered = false;
         }
 
-        if (!Main.JacobActive)
+        if (Main.JacobActive) return;
+        if (!LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
         {
-            if (!LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
-            {
-                LoadoutSaving.UpdateWeaponMap(updating);
-            }
+            LoadoutSaving.UpdateWeaponMap(_updating);
+        }
 
-            if (Timers.AutoSaveTimer() && !LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
-            {
-                LoadoutSaving.PerformSave(CurrentPed);
-            }
+        if (Timers.AutoSaveTimer() && !LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
+        {
+            LoadoutSaving.PerformSave(CurrentPed);
         }
     }
 
-    void ModelWatcher(object o, EventArgs e)
+    private void ModelWatcher(object o, EventArgs e)
     {
-        if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, CurrentPed) || MissionFlag)
+        if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, CurrentPed) || _missionFlag)
         {
             return;
         }
 
-        updating = true;
+        var newModel = Function.Call<uint>(Hash.GET_ENTITY_MODEL, Main.PPID);
+        if (CurrentPed == newModel)
+        {
+            GTA.UI.Screen.ShowHelpTextThisFrame("Little Jacob Mod: Infinite loop detected.\n" +
+                                                "If you're using 'Character Swap', reset the model hashes" +
+                                                " to solve the issue.", false);
+            return;
+        }
+
+        _updating = true;
         Game.IsNightVisionActive = false;
         Game.IsThermalVisionActive = false;
         LoadoutSaving.PerformSave(CurrentPed);
-        CurrentPed = Function.Call<uint>(Hash.GET_ENTITY_MODEL, Main.PPID);
+        CurrentPed = newModel;
         LoadoutSaving.PerformLoad();
-        updating = false;
+        _updating = false;
     }
 }

@@ -7,10 +7,10 @@ namespace LittleJacobMod.Utils
 {
     public class LittleJacob
     {
-        Vehicle vehicle;
-        Ped jacob;
-        JacobSpawnpoint jacobSpawnpoint;
-        bool spawned, left;
+        private Vehicle vehicle;
+        private Ped jacob;
+        private JacobSpawnpoint jacobSpawnpoint;
+        private bool spawned, left;
         public bool Spawned => spawned;
         public bool Left => left;
         public Blip Blip { get; }

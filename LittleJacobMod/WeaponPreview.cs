@@ -6,23 +6,23 @@ using LittleJacobMod.Saving;
 using LittleJacobMod.Interface;
 using LittleJacobMod.Utils;
 
-class WeaponPreview : Script
+internal class WeaponPreview : Script
 {
-    Prop _weaponHandle;
-    bool _doComponentReload;
-    bool _doObjectSpawn;
-    bool _doComponentChange;
-    bool _compFromStorage;
-    uint _hash = 0;
-    uint _new = (uint)WeaponComponentHash.Invalid;
-    float currentTime;
-    float oldTime;
-    Vector3 _rotation;
-    ComponentIndex _skipIndex;
-    Controls _yawRight;
-    Controls _yawLeft;
-    Controls _pitchUp;
-    Controls _pitchDown;
+    private Prop _weaponHandle;
+    private bool _doComponentReload;
+    private bool _doObjectSpawn;
+    private bool _doComponentChange;
+    private bool _compFromStorage;
+    private uint _hash;
+    private uint _new = (uint)WeaponComponentHash.Invalid;
+    private float _currentTime;
+    private float _oldTime;
+    private Vector3 _rotation;
+    private ComponentIndex _skipIndex;
+    private readonly Controls _yawRight;
+    private readonly Controls _yawLeft;
+    private readonly Controls _pitchUp;
+    private readonly Controls _pitchDown;
 
     public WeaponPreview()
     {
@@ -43,9 +43,9 @@ class WeaponPreview : Script
 
     private void WeaponPreview_Tick(object sender, EventArgs e)
     {
-        oldTime = currentTime;
-        currentTime = Game.GameTime;
-        float deltaTime = currentTime - oldTime;
+        _oldTime = _currentTime;
+        _currentTime = Game.GameTime;
+        float deltaTime = _currentTime - _oldTime;
 
         if (_doComponentReload)
         {
@@ -84,7 +84,7 @@ class WeaponPreview : Script
         if (Game.LastInputMethod != InputMethod.MouseAndKeyboard)
             return;
 
-        if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, _yawLeft))
+        if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, (int)_yawLeft))
         {
             float y = _weaponHandle.Rotation.Y;
             y -= 1.0f * 0.05f * deltaTime;
@@ -92,7 +92,7 @@ class WeaponPreview : Script
             _weaponHandle.Rotation = _rotation;
         }
 
-        if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, _yawRight))
+        if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, (int)_yawRight))
         {
             float y = _weaponHandle.Rotation.Y;
             y += 1.0f * 0.05f * deltaTime;
@@ -100,7 +100,7 @@ class WeaponPreview : Script
             _weaponHandle.Rotation = _rotation;
         }
 
-        if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, _pitchUp))
+        if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, (int)_pitchUp))
         {
             float x = _weaponHandle.Rotation.X;
             x -= 1.0f * 0.05f * deltaTime;
@@ -108,7 +108,7 @@ class WeaponPreview : Script
             _weaponHandle.Rotation = _rotation;
         }
 
-        if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, _pitchDown))
+        if (!Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, (int) _pitchDown)) return;
         {
             float x = _weaponHandle.Rotation.X;
             x += 1.0f * 0.05f * deltaTime;
@@ -144,61 +144,59 @@ class WeaponPreview : Script
 
     private void LoadAttachments(uint hash, bool luxOn)
     {
-        if (LoadoutSaving.IsWeaponInStore(hash))
+        if (!LoadoutSaving.IsWeaponInStore(hash)) return;
+        var storedWeapon = LoadoutSaving.GetStoreReference(hash);
+
+        if (SkipComponent(storedWeapon.Varmod, ComponentIndex.Varmod))
         {
-            var storedWeapon = LoadoutSaving.GetStoreReference(hash);
+            if (!luxOn)
+                GiveWeaponComponentToObject(storedWeapon.Varmod, false);
+        }
 
-            if (SkipComponent(storedWeapon.Varmod, ComponentIndex.Varmod))
+        if (SkipComponent(storedWeapon.Camo, ComponentIndex.Livery))
+        {
+            GiveWeaponComponentToObject(storedWeapon.Camo, true);
+            uint slide = TintsAndCamos.ReturnSlide(storedWeapon.Camo);
+
+            if (slide != (uint)WeaponComponentHash.Invalid)
             {
-                if (!luxOn)
-                    GiveWeaponComponentToObject(storedWeapon.Varmod, false);
+                GiveWeaponComponentToObject(slide, true);
+                Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, slide, storedWeapon.GetCamoColor());
             }
 
-            if (SkipComponent(storedWeapon.Camo, ComponentIndex.Livery))
-            {
-                GiveWeaponComponentToObject(storedWeapon.Camo, true);
-                uint slide = TintsAndCamos.ReturnSlide(storedWeapon.Camo);
+            Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo, storedWeapon.GetCamoColor());
+        }
 
-                if (slide != (uint)WeaponComponentHash.Invalid)
-                {
-                    GiveWeaponComponentToObject(slide, true);
-                    Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, slide, storedWeapon.GetCamoColor());
-                }
+        Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, _weaponHandle.Handle, storedWeapon.GetTintIndex());
 
-                Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo, storedWeapon.GetCamoColor());
-            }
+        if (SkipComponent(storedWeapon.Barrel, ComponentIndex.Barrel))
+        {
+            GiveWeaponComponentToObject(storedWeapon.Barrel, true);
+        }
 
-            Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, _weaponHandle.Handle, storedWeapon.GetTintIndex());
+        if (SkipComponent(storedWeapon.Clip, ComponentIndex.Clip))
+        {
+            GiveWeaponComponentToObject(storedWeapon.Clip, true);
+        }
 
-            if (SkipComponent(storedWeapon.Barrel, ComponentIndex.Barrel))
-            {
-                GiveWeaponComponentToObject(storedWeapon.Barrel, true);
-            }
+        if (SkipComponent(storedWeapon.Flashlight, ComponentIndex.Flashlight))
+        {
+            GiveWeaponComponentToObject(storedWeapon.Flashlight, true);
+        }
 
-            if (SkipComponent(storedWeapon.Clip, ComponentIndex.Clip))
-            {
-                GiveWeaponComponentToObject(storedWeapon.Clip, true);
-            }
+        if (SkipComponent(storedWeapon.Grip, ComponentIndex.Grip))
+        {
+            GiveWeaponComponentToObject(storedWeapon.Grip, true);
+        }
 
-            if (SkipComponent(storedWeapon.Flashlight, ComponentIndex.Flashlight))
-            {
-                GiveWeaponComponentToObject(storedWeapon.Flashlight, true);
-            }
+        if (SkipComponent(storedWeapon.Scope, ComponentIndex.Scope))
+        {
+            GiveWeaponComponentToObject(storedWeapon.Scope, true);
+        }
 
-            if (SkipComponent(storedWeapon.Grip, ComponentIndex.Grip))
-            {
-                GiveWeaponComponentToObject(storedWeapon.Grip, true);
-            }
-
-            if (SkipComponent(storedWeapon.Scope, ComponentIndex.Scope))
-            {
-                GiveWeaponComponentToObject(storedWeapon.Scope, true);
-            }
-
-            if (SkipComponent(storedWeapon.Muzzle, ComponentIndex.Muzzle))
-            {
-                GiveWeaponComponentToObject(storedWeapon.Muzzle, true);
-            }
+        if (SkipComponent(storedWeapon.Muzzle, ComponentIndex.Muzzle))
+        {
+            GiveWeaponComponentToObject(storedWeapon.Muzzle, true);
         }
     }
 
@@ -219,8 +217,8 @@ class WeaponPreview : Script
 
     private void SpawnWeaponObject(uint hash, bool luxe, uint luxeHash)
     {
-        bool luxOn = false;
-        int luxModel = 0;
+        var luxOn = false;
+        var luxModel = 0;
         DeleteWeaponObject();
         Function.Call(Hash.REQUEST_WEAPON_ASSET, hash, 31, 0);
 
@@ -260,28 +258,25 @@ class WeaponPreview : Script
         _hash = component.WeaponHash;
     }
 
-    int LoadComponentModel(uint component)
+    private int LoadComponentModel(uint component)
     {
         int componentModel = Function.Call<int>(Hash.GET_WEAPON_COMPONENT_TYPE_MODEL, component);
 
-        if (componentModel != 0)
+        if (componentModel == 0) return 0;
+        Function.Call(Hash.REQUEST_MODEL, componentModel);
+
+        while (!Function.Call<bool>(Hash.HAS_MODEL_LOADED, componentModel))
         {
-            Function.Call(Hash.REQUEST_MODEL, componentModel);
-
-            while (!Function.Call<bool>(Hash.HAS_MODEL_LOADED, componentModel))
-            {
-                Wait(1);
-            }
-
-            return componentModel;
+            Wait(1);
         }
 
-        return 0;
+        return componentModel;
+
     }
 
     private void GiveWeaponComponentToObject(uint component, bool force)
     {
-        bool isLuxe = _skipIndex == ComponentIndex.Varmod && component != (uint)WeaponComponentHash.Invalid;
+        var isLuxe = _skipIndex == ComponentIndex.Varmod && component != (uint)WeaponComponentHash.Invalid;
 
         if (!force && (component == (uint)WeaponComponentHash.Invalid || isLuxe))
         {
@@ -289,22 +284,20 @@ class WeaponPreview : Script
             return;
         }
 
-        int componentModel = Function.Call<int>(Hash.GET_WEAPON_COMPONENT_TYPE_MODEL, component);
-        if (componentModel != 0)
+        var componentModel = Function.Call<int>(Hash.GET_WEAPON_COMPONENT_TYPE_MODEL, component);
+        if (componentModel == 0) return;
+        Function.Call(Hash.REQUEST_MODEL, componentModel);
+
+        while (!Function.Call<bool>(Hash.HAS_MODEL_LOADED, componentModel))
         {
-            Function.Call(Hash.REQUEST_MODEL, componentModel);
-
-            while (!Function.Call<bool>(Hash.HAS_MODEL_LOADED, componentModel))
-            {
-                Wait(1);
-            }
-
-            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_WEAPON_OBJECT, _weaponHandle.Handle, component);
-            Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, componentModel);
+            Wait(1);
         }
+
+        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_WEAPON_OBJECT, _weaponHandle.Handle, component);
+        Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, componentModel);
     }
 
-    public void DeleteWeaponObject()
+    private void DeleteWeaponObject()
     {
         if (_weaponHandle != null && _weaponHandle.Handle != 0)
         {

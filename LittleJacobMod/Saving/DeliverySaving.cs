@@ -4,19 +4,39 @@ using GTA;
 
 namespace LittleJacobMod.Saving
 {
-    public struct MissionSaving
+    public struct DeliverySaving
     {
-        public static int MProgress = 1;
-        public static int FProgress = 1;
-        public static bool TUnlocked;
+        public static int PoliceChanceHigh = 30;
+        public static int PoliceChanceLow = 8;
+        public static int BadDealChance = 5;
 
+        public static void GoodDeal()
+        {
+            if (PoliceChanceHigh > 30)
+                PoliceChanceHigh -= 1;
+            if (PoliceChanceLow > 8)
+                PoliceChanceLow -= 1;
+            if (BadDealChance > 5)
+                BadDealChance -= 1;
+        }
+
+        public static void BadDeal()
+        {
+            if (PoliceChanceHigh < 60)
+                PoliceChanceHigh += 1;
+            if (PoliceChanceLow < 30)
+                PoliceChanceLow += 1;
+            if (BadDealChance < 30)
+                BadDealChance += 2;
+        }
+        
         public static void Save()
         {
-            GTA.UI.LoadingPrompt.Show("Saving mission progress...");
+            GTA.UI.LoadingPrompt.Show("Saving delivery data...");
             try
             {
                 string dir = Directory.GetCurrentDirectory();
-                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\missions.data";
+                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\delivery.data";
 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Missions"))
                 {
@@ -30,14 +50,14 @@ namespace LittleJacobMod.Saving
 
                 using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
                 {
-                    writer.Write(MProgress);
-                    writer.Write(FProgress);
-                    writer.Write(TUnlocked);
+                    writer.Write(PoliceChanceHigh);
+                    writer.Write(PoliceChanceLow);
+                    writer.Write(BadDealChance);
                 }
             }
             catch (Exception)
             {
-                GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error saving mission progress!");
+                GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error saving delivery data!");
             }
             finally
             {
@@ -50,13 +70,13 @@ namespace LittleJacobMod.Saving
         {
             if (!constructor)
             {
-                GTA.UI.LoadingPrompt.Show("Loading mission progress...");
+                GTA.UI.LoadingPrompt.Show("Loading delivery data...");
             }
 
             try
             {
                 string dir = Directory.GetCurrentDirectory();
-                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\missions.data";
+                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\delivery.data";
 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Missions") || !File.Exists(filePath))
                 {
@@ -65,14 +85,14 @@ namespace LittleJacobMod.Saving
 
                 using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
                 {
-                    MProgress = reader.ReadInt32();
-                    FProgress = reader.ReadInt32();
-                    TUnlocked = reader.ReadBoolean();
+                    PoliceChanceHigh = reader.ReadInt32();
+                    PoliceChanceLow = reader.ReadInt32();
+                    BadDealChance = reader.ReadInt32();
                 }
             }
             catch (Exception)
             {
-                GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error loading mission progress!");
+                GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error loading delivery data!");
             }
             finally
             {

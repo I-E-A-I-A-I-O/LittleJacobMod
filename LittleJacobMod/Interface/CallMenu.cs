@@ -12,13 +12,13 @@ namespace LittleJacobMod.Interface
         public static event EventHandler JobSelected;
         public static event EventHandler DeliverySelected;
         public ObjectPool Pool { get; private set; }
-        bool _jobsTimer;
-        bool _deliveryTimer;
-        int _startT;
-        int _startD;
-        NativeItem _jobs;
-        NativeItem _delivery;
-        NativeMenu _mainMenu;
+        private bool _jobsTimer;
+        private bool _deliveryTimer;
+        private int _startT;
+        private int _startD;
+        private NativeItem _jobs;
+        private NativeItem _delivery;
+        private NativeMenu _mainMenu;
         
         public CallMenu()
         {

@@ -6,11 +6,11 @@ namespace LittleJacobMod.Saving.Utils
     internal class StoredWeapon
     {
         public uint WeaponHash { get; }
-        public int Ammo { get; set; } = 0;
+        public int Ammo { get; set; }
         public uint Muzzle { get; set; } = (uint)WeaponComponentHash.Invalid;
         public uint Camo { get; set; } = (uint)WeaponComponentHash.Invalid;
-        public int Tint { get; set; } = 0;
-        public int CamoColor { get; set; } = 0;
+        public int Tint { get; set; }
+        public int CamoColor { get; set; }
         public uint Grip { get; set; } = (uint)WeaponComponentHash.Invalid;
         public uint Clip { get; set; } = (uint)WeaponComponentHash.Invalid;
         public uint Barrel { get; set; } = (uint)WeaponComponentHash.Invalid;

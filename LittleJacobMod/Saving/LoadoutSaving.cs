@@ -9,25 +9,25 @@ namespace LittleJacobMod.Saving
 {
     internal static class LoadoutSaving
     {
-        static readonly List<StoredWeapon> _storedWeapons = new List<StoredWeapon>();
+        private static readonly List<StoredWeapon> StoredWeapons = new List<StoredWeapon>();
         public static bool Busy { get; private set; } = false;
         public static event EventHandler WeaponsLoaded;
 
         public static void UpdateWeaponMap(bool updating)
         {
-            Mapper.Process(_storedWeapons, updating);
+            Mapper.Process(StoredWeapons, updating);
         }
 
         public static int Count()
         {
-            return _storedWeapons.Count;
+            return StoredWeapons.Count;
         }
 
         public static bool IsWeaponInStore(uint weapon)
         {
-            for (int i = 0; i < _storedWeapons.Count; i++)
+            for (int i = 0; i < StoredWeapons.Count; i++)
             {
-                if (_storedWeapons[i].WeaponHash == weapon)
+                if (StoredWeapons[i].WeaponHash == weapon)
                 {
                     return true;
                 }
@@ -37,9 +37,9 @@ namespace LittleJacobMod.Saving
 
         public static void AddWeapon (uint weapon)
         {
-            for(int i = 0; i < _storedWeapons.Count; i++)
+            for (int i = 0; i < StoredWeapons.Count; i++)
             {
-                if (_storedWeapons[i].WeaponHash == weapon)
+                if (StoredWeapons[i].WeaponHash == weapon)
                 {
                     return;
                 }
@@ -50,114 +50,92 @@ namespace LittleJacobMod.Saving
                 Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon)
             };
 
-            _storedWeapons.Add(storedWeapon);
+            StoredWeapons.Add(storedWeapon);
         }
 
         public static void SetAmmo(uint hash, int ammo)
         {
-            for (var i = 0; i < _storedWeapons.Count; i++)
+            for (var i = 0; i < StoredWeapons.Count; i++)
             {
-                if (_storedWeapons[i].WeaponHash == hash)
-                {
-                    _storedWeapons[i].Ammo = ammo;
-                    return;
-                }
-            }
-        }
-
-        public static void UpdateAmmo(uint hash, int ammo)
-        {
-            var playerHandle = Game.Player.Character.Handle;
-            var currentWeaponAmmoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, playerHandle, hash);
-            foreach (StoredWeapon weapon in _storedWeapons)
-            {
-                if (weapon.WeaponHash == hash)
-                {
-                    weapon.Ammo = ammo;
-                } else
-                {
-                    var storedWeaponAmmoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, playerHandle, weapon.WeaponHash);
-                    if (storedWeaponAmmoType == currentWeaponAmmoType)
-                    {
-                        weapon.Ammo = ammo;
-                    }
-                }
+                if (StoredWeapons[i].WeaponHash != hash) continue;
+                StoredWeapons[i].Ammo = ammo;
+                return;
             }
         }
 
         public static void SetClip(uint hash, uint componentHash)
         {
-            StoredWeapon weapon = _storedWeapons.Find((ti) => ti.WeaponHash == hash);
+            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
             if (weapon != null)
                 weapon.Clip = componentHash;
         }
 
         public static void SetVarmod(uint hash, uint varmod)
         {
-            StoredWeapon weapon = _storedWeapons.Find((ti) => ti.WeaponHash == hash);
+            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
             if (weapon != null)
                 weapon.Varmod = varmod;
         }
 
         public static void SetGrip(uint hash, uint componentHash)
         {
-            StoredWeapon weapon = _storedWeapons.Find((ti) => ti.WeaponHash == hash);
+            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
             if (weapon != null)
                 weapon.Grip = componentHash;
         }
 
         public static void SetBarrel(uint hash, uint componentHash)
         {
-            StoredWeapon weapon = _storedWeapons.Find((ti) => ti.WeaponHash == hash);
+            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
             if (weapon != null)
                 weapon.Barrel = componentHash;
         }
 
         public static void SetCamo(uint hash, uint componentHash)
         {
-            StoredWeapon weapon = _storedWeapons.Find((ti) => ti.WeaponHash == hash);
+            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
             if (weapon != null)
                 weapon.Camo = componentHash;
         }
 
         public static void SetTint(uint hash, int tint)
         {
-            StoredWeapon weapon = _storedWeapons.Find((ti) => ti.WeaponHash == hash);
+            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
             if (weapon != null)
                 weapon.Tint = tint;
         }
 
         public static void SetCamoColor(uint hash, int color)
         {
-            StoredWeapon weapon = _storedWeapons.Find((ti) => ti.WeaponHash == hash);
+            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
             if (weapon != null)
                 weapon.CamoColor = color;
         }
 
         public static void SetFlashlight(uint hash, uint flashlight)
         {
-            StoredWeapon weapon = _storedWeapons.Find((ti) => ti.WeaponHash == hash);
+            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
             if (weapon != null)
                 weapon.Flashlight = flashlight;
         }
 
         public static void SetMuzzle(uint hash, uint muzzle)
         {
-            StoredWeapon weapon = _storedWeapons.Find((ti) => ti.WeaponHash == hash);
+            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
             if (weapon != null)
                 weapon.Muzzle = muzzle;
         }
 
         public static void SetScope(uint hash, uint scope)
         {
-            StoredWeapon weapon = _storedWeapons.Find((ti) => ti.WeaponHash == hash);
+            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
             if (weapon != null)
                 weapon.Scope = scope;
         }
 
         public static StoredWeapon GetStoreReference(uint hash)
         {
-            return _storedWeapons.Find((ti) => ti.WeaponHash == hash);
+            return StoredWeapons.Find((ti) => ti.WeaponHash == hash);
         }
 
         public static void PerformSave(uint ped)
@@ -171,7 +149,7 @@ namespace LittleJacobMod.Saving
             try
             {
                 string dir = Directory.GetCurrentDirectory();
-                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{ped}.loadout";
+                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{ped.ToString()}.loadout";
                 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
                 {
@@ -185,8 +163,8 @@ namespace LittleJacobMod.Saving
 
                 using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
                 {
-                    writer.Write(_storedWeapons.Count);
-                    foreach (StoredWeapon weapon in _storedWeapons)
+                    writer.Write(StoredWeapons.Count);
+                    foreach (StoredWeapon weapon in StoredWeapons)
                     {
                         writer.Write(weapon.Ammo);
                         writer.Write(weapon.Barrel);
@@ -213,7 +191,7 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        static void LoadOld(string path, bool constructor, bool weaponsRemoved)
+        private static void LoadOld(string path, bool constructor, bool weaponsRemoved)
         {
             if (!weaponsRemoved && !Main.MissionFlag)
             {
@@ -329,13 +307,13 @@ namespace LittleJacobMod.Saving
 
                     if (loadedAmmoTypes.Contains(ammoType))
                     {
-                        _storedWeapons.Add(storedWeapon);
+                        StoredWeapons.Add(storedWeapon);
                         continue;
                     }
 
                     Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Main.PPID, ammoType, ammo);
                     loadedAmmoTypes.Add(ammoType);
-                    _storedWeapons.Add(storedWeapon);
+                    StoredWeapons.Add(storedWeapon);
                 }
             }
 
@@ -350,7 +328,7 @@ namespace LittleJacobMod.Saving
             WeaponsLoaded?.Invoke(null, EventArgs.Empty);
         }
 
-        static void LoadNew(string path, bool constructor, bool weaponsRemoved)
+        private static void LoadNew(string path, bool constructor, bool weaponsRemoved)
         {
             if (!weaponsRemoved && !Main.MissionFlag)
             {
@@ -466,13 +444,13 @@ namespace LittleJacobMod.Saving
 
                     if (loadedAmmoTypes.Contains(ammoType))
                     {
-                        _storedWeapons.Add(storedWeapon);
+                        StoredWeapons.Add(storedWeapon);
                         continue;
                     }
 
                     Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Main.PPID, ammoType, ammo);
                     loadedAmmoTypes.Add(ammoType);
-                    _storedWeapons.Add(storedWeapon);
+                    StoredWeapons.Add(storedWeapon);
                 }
             }
 
@@ -496,7 +474,7 @@ namespace LittleJacobMod.Saving
             }
 
             Busy = true;
-            _storedWeapons.Clear();
+            StoredWeapons.Clear();
             bool weaponsRemoved = false;
 
             if (!Main.IsMainCharacter())
@@ -506,7 +484,7 @@ namespace LittleJacobMod.Saving
             }
 
             string dir = Directory.GetCurrentDirectory();
-            string filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{MapperMain.CurrentPed}";
+            string filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{MapperMain.CurrentPed.ToString()}";
 
             if (Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
             {
@@ -544,7 +522,7 @@ namespace LittleJacobMod.Saving
             Busy = false;
         }
 
-        static bool TakesCamo(uint weapon)
+        private static bool TakesCamo(uint weapon)
         {
             return weapon == (uint)WeaponHash.AssaultrifleMk2
                 || weapon == (uint)WeaponHash.BullpupRifleMk2
@@ -561,7 +539,7 @@ namespace LittleJacobMod.Saving
                 || weapon == 3347935668;
         }
 
-        public static void RemoveWeapons()
+        private static void RemoveWeapons()
         {
             Game.Player.Character.Weapons.RemoveAll();
         }

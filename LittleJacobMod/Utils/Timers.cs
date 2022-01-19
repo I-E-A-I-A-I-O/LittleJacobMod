@@ -5,12 +5,12 @@ namespace LittleJacobMod.Utils
 {
     internal static class Timers
     {
-        static bool OfferSmokeTimerStarted { get; set; }
-        static int OfferSmokeTimerStart { get; set; }
-        static int OfferSmokeTimerCurrent { get; set; }
-        static bool AutoSaveTimerStarted { get; set; }
-        static int AutoSaveTimerStart { get; set; }
-        static int AutoSaveTimerCurrent { get; set; }
+        private static bool OfferSmokeTimerStarted { get; set; }
+        private static int OfferSmokeTimerStart { get; set; }
+        private static int OfferSmokeTimerCurrent { get; set; }
+        private static bool AutoSaveTimerStarted { get; set; }
+        private static int AutoSaveTimerStart { get; set; }
+        private static int AutoSaveTimerCurrent { get; set; }
 
         public static bool AutoSaveTimer()
         {

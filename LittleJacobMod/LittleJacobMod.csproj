@@ -42,11 +42,13 @@
     <Reference Include="iFruitAddon2">
       <HintPath>..\..\..\..\..\..\Program Files\Epic Games\GTAV\scripts\iFruitAddon2.dll</HintPath>
     </Reference>
-    <Reference Include="LemonUI.SHVDN3, Version=1.6.0.0, Culture=neutral, processorArchitecture=AMD64">
+    <Reference Include="LemonUI.SHVDN3, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\LemonUI.SHVDN3.1.6.0\lib\net48\LemonUI.SHVDN3.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="ScriptHookVDotNet3, Version=3.3.2.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\packages\ScriptHookVDotNet3.3.3.2\lib\net48\ScriptHookVDotNet3.dll</HintPath>
+    <Reference Include="ScriptHookVDotNet3, Version=3.4.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\ScriptHookVDotNet3.3.4.0\lib\net48\ScriptHookVDotNet3.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml.Linq" />
@@ -70,6 +72,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Saving\DeliverySaving.cs" />
     <Compile Include="Saving\HelmetSaving.cs" />
     <Compile Include="Saving\LoadoutSaving.cs" />
     <Compile Include="Saving\Mapper.cs" />
