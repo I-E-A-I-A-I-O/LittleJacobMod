@@ -9,7 +9,11 @@ namespace LittleJacobMod.Saving
         public static int PoliceChanceHigh = 30;
         public static int PoliceChanceLow = 8;
         public static int BadDealChance = 5;
+        public static int StartChaseChance = 5;
         public static int HighSpeedChance = 5;
+        public static int DealCount;
+        public static int BaseChaseChance = 5;
+        public static int BaseHighSpeedChance = 5;
 
         public static void GoodDeal()
         {
@@ -19,8 +23,10 @@ namespace LittleJacobMod.Saving
                 PoliceChanceLow -= 1;
             if (BadDealChance > 5)
                 BadDealChance -= 1;
-            if (HighSpeedChance > 5)
-                HighSpeedChance -= 1;
+            if (StartChaseChance > BaseChaseChance)
+                StartChaseChance -= 1;
+            if (HighSpeedChance < 45)
+                HighSpeedChance += 1;
         }
 
         public static void BadDeal()
@@ -31,8 +37,10 @@ namespace LittleJacobMod.Saving
                 PoliceChanceLow += 1;
             if (BadDealChance < 30)
                 BadDealChance += 2;
-            if (HighSpeedChance < 30)
-                HighSpeedChance += 1;
+            if (StartChaseChance < 40)
+                StartChaseChance += 2;
+            if (HighSpeedChance > BaseHighSpeedChance)
+                HighSpeedChance -= 1;
         }
         
         public static void Save()
@@ -53,13 +61,15 @@ namespace LittleJacobMod.Saving
                     File.Delete(filePath);
                 }
 
-                using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
-                {
-                    writer.Write(PoliceChanceHigh);
-                    writer.Write(PoliceChanceLow);
-                    writer.Write(BadDealChance);
-                    writer.Write(HighSpeedChance);
-                }
+                using BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write));
+                writer.Write(PoliceChanceHigh);
+                writer.Write(PoliceChanceLow);
+                writer.Write(BadDealChance);
+                writer.Write(HighSpeedChance);
+                writer.Write(StartChaseChance);
+                writer.Write(BaseChaseChance);
+                writer.Write(DealCount);
+                writer.Write(BaseHighSpeedChance);
             }
             catch (Exception)
             {
@@ -89,13 +99,15 @@ namespace LittleJacobMod.Saving
                     return;
                 }
 
-                using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
-                {
-                    PoliceChanceHigh = reader.ReadInt32();
-                    PoliceChanceLow = reader.ReadInt32();
-                    BadDealChance = reader.ReadInt32();
-                    HighSpeedChance = reader.ReadInt32();
-                }
+                using BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read));
+                PoliceChanceHigh = reader.ReadInt32();
+                PoliceChanceLow = reader.ReadInt32();
+                BadDealChance = reader.ReadInt32();
+                HighSpeedChance = reader.ReadInt32();
+                StartChaseChance = reader.ReadInt32();
+                BaseChaseChance = reader.ReadInt32();
+                DealCount = reader.ReadInt32();
+                BaseHighSpeedChance = reader.ReadInt32();
             }
             catch (Exception)
             {

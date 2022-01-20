@@ -26,6 +26,7 @@ internal class DeliveryMain : Script
     private readonly RelationshipGroup _hateCops;
     private readonly List<int> _peds = new List<int>();
     private readonly List<int> _vehicles = new List<int>();
+    private int _lastSpawn;
     private int _deathToll;
     private readonly int _hate;
     private readonly int _cop;
@@ -43,12 +44,14 @@ internal class DeliveryMain : Script
     private bool _carRecovered;
     private bool _fighting;
     private bool _highSpeed;
+    private bool _startChase;
     private int _travelTime;
     private int _intensity;
     private bool _badDeal;
     private bool _rainyDay;
     private int _travelStartTime = 1;
-    private int _health;
+    private float _health;
+    private int _baseReward;
     private readonly Vector3 _dropPoint = new Vector3(6.828116f, -1405.562f, 28.26828f);
 
     private readonly Dictionary<int, Vector3> _badgeSlots = new Dictionary<int, Vector3>
@@ -275,11 +278,13 @@ internal class DeliveryMain : Script
             {
                 vHash = (uint) VehicleHash.Buffalo4;
                 _highSpeed = true;
+                _baseReward = 65000;
             }
             else
             {
                 vHash = (uint) VehicleHash.Tornado3;
                 _highSpeed = false;
+                _baseReward = 30000;
             }
             RequestModel(vHash);
             _car = Function.Call<Vehicle>(Hash.CREATE_VEHICLE, vHash, carPoint.X, carPoint.Y,
@@ -335,8 +340,12 @@ internal class DeliveryMain : Script
     
     private void SpawnChaser(float range)
     {
-        if (_deathToll >= 3)
+        if (_deathToll >= 3 || _vehicles.Count >= 3)
             return;
+        
+        if (Game.GameTime - _lastSpawn < 30000)
+            return;
+        
         OutputArgument outPos = new OutputArgument();
         Vector3 arPPos = Game.Player.Character.Position.Around(range);
         bool result = Function.Call<bool>(Hash.GET_CLOSEST_VEHICLE_NODE, arPPos.X, arPPos.Y, arPPos.Z, outPos, 0, 3, 0);
@@ -366,13 +375,14 @@ internal class DeliveryMain : Script
             else
             {
                 Function.Call(Hash.TASK_VEHICLE_SHOOT_AT_PED, ped, Main.PPID, 40f);
-                Function.Call(Hash.SET_PED_ACCURACY, ped, 33);
+                Function.Call(Hash.SET_PED_ACCURACY, ped, 30);
             }
 
             _peds.Add(ped);
         }
 
         _vehicles.Add(v);
+        _lastSpawn = Game.GameTime;
     }
     
     private void RemoveChasers(float distance)
@@ -423,25 +433,21 @@ internal class DeliveryMain : Script
             return;
         }
 
-        if (Game.Player.WantedLevel > 0 && !_pigFlag)
+        switch (Game.Player.WantedLevel)
         {
-            _pigFlag = true;
-            Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
-            _car.AttachedBlip.Delete();
-            return;
-        }
-
-        if (Game.Player.WantedLevel > 0 && _pigFlag)
-        {
-            Screen.ShowSubtitle("Lose the cops.");
-            return;
-        }
-
-        if (Game.Player.WantedLevel == 0 && _pigFlag)
-        {
-            _pigFlag = false;
-            Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(-1));
-            CreateCarBlip();
+            case > 0 when !_pigFlag:
+                _pigFlag = true;
+                Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
+                _car.AttachedBlip.Delete();
+                return;
+            case > 0 when _pigFlag:
+                Screen.ShowSubtitle("Lose the cops.");
+                return;
+            case 0 when _pigFlag:
+                _pigFlag = false;
+                Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(-1));
+                CreateCarBlip();
+                break;
         }
 
         Screen.ShowSubtitle("Get in the ~g~car.", 1000);
@@ -452,7 +458,7 @@ internal class DeliveryMain : Script
         _car.AttachedBlip.Delete();
         Random ran = new Random();
 
-        if (ran.Next(1, 101) <= DeliverySaving.PoliceChanceLow)
+        if (ran.Next(1, 101) <= (_highSpeed ? DeliverySaving.PoliceChanceLow + 6 : DeliverySaving.PoliceChanceLow))
         {
             Screen.ShowHelpText("The police were watching this car. Lose them!", 8000);
             Game.Player.WantedLevel = 2;
@@ -464,22 +470,39 @@ internal class DeliveryMain : Script
                 _travelTime = 330000;
             if (_highSpeed)
                 _travelTime /= 2;
-            _travelTime += 35000;
+            _travelTime += 60000;
             _travelStartTime = Game.GameTime;
             _objective = 2;
         }
         else
         {
+            if (ran.Next(0, 101) <= (_highSpeed ? DeliverySaving.StartChaseChance + 10 : DeliverySaving.StartChaseChance))
+            {
+                _startChase = true;
+                Notification.Show(
+                    NotificationIcon.Default,
+                    "Little Jacob",
+                    "Delivery",
+                    "You got the car already? Word about the deal spread, if you see any fools" +
+                    " following around you know what to do"
+                );
+            }
             CreateDestinationBlip(0);
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(1));
             float distance = World.CalculateTravelDistance(Game.Player.Character.Position, _destination);
             _travelTime = (int) Math.Ceiling(distance * 60);
             if (_travelTime > 330000)
+            {
                 _travelTime = 330000;
+                if (_highSpeed)
+                    _travelTime /= 2;
+            }
             else
+            {
+                if (_highSpeed)
+                    _travelTime /= 2;
                 _travelTime += 20000;
-            if (_highSpeed)
-                _travelTime /= 2;
+            }
             _travelStartTime = Game.GameTime;
             _objective = 1;
         }
@@ -511,6 +534,12 @@ internal class DeliveryMain : Script
             return;
         }
 
+        if (_startChase)
+        {
+            SpawnChaser(120);
+            RemoveChasers(5000);
+        }
+        
         Screen.ShowSubtitle("Go to the ~y~buyer.", 1000);
         Function.Call(Hash.DRAW_MARKER, 1, _destination.X, _destination.Y, _destination.Z, 0, 0, 0, 0, 0,
             0, 5f, 5f, 2f, 255, 255, 0, 100, false, false, 2, false, false, false);
@@ -561,14 +590,21 @@ internal class DeliveryMain : Script
                 _buyer.Task.PerformSequence(sequence);
                 _objective = 4;
             }
+
+            return;
         }
-        else if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
+        
+        if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(-1));
             _routeBlip.Delete();
             CreateCarBlip();
             _objective = 3;
+            return;
         }
+        
+        if (!_car.IsInRange(_destination, 300)) return;
+        RemoveChasers(0.1f);
     }
 
     private void DEL_2()
@@ -594,6 +630,11 @@ internal class DeliveryMain : Script
             return;
         }
 
+        if (_startChase)
+        {
+            SpawnChaser(120);
+            RemoveChasers(5000);
+        }
         Screen.ShowSubtitle("Lose the cops.", 1000);
 
         if (Game.Player.WantedLevel == 0)
@@ -604,47 +645,52 @@ internal class DeliveryMain : Script
             return;
         }
 
-        if (!Game.Player.Character.IsInRange(_destination, 50)) return;
-        if (!Game.Player.Character.IsInRange(_destination, 20)) return;
-        Random ran = new Random();
+        if (!Game.Player.Character.IsInRange(_destination, 20))
+        {
+            Random ran = new Random();
 
-        if (ran.Next(0, 101) <= DeliverySaving.PoliceChanceHigh)
-        {
-            Screen.ShowHelpText("The buyer is a cop. Get out of there!", 16000);
-            Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, _buyer.Handle, _cop);
-            Function.Call(Hash.SET_PED_AS_COP, _buyer.Handle, true);
-            _buyer.Task.FightAgainst(Game.Player.Character);
-            Game.Player.WantedLevel = 4;
-            _rainyDay = true;
-            _objective = 5;
-            _destination = _dropPoint;
-        }
-        else
-        {
-            if (!Function.Call<bool>(Hash.ARE_PLAYER_STARS_GREYED_OUT, Game.Player.Handle))
+            if (ran.Next(0, 101) <= DeliverySaving.PoliceChanceHigh)
             {
-                _buyer.Task.FleeFrom(_destination);
-                _destination = _dropPoint;
-                Screen.ShowHelpText("Deal canceled. Buyer was scared.", 16000);
+                Screen.ShowHelpText("The buyer is a cop. Get out of there!", 16000);
+                Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, _buyer.Handle, _cop);
+                Function.Call(Hash.SET_PED_AS_COP, _buyer.Handle, true);
+                _buyer.Task.FightAgainst(Game.Player.Character);
+                Game.Player.WantedLevel = 4;
+                _rainyDay = true;
                 _objective = 5;
+                _destination = _dropPoint;
             }
             else
             {
-                Game.Player.Character.Task.LeaveVehicle();
-                _car.Velocity = Vector3.Zero;
-                _car.LockStatus = VehicleLockStatus.PlayerCannotEnter;
-                _bag.AddBlip();
-                _bag.AttachedBlip.Scale = 0.75f;
-                _bag.AttachedBlip.Color = BlipColor.Green;
-                _bag.AttachedBlip.Name = "Money";
-                Wait(1000);
-                TaskSequence sequence = new TaskSequence();
-                sequence.AddTask.ClearAllImmediately();
-                sequence.AddTask.CruiseWithVehicle(_car, 50, DrivingStyle.Rushed);
-                _buyer.Task.PerformSequence(sequence);
-                _objective = 4;
+                if (!Function.Call<bool>(Hash.ARE_PLAYER_STARS_GREYED_OUT, Game.Player.Handle))
+                {
+                    _buyer.Task.FleeFrom(_destination);
+                    _destination = _dropPoint;
+                    Screen.ShowHelpText("Deal canceled. Buyer was scared.", 16000);
+                    _objective = 5;
+                }
+                else
+                {
+                    Game.Player.Character.Task.LeaveVehicle();
+                    _car.Velocity = Vector3.Zero;
+                    _car.LockStatus = VehicleLockStatus.PlayerCannotEnter;
+                    _bag.AddBlip();
+                    _bag.AttachedBlip.Scale = 0.75f;
+                    _bag.AttachedBlip.Color = BlipColor.Green;
+                    _bag.AttachedBlip.Name = "Money";
+                    Wait(1000);
+                    TaskSequence sequence = new TaskSequence();
+                    sequence.AddTask.ClearAllImmediately();
+                    sequence.AddTask.CruiseWithVehicle(_car, 50, DrivingStyle.Rushed);
+                    _buyer.Task.PerformSequence(sequence);
+                    _objective = 4;
+                }
             }
+            return;
         }
+        
+        if (!_car.IsInRange(_destination, 300)) return;
+        RemoveChasers(0.1f);
     }
 
     private void DEL_3()
@@ -673,6 +719,11 @@ internal class DeliveryMain : Script
             return;
         }
 
+        if (_startChase)
+        {
+            SpawnChaser(120);
+            RemoveChasers(5000);
+        }
         Screen.ShowSubtitle("Go back to the ~g~car.", 1000);
 
         if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
@@ -789,7 +840,6 @@ internal class DeliveryMain : Script
 
         if (_betrayed)
         {
-            SpawnChaser(80);
             RemoveChasers(5000);
         }
         
@@ -805,6 +855,7 @@ internal class DeliveryMain : Script
 
         Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(_bagTaken ? 2 : 1));
         CreateDestinationBlip(1);
+        _lastSpawn = Game.GameTime;
         _objective = 7;
     }
 
@@ -838,7 +889,7 @@ internal class DeliveryMain : Script
         
         if (_betrayed)
         {
-            SpawnChaser(80);
+            SpawnChaser(120);
             RemoveChasers(5000);
         }
 
@@ -851,7 +902,7 @@ internal class DeliveryMain : Script
             _car.Velocity = Vector3.Zero;
             Game.Player.Character.Task.LeaveVehicle();
             _car.LockStatus = VehicleLockStatus.PlayerCannotEnter;
-            Complete(0);
+            Complete();
         }
         else if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
         {
@@ -860,6 +911,9 @@ internal class DeliveryMain : Script
             CreateCarBlip();
             _objective = 6;
         }
+        
+        if (!_car.IsInRange(_destination, 250)) return;
+        RemoveChasers(0.1f);
     }
 
     private void DEL_8()
@@ -877,7 +931,7 @@ internal class DeliveryMain : Script
 
         if (_betrayed)
         {
-            SpawnChaser(80);
+            SpawnChaser(120);
             RemoveChasers(5000);
         }
         
@@ -886,14 +940,17 @@ internal class DeliveryMain : Script
             0, 5f, 5f, 2f, 255, 255, 0, 100, false, false, 2, false, false, false);
 
         if (Game.Player.Character.IsInRange(_destination, 5) && !Game.Player.Character.IsInVehicle())
-            Complete(0);
+            Complete();
+        
+        if (!Game.Player.Character.IsInRange(_destination, 250)) return;
+        RemoveChasers(0.1f);
     }
 
     private void DEL_9()
     {
         if (_betrayed)
         {
-            SpawnChaser(80);
+            SpawnChaser(120);
             RemoveChasers(5000);
         }
         Screen.ShowSubtitle("Lose the cops.");
@@ -909,14 +966,14 @@ internal class DeliveryMain : Script
         Function.Call(Hash.SET_AUDIO_FLAG, "WantedMusicDisabled", value);
     }
 
-    private void Complete(int bonus)
+    private void Complete()
     {
         OnDeliveryCompleted?.Invoke(this, EventArgs.Empty);
 
         if (_bagTaken && _carRecovered)
         {
             float multiplier = _health / 10 * 0.01f;
-            int carBonus = (int) (80000 * multiplier);
+            int carBonus = (int) (_baseReward * multiplier);
             Game.Player.Money += _lockedAt + carBonus;
 
             switch (_rainyDay)
@@ -941,7 +998,20 @@ internal class DeliveryMain : Script
             else
                 DeliverySaving.BadDeal();
         }
-        
+        DeliverySaving.DealCount++;
+        if (DeliverySaving.DealCount == 3)
+        {
+            DeliverySaving.DealCount = 0;
+            if (DeliverySaving.BaseChaseChance < 15)
+            {
+                DeliverySaving.BaseChaseChance++;   
+            }
+
+            if (DeliverySaving.BaseHighSpeedChance < 30)
+            {
+                DeliverySaving.BaseHighSpeedChance++;
+            }
+        }
         DeliverySaving.Save();
         Main.ShowScaleform("~g~Delivery Completed", "", 0);
         Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
@@ -1008,6 +1078,14 @@ internal class DeliveryMain : Script
         return value >= baseVal / 3 ? "~y~" : "~r~";
     }
 
+    private void HideHUD()
+    {
+        Function.Call(Hash.HIDE_HUD_COMPONENT_THIS_FRAME, 6);
+        Function.Call(Hash.HIDE_HUD_COMPONENT_THIS_FRAME, 7);
+        Function.Call(Hash.HIDE_HUD_COMPONENT_THIS_FRAME, 8);
+        Function.Call(Hash.HIDE_HUD_COMPONENT_THIS_FRAME, 9);
+    }
+    
     private void DeliveryMain_Tick(object sender, EventArgs e)
     {
         if (!Active)
@@ -1036,17 +1114,17 @@ internal class DeliveryMain : Script
             }
         }
 
-        if (_car.Health < _health)
-            _health = _car.Health;
+        if (_car.EngineHealth < _health)
+            _health = _car.EngineHealth;
 
         if (_objective > 0)
         {
-            string mod = ColorModifier(_lockedAt, _carRecovered ? 160000 : 80000);
+            string mod = ColorModifier(_lockedAt, _carRecovered ? _baseReward * 2 : _baseReward);
 
             if (!_bagTaken)
             {
                 float multiplier = _health / 10 * 0.01f;
-                _lockedAt = (int) (80000 * multiplier);
+                _lockedAt = (int) (_baseReward * multiplier);
 
                 if (Game.Player.Character.IsInRange(_bag.Position, 1.25f) && !Game.Player.Character.IsInVehicle())
                 {
@@ -1067,13 +1145,14 @@ internal class DeliveryMain : Script
                 }
 
                 DrawBadge($"{mod}REWARD", $"{mod}${_lockedAt.ToString()}", mod == "~r~", 0);
+                HideHUD();
             }
             else
             {
                 if (_carRecovered)
                 {
                     float multiplier = _health / 10 * 0.01f;
-                    int carBonus = (int) (80000 * multiplier);
+                    int carBonus = (int) (_baseReward * multiplier);
                     mod = ColorModifier(_lockedAt + carBonus, 160000);
                     DrawBadge($"{mod}REWARD", $"{mod}${(_lockedAt + carBonus).ToString()}", mod == "~r~", 0);
                 }
@@ -1081,6 +1160,7 @@ internal class DeliveryMain : Script
                 {
                     DrawBadge($"{mod}REWARD", $"{mod}${_lockedAt.ToString()}", mod == "~r~", 0);
                 }
+                HideHUD();
             }
 
             if (_objective < 4)
