@@ -274,7 +274,7 @@ internal class DeliveryMain : Script
             Function.Call(Hash.PLACE_OBJECT_ON_GROUND_PROPERLY, _bag.Handle);
             _destination = markers.ElementAt(index);
             uint vHash;
-            if (ran.Next(0, 101) <= DeliverySaving.HighSpeedChance)
+            if (ran.Next(0, 101) <= /*DeliverySaving.HighSpeedChance*/100)
             {
                 vHash = (uint) VehicleHash.Buffalo4;
                 _highSpeed = true;
@@ -469,7 +469,7 @@ internal class DeliveryMain : Script
             if (_travelTime > 330000)
                 _travelTime = 330000;
             if (_highSpeed)
-                _travelTime /= 2;
+                _travelTime = (int)Math.Ceiling(_travelTime / 1.5f);
             _travelTime += 60000;
             _travelStartTime = Game.GameTime;
             _objective = 2;
@@ -495,12 +495,12 @@ internal class DeliveryMain : Script
             {
                 _travelTime = 330000;
                 if (_highSpeed)
-                    _travelTime /= 2;
+                    _travelTime = (int)Math.Ceiling(_travelTime / 1.5f);
             }
             else
             {
                 if (_highSpeed)
-                    _travelTime /= 2;
+                    _travelTime = (int)Math.Ceiling(_travelTime / 1.5f);
                 _travelTime += 20000;
             }
             _travelStartTime = Game.GameTime;
@@ -556,6 +556,7 @@ internal class DeliveryMain : Script
                     Screen.ShowHelpText("The buyer is a cop. Get out of there!", 16000);
                     Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, _buyer.Handle, _cop);
                     Function.Call(Hash.SET_PED_AS_COP, _buyer.Handle, true);
+                    _buyer.Task.ClearAllImmediately();
                     _buyer.Task.FightAgainst(Game.Player.Character);
                     _rainyDay = true;
                     Game.Player.WantedLevel = 4;
@@ -564,7 +565,8 @@ internal class DeliveryMain : Script
                 {
                     Screen.ShowHelpText("The cops were alerted of the deal. Lose them!", 16000);
                     _buyer.RelationshipGroup = _hateCops;
-                    _buyer.Task.FightAgainstHatedTargets(100);
+                    _buyer.Task.ClearAllImmediately();
+                    _buyer.Task.FleeFrom(_destination);
                     Game.Player.WantedLevel = 3;
                 }
 
@@ -645,7 +647,7 @@ internal class DeliveryMain : Script
             return;
         }
 
-        if (!Game.Player.Character.IsInRange(_destination, 20))
+        if (_car.IsInRange(_destination, 20))
         {
             Random ran = new Random();
 
@@ -768,7 +770,7 @@ internal class DeliveryMain : Script
         if (!Game.Player.Character.IsTryingToEnterALockedVehicle ||
             Game.Player.Character.VehicleTryingToEnter != _car) return;
         _fighting = true;
-        _buyer.Task.ClearAllImmediately();
+        _buyer.Task.ClearAll();
         _buyer.Task.FightAgainst(Game.Player.Character);
         Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(2));
     }
