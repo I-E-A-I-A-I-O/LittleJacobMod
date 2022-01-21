@@ -20,6 +20,19 @@ internal class DeliveryMain : Script
         public int Hash;
     }
 
+
+    private enum PedTypes
+    {
+        Balla,
+        Salva,
+        Groove,
+        Mex,
+        Arm,
+        Chi,
+        Cartel,
+        Biker,
+        Other
+    }
     public static bool Active { get; private set; }
     public static event EventHandler OnDeliveryCompleted;
     private readonly RelationshipGroup _neutral;
@@ -52,6 +65,9 @@ internal class DeliveryMain : Script
     private int _travelStartTime = 1;
     private float _health;
     private int _baseReward;
+    private uint _pedModel;
+    private PedTypes _chaserType;
+    private uint _vehicleModel;
     private readonly Vector3 _dropPoint = new Vector3(6.828116f, -1405.562f, 28.26828f);
 
     private readonly Dictionary<int, Vector3> _badgeSlots = new Dictionary<int, Vector3>
@@ -307,6 +323,144 @@ internal class DeliveryMain : Script
         }
     }
 
+    private void SetModels(bool belongs)
+    {
+        uint buyerModel = Function.Call<uint>(Hash.GET_ENTITY_MODEL, _buyer.Handle);
+        _chaserType = ThrowInPool(buyerModel);
+
+        if (!belongs)
+            _chaserType = GetEnemy(_chaserType);
+        
+        switch (_chaserType)
+        {
+            case PedTypes.Arm:
+                _pedModel = (uint) PedHash.ArmGoon01GMM;
+                _vehicleModel = (uint) VehicleHash.Schafter2;
+                break;
+            case PedTypes.Balla:
+                _pedModel = (uint) PedHash.BallaOrig01GMY;
+                _vehicleModel = (uint) VehicleHash.SabreGT2;
+                break;
+            case PedTypes.Biker:
+                _pedModel = (uint) PedHash.Lost01GMY;
+                _vehicleModel = (uint) VehicleHash.Daemon2;
+                break;
+            case PedTypes.Cartel:
+                _pedModel = (uint) PedHash.PoloGoon01GMY;
+                _vehicleModel = (uint) VehicleHash.Baller6;
+                break;
+            case PedTypes.Chi:
+                _pedModel = (uint) PedHash.ChiGoon02GMM;
+                _vehicleModel = (uint) VehicleHash.Cavalcade2;
+                break;
+            case PedTypes.Groove:
+                _pedModel = (uint) PedHash.Families01GFY;
+                _vehicleModel = (uint) VehicleHash.Baller3;
+                break;
+            case PedTypes.Mex:
+                _pedModel = (uint) PedHash.MexGoon01GMY;
+                _vehicleModel = (uint) VehicleHash.Phoenix;
+                break;
+            case PedTypes.Salva:
+                _pedModel = (uint) PedHash.SalvaGoon01GMY;
+                _vehicleModel = (uint) VehicleHash.Faction3;
+                break;
+            case PedTypes.Other:
+                _pedModel = (uint) PedHash.Blackops01SMY;
+                _vehicleModel = (uint) VehicleHash.Baller6;
+                break;
+        }
+    }
+
+    private PedTypes GetEnemy(PedTypes type)
+    {
+        int intType = (int) type;
+        int num = ExclusiveRanNum(intType, 0, 9);
+        return (PedTypes) num;
+    }
+
+    private int ExclusiveRanNum(int num, int min, int max)
+    {
+        Random ran = new Random();
+        int it = 0;
+        while (true)
+        {
+            int val = ran.Next(min, max);
+            if (val == num)
+            {
+                it++;
+                if (it > 1000)
+                    return 8;
+                continue;
+            }
+            
+            return val;
+        }
+    }
+
+    private static PedTypes ThrowInPool(uint model)
+    {
+        switch (model)
+        {
+            case (uint)PedHash.MexGoon01GMY:
+            case (uint)PedHash.MexGoon02GMY:
+            case (uint)PedHash.MexGoon03GMY:
+            case (uint)PedHash.MexBoss01GMM:
+            case (uint)PedHash.MexBoss02GMM:
+            case (uint)PedHash.Vagos01GFY:
+                return PedTypes.Mex;
+            
+            case (uint)PedHash.Ballasog:
+            case (uint)PedHash.BallasLeader:
+            case (uint)PedHash.BallasogCutscene:
+            case (uint)PedHash.Ballas01GFY:
+            case (uint)PedHash.BallaEast01GMY:
+            case (uint)PedHash.BallaOrig01GMY:
+            case (uint)PedHash.BallaSout01GMY:
+                return PedTypes.Balla;
+            
+            case (uint)PedHash.ArmGoon01GMM:
+            case (uint)PedHash.ArmGoon02GMY:
+            case (uint)PedHash.ArmBoss01GMM:
+            case (uint)PedHash.ArmLieut01GMM:
+                return PedTypes.Arm;
+            
+            case (uint)PedHash.Families01GFY:
+            case (uint)PedHash.Famca01GMY:
+            case (uint)PedHash.Famdnf01GMY:
+            case (uint)PedHash.Famfor01GMY:
+                return PedTypes.Groove;
+            
+            case (uint)PedHash.SalvaBoss01GMY:
+            case (uint)PedHash.SalvaGoon01GMY:
+            case (uint)PedHash.SalvaGoon02GMY:
+            case (uint)PedHash.SalvaGoon03GMY:
+                return PedTypes.Salva;
+            
+            case (uint)PedHash.ChiGoon01GMM:
+            case (uint)PedHash.ChiGoon02GMM:
+            case (uint)PedHash.ChinGoonCutscene:
+            case (uint)PedHash.ChiBoss01GMM:
+                return PedTypes.Chi;
+            
+            case (uint)PedHash.PoloGoon01GMY:
+            case (uint)PedHash.PoloGoon02GMY:
+            case (uint)PedHash.CartelGuards01GMM:
+            case (uint)PedHash.CartelGuards02GMM:
+                return PedTypes.Cartel;
+            
+            case (uint)PedHash.Lost01GFY:
+            case (uint)PedHash.Lost01GMY:
+            case (uint)PedHash.Lost02GMY:
+            case (uint)PedHash.Lost03GMY:
+            case (uint)PedHash.BikerChic:
+                return PedTypes.Biker;
+            
+            default:
+                return PedTypes.Other;
+        }
+    }
+    
     private void CreateDestinationBlip(int type)
     {
         _routeBlip = World.CreateBlip(_destination);
@@ -328,14 +482,14 @@ internal class DeliveryMain : Script
 
     private void LoadChaserAssets()
     {
-        RequestModel((uint)PedHash.Blackops01SMY);
-        RequestModel((uint)VehicleHash.Baller6);
+        RequestModel(_vehicleModel);
+        RequestModel(_pedModel);
     }
 
     private void FreeChaserAssets()
     {
-        Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, (uint) PedHash.Blackops01SMY);
-        Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, (uint) VehicleHash.Baller6);
+        Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, _pedModel);
+        Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, _vehicleModel);
     }
     
     private void SpawnChaser(float range)
@@ -352,7 +506,7 @@ internal class DeliveryMain : Script
         if (!result)
             return;
         Vector3 vCoords = outPos.GetResult<Vector3>();
-        int v = Function.Call<int>(Hash.CREATE_VEHICLE, (uint)VehicleHash.Baller6, vCoords.X, vCoords.Y, vCoords.Z, 0, false, false);
+        int v = Function.Call<int>(Hash.CREATE_VEHICLE, _vehicleModel, vCoords.X, vCoords.Y, vCoords.Z, 0, false, false);
         Function.Call(Hash.SET_VEHICLE_ENGINE_ON, v, true, true, false);
         Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, v);
         blip.Scale = 0.85f;
@@ -363,7 +517,7 @@ internal class DeliveryMain : Script
 
         for (int i = -1; i < seats; i++)
         {
-            int ped = Function.Call<int>(Hash.CREATE_PED_INSIDE_VEHICLE, v, 0, (uint) PedHash.Blackops01SMY, i, false, false);
+            int ped = Function.Call<int>(Hash.CREATE_PED_INSIDE_VEHICLE, v, 0, _pedModel, i, false, false);
             Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, ped, _hate);
             Function.Call(Hash.GIVE_WEAPON_TO_PED, ped, (uint)WeaponHash.MicroSMG, 2000, false, true);
 
@@ -478,6 +632,8 @@ internal class DeliveryMain : Script
         {
             if (ran.Next(0, 101) <= (_highSpeed ? DeliverySaving.StartChaseChance + 10 : DeliverySaving.StartChaseChance))
             {
+                SetModels(false);
+                LoadChaserAssets();
                 _startChase = true;
                 Notification.Show(
                     NotificationIcon.Default,
@@ -761,6 +917,8 @@ internal class DeliveryMain : Script
                 _destination = _dropPoint;
                 _betrayed = true;
                 _carRecovered = true;
+                FreeChaserAssets();
+                SetModels(true);
                 LoadChaserAssets();
                 _objective = 6;
                 break;
