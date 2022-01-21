@@ -669,6 +669,7 @@ internal class DeliveryMain : Script
                 SetModels(false);
                 LoadChaserAssets();
                 _startChase = true;
+                _lastSpawn = Game.GameTime;
                 Notification.Show(
                     NotificationIcon.Default,
                     "Little Jacob",
