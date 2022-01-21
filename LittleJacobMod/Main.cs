@@ -29,12 +29,13 @@ public class Main : Script
     public static bool MenuCreated { get; private set; }
     private int _scaleform;
     private bool _scaleformFading;
-    private bool _scaleformRequested;
+    private static bool _scaleformRequested;
     private int _scaleformSt;
     private static string _scaleformTitle;
     private static string _scaleformSubtitle;
     public static bool ScaleformActive { get; private set; }
     private static int _scaleformType;
+    private static uint _weaponHash;
 
     public Main()
     {
@@ -60,6 +61,15 @@ public class Main : Script
         Aborted += Main_Aborted;
     }
 
+    private void SetScaleformWeaponText(string title, string weaponName, uint weaponHash)
+    {
+        Function.Call(Hash.BEGIN_SCALEFORM_MOVIE_METHOD, _scaleform, "SHOW_WEAPON_PURCHASED");
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, title);
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, weaponName);
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, weaponHash);
+        Function.Call(Hash.END_SCALEFORM_MOVIE_METHOD);
+    }
+    
     private void SetScaleFormText(string title, string description)
     {
         Function.Call(Hash.BEGIN_SCALEFORM_MOVIE_METHOD, _scaleform, "SHOW_SHARD_CENTERED_TOP_MP_MESSAGE");
@@ -73,7 +83,7 @@ public class Main : Script
     {
         Function.Call(Hash.CALL_SCALEFORM_MOVIE_METHOD, _scaleform, "SHARD_ANIM_OUT");
         Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, 5);
-        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, 3000);
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, 2000);
         Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_BOOL, true);
         Function.Call(Hash.END_SCALEFORM_MOVIE_METHOD);
     }
@@ -95,14 +105,16 @@ public class Main : Script
         }
     }
 
-    public static void ShowScaleform(string title, string subtitle, int type)
+    public static void ShowScaleform(string title, string subtitle, int type, uint weaponHash = 0)
     {
-        if (ScaleformActive)
+        if (ScaleformActive && _scaleformType != 1)
             return;
 
         _scaleformTitle = title;
         _scaleformSubtitle = subtitle;
         _scaleformType = type;
+        _weaponHash = weaponHash;
+        _scaleformRequested = false;
         ScaleformActive = true;
     }
 
@@ -113,25 +125,35 @@ public class Main : Script
 
         if (!_scaleformRequested)
         {
-            RequestScaleform();
-            SetScaleFormText(_scaleformTitle, _scaleformSubtitle);
+            switch (_scaleformType)
+            {
+                case 0:
+                    RequestScaleform();
+                    SetScaleFormText(_scaleformTitle, _scaleformSubtitle);
+                    break;
+                case 1:
+                    SetScaleformWeaponText(_scaleformTitle, _scaleformSubtitle, _weaponHash);
+                    break;
+            }
             _scaleformRequested = true;
             _scaleformSt = Game.GameTime;
         }
 
         Function.Call(Hash.DRAW_SCALEFORM_MOVIE_FULLSCREEN, _scaleform, 232, 207, 20, 255);
 
-        if (Game.GameTime - _scaleformSt >= 8000 && !_scaleformFading)
+        switch (Game.GameTime - _scaleformSt)
         {
-            FadeOutScaleform();
-            _scaleformFading = true;
-        }
-        else if (Game.GameTime - _scaleformSt >= 12000)
-        {
-            ScaleformActive = false;
-            _scaleformFading = false;
-            _scaleformRequested = false;
-            FreeScaleform();
+            case >= 4000 when !_scaleformFading:
+                FadeOutScaleform();
+                _scaleformFading = true;
+                break;
+            case >= 6000:
+                ScaleformActive = false;
+                _scaleformFading = false;
+                _scaleformRequested = false;
+                if (_scaleformType != 1)
+                    FreeScaleform();
+                break;
         }
     }
 
@@ -218,6 +240,7 @@ public class Main : Script
                     LittleJacob.ToggleTrunk();
                     LittleJacob.DriveAway();
                     LittleJacob.DeleteBlip();
+                    FreeScaleform();
                     LoadoutSaving.PerformSave(MapperMain.CurrentPed);
                     HelmetState.Save();
                     break;
@@ -240,6 +263,7 @@ public class Main : Script
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.DeleteBlip();
             LittleJacob.DriveAway();
+            FreeScaleform();
             return;
         }
 
@@ -251,6 +275,7 @@ public class Main : Script
             Game.Player.Character.CanSwitchWeapons = true;
             LittleJacob.ToggleTrunk();
             LittleJacob.DeleteBlip();
+            FreeScaleform();
             LittleJacob.DriveAway();
             return;
         }
@@ -265,6 +290,7 @@ public class Main : Script
                 Game.Player.Character.CanSwitchWeapons = true;
                 LittleJacob.ToggleTrunk();
                 LittleJacob.DeleteBlip();
+                FreeScaleform();
                 LoadoutSaving.PerformSave(MapperMain.CurrentPed);
                 HelmetState.Save();
 
@@ -284,6 +310,7 @@ public class Main : Script
             case false when LittleJacob.IsPlayerInArea():
             {
                 LittleJacob.Spawn();
+                RequestScaleform();
                 if (TimerStarted)
                 {
                     TimerStarted = false;
@@ -324,6 +351,7 @@ public class Main : Script
                     LittleJacob.ToggleTrunk();
                     LittleJacob.DriveAway();
                     LittleJacob.DeleteBlip();
+                    FreeScaleform();
                     LoadoutSaving.PerformSave(MapperMain.CurrentPed);
                     HelmetState.Save();
                 } else if (LittleJacob.Left && !LittleJacob.IsNearby())
