@@ -31,6 +31,7 @@ internal class DeliveryMain : Script
         Chi,
         Cartel,
         Biker,
+        Billy,
         Other
     }
     public static bool Active { get; private set; }
@@ -281,7 +282,7 @@ internal class DeliveryMain : Script
             _buyer.Task.StartScenario("WORLD_HUMAN_STAND_IMPATIENT", 0);
             _buyer.RelationshipGroup = _neutral;
             _buyer.Weapons.Give(WeaponHash.Pistol, 100, false, true);
-            Vector3 bagLocation = _buyer.Position.Around(0.6f);
+            Vector3 bagLocation = _buyer.Position.Around(0.4f);
             RequestModel(3898412430);
             _bag = Function.Call<Prop>(Hash.CREATE_OBJECT, 3898412430, bagLocation.X, bagLocation.Y,
                 bagLocation.Z, false, false, false);
@@ -290,7 +291,7 @@ internal class DeliveryMain : Script
             Function.Call(Hash.PLACE_OBJECT_ON_GROUND_PROPERLY, _bag.Handle);
             _destination = markers.ElementAt(index);
             uint vHash;
-            if (ran.Next(0, 101) <= /*DeliverySaving.HighSpeedChance*/100)
+            if (ran.Next(0, 101) <= DeliverySaving.HighSpeedChance)
             {
                 vHash = (uint) VehicleHash.Buffalo4;
                 _highSpeed = true;
@@ -365,6 +366,10 @@ internal class DeliveryMain : Script
                 _pedModel = (uint) PedHash.SalvaGoon01GMY;
                 _vehicleModel = (uint) VehicleHash.Faction3;
                 break;
+            case PedTypes.Billy:
+                _pedModel = (uint) PedHash.Hillbilly01AMM;
+                _vehicleModel = (uint) VehicleHash.BfInjection;
+                break;
             case PedTypes.Other:
                 _pedModel = (uint) PedHash.Blackops01SMY;
                 _vehicleModel = (uint) VehicleHash.Baller6;
@@ -372,14 +377,14 @@ internal class DeliveryMain : Script
         }
     }
 
-    private PedTypes GetEnemy(PedTypes type)
+    private static PedTypes GetEnemy(PedTypes type)
     {
         int intType = (int) type;
-        int num = ExclusiveRanNum(intType, 0, 9);
+        int num = ExclusiveRanNum(intType, 0, 10);
         return (PedTypes) num;
     }
 
-    private int ExclusiveRanNum(int num, int min, int max)
+    private static int ExclusiveRanNum(int num, int min, int max)
     {
         Random ran = new Random();
         int it = 0;
@@ -390,7 +395,7 @@ internal class DeliveryMain : Script
             {
                 it++;
                 if (it > 1000)
-                    return 8;
+                    return 9;
                 continue;
             }
             
@@ -456,6 +461,11 @@ internal class DeliveryMain : Script
             case (uint)PedHash.BikerChic:
                 return PedTypes.Biker;
             
+            case (uint) PedHash.Hillbilly01AMM:
+            case (uint) PedHash.Hillbilly02AMM:
+            case (uint) PedHash.Taphillbilly:
+                return PedTypes.Billy;
+
             default:
                 return PedTypes.Other;
         }
@@ -491,6 +501,17 @@ internal class DeliveryMain : Script
         Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, _pedModel);
         Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, _vehicleModel);
     }
+
+    private VehicleColor GetVehicleColor(PedTypes type)
+    {
+        return type switch
+        {
+            PedTypes.Balla => VehicleColor.MetallicPurple,
+            PedTypes.Groove => VehicleColor.MetallicLime,
+            PedTypes.Mex => VehicleColor.MetallicRaceYellow,
+            _ => VehicleColor.Blue
+        };
+    }
     
     private void SpawnChaser(float range)
     {
@@ -507,6 +528,18 @@ internal class DeliveryMain : Script
             return;
         Vector3 vCoords = outPos.GetResult<Vector3>();
         int v = Function.Call<int>(Hash.CREATE_VEHICLE, _vehicleModel, vCoords.X, vCoords.Y, vCoords.Z, 0, false, false);
+
+        switch (_chaserType)
+        {
+            case PedTypes.Balla:
+            case PedTypes.Groove:
+            case PedTypes.Mex:
+                Function.Call(Hash.SET_VEHICLE_MOD_KIT, v, 0);
+                VehicleColor color = GetVehicleColor(_chaserType);
+                Function.Call(Hash.SET_VEHICLE_COLOURS, v, (int) color, (int) color);
+                break;
+        }
+        
         Function.Call(Hash.SET_VEHICLE_ENGINE_ON, v, true, true, false);
         Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, v);
         blip.Scale = 0.85f;
@@ -536,6 +569,7 @@ internal class DeliveryMain : Script
         }
 
         _vehicles.Add(v);
+        Notification.Show($"PED {_pedModel} VEHICLE {_vehicleModel} 3");
         _lastSpawn = Game.GameTime;
     }
     
@@ -790,9 +824,9 @@ internal class DeliveryMain : Script
 
         if (_startChase)
         {
-            SpawnChaser(120);
             RemoveChasers(5000);
         }
+        
         Screen.ShowSubtitle("Lose the cops.", 1000);
 
         if (Game.Player.WantedLevel == 0)
@@ -917,6 +951,7 @@ internal class DeliveryMain : Script
                 _destination = _dropPoint;
                 _betrayed = true;
                 _carRecovered = true;
+                _deathToll = 0;
                 FreeChaserAssets();
                 SetModels(true);
                 LoadChaserAssets();
@@ -1199,6 +1234,7 @@ internal class DeliveryMain : Script
         _badDeal = false;
         _betrayed = false;
         _deathToll = 0;
+        _startChase = false;
         if (_car != null && _car.Handle != 0)
             _car.MarkAsNoLongerNeeded();
 

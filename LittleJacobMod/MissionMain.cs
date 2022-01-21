@@ -250,7 +250,7 @@ namespace LittleJacobMod
         private void Complete()
         {
             OnMissionCompleted?.Invoke(this, EventArgs.Empty);
-            Game.Player.Money += 80000;
+            Game.Player.Money += 25000;
             Main.ShowScaleform("~y~Mission passed", "", 0);
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Mission_Pass_Notify", "DLC_HEISTS_GENERAL_FRONTEND_SOUNDS", true);
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(4));
