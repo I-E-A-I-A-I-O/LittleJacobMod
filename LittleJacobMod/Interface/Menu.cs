@@ -80,20 +80,16 @@ namespace LittleJacobMod.Interface
 
             gearMenu.Shown += (_, _) =>
             {
-                if (!_move)
-                {
-                    _move = true;
-                    HelmetMenuChanged?.Invoke(this, true);
-                }
+                if (_move) return;
+                _move = true;
+                HelmetMenuChanged?.Invoke(this, true);
             };
 
             _mainMenu.Shown += (_, _) =>
             {
-                if (_move)
-                {
-                    _move = false;
-                    HelmetMenuChanged?.Invoke(this, false);
-                }
+                if (!_move) return;
+                _move = false;
+                HelmetMenuChanged?.Invoke(this, false);
             };
 
             armorOption.Activated += (_, _) =>
@@ -197,10 +193,65 @@ namespace LittleJacobMod.Interface
                 }
                 
                 SubMenuData subMenuData = new SubMenuData(weaponHash);
+                IEnumerable<XElement> att = document.Element("Attachments").Descendants();
+                var subMenuElements = att.ToList();
+                int size = subMenuElements.Count();
 
-                if ((bool)document.Element("Flags").Element("Tint"))
+                for (int n = 0; i < size; i++)
                 {
-                    XElement att = document.Element("Attachments");
+                    int ix = n;
+                    XElement currentSubmenu = subMenuElements.ElementAt(n);
+                    var title = (string)currentSubmenu.Attribute("Title");
+                    var subtitle = (string) currentSubmenu.Attribute("Subtitle");
+                    NativeMenu submenu = new NativeMenu(title, subtitle);
+                    var subMenuItems = currentSubmenu.Descendants().ToList();
+
+                    for (int c = 0; c < subMenuItems.Count; c++)
+                    {
+                        int itemIndex = c;
+                        XElement currentItem = subMenuItems.ElementAt(c);
+                        var itemTitle = (string) currentItem.Attribute("Name");
+                        var itemPrice = (int) currentItem.Attribute("Price");
+                        NativeItem menuItem = new NativeItem(itemTitle, $"Price: ${itemPrice.ToString()}");
+                        
+                        switch (currentSubmenu.Name.ToString())
+                        {
+                            case "Tints":
+                            {
+                                menuItem.Activated += (_, _) =>
+                                {
+                                    TintPurchased(weaponHash, itemIndex);
+                                };
+                                break;
+                            }
+                        }
+                        
+                        submenu.Add(menuItem);
+                    }
+
+                    switch (currentSubmenu.Name.ToString())
+                    {
+                        case "Tints":
+                        {
+                            submenu.SelectedIndexChanged += (_, e) =>
+                            {
+                                TintChanged?.Invoke(this, e.Index);
+                            };
+                            break;
+                        }
+                    }
+                    
+                    submenu.Closed += (_, _) =>
+                    {
+                        SpawnWeaponObject?.Invoke(this, weaponHash);
+                    };
+
+                    weaponMenu.AddSubMenu(submenu);
+                    Pool.Add(submenu);
+                }
+
+                if (att.Element("Tints") != null)
+                {
                     IEnumerable<XElement> tints = att.Element("Tints").Descendants();
                     NativeMenu tintMenu = new NativeMenu("Weapon Tints", "Tints");
                     var xElements = tints.ToList();
