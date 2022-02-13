@@ -1,31 +1,18 @@
 ﻿using System;
-using GTA;
 
 namespace LittleJacobMod.Utils
 {
-    public enum ComponentIndex
-    {
-        Livery,
-        Scope,
-        Clip,
-        Muzzle,
-        Flashlight,
-        Barrel,
-        Grip,
-        Varmod
-    }
-
     public class ComponentPreviewEventArgs : EventArgs
     {
-        public uint WeaponHash { get; private set; }
-        public uint PreviewComponent { get; private set; }
-        public ComponentIndex ComponentIndex { get; private set; }
+        public uint WeaponHash { get; }
+        public uint PreviewComponent { get; }
+        public string ComponentIndex { get; }
 
-        public ComponentPreviewEventArgs(uint hash, uint prvw, ComponentIndex index)
+        public ComponentPreviewEventArgs(uint hash, uint prvw, string componentIndex)
         {
             WeaponHash = hash;
             PreviewComponent = prvw;
-            ComponentIndex = index;
+            ComponentIndex = componentIndex;
         }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using System;
 using GTA;
-using GTA.Native;
 using GTA.Math;
-using LittleJacobMod.Saving;
+using GTA.Native;
 using LittleJacobMod.Interface;
+using LittleJacobMod.Saving;
 using LittleJacobMod.Utils;
+
+namespace LittleJacobMod;
 
 internal class WeaponPreview : Script
 {
@@ -18,7 +20,7 @@ internal class WeaponPreview : Script
     private float _currentTime;
     private float _oldTime;
     private Vector3 _rotation;
-    private ComponentIndex _skipIndex;
+    private string _skipIndex;
     private readonly Controls _yawRight;
     private readonly Controls _yawLeft;
     private readonly Controls _pitchUp;
@@ -200,7 +202,7 @@ internal class WeaponPreview : Script
         }
     }
 
-    private bool SkipComponent(uint component, ComponentIndex index)
+    private bool SkipComponent(uint component, string index)
     {
         return component != (uint)WeaponComponentHash.Invalid && (_compFromStorage || (!_compFromStorage && index != _skipIndex));
     }

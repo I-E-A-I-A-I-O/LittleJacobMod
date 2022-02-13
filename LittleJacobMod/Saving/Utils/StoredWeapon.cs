@@ -1,4 +1,6 @@
-﻿using GTA;
+﻿using System;
+using System.Collections.Generic;
+using GTA;
 using GTA.Native;
 
 namespace LittleJacobMod.Saving.Utils
@@ -7,16 +9,9 @@ namespace LittleJacobMod.Saving.Utils
     {
         public uint WeaponHash { get; }
         public int Ammo { get; set; }
-        public uint Muzzle { get; set; } = (uint)WeaponComponentHash.Invalid;
-        public uint Camo { get; set; } = (uint)WeaponComponentHash.Invalid;
+        public Dictionary<string, uint> Components = new();
         public int Tint { get; set; }
         public int CamoColor { get; set; }
-        public uint Grip { get; set; } = (uint)WeaponComponentHash.Invalid;
-        public uint Clip { get; set; } = (uint)WeaponComponentHash.Invalid;
-        public uint Barrel { get; set; } = (uint)WeaponComponentHash.Invalid;
-        public uint Scope { get; set; } = (uint)WeaponComponentHash.Invalid;
-        public uint Flashlight { get; set; } = (uint)WeaponComponentHash.Invalid;
-        public uint Varmod { get; set; } = (uint)WeaponComponentHash.Invalid;
 
         public StoredWeapon (uint hash)
         {
@@ -33,9 +28,19 @@ namespace LittleJacobMod.Saving.Utils
             return Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON_COMPONENT, Main.PPID, WeaponHash, componentHash);
         }
 
+        public uint GetCamo()
+        {
+            if (!Components.ContainsKey("Liveries")) return (uint) WeaponComponentHash.Invalid;
+            
+            return Components["Liveries"];
+        }
+        
         public int GetCamoColor()
         {
-            return Function.Call<int>(Hash._GET_PED_WEAPON_LIVERY_COLOR, Main.PPID, WeaponHash, Camo);
+            if (!Components.ContainsKey("Liveries")) return 0;
+            
+            uint camo = Components["Liveries"];
+            return Function.Call<int>(Hash._GET_PED_WEAPON_LIVERY_COLOR, Main.PPID, WeaponHash, camo);
         }
     }
 }
