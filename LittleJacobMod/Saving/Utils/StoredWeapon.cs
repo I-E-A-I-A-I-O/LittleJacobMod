@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GTA;
 using GTA.Native;
 
@@ -9,7 +8,8 @@ namespace LittleJacobMod.Saving.Utils
     {
         public uint WeaponHash { get; }
         public int Ammo { get; set; }
-        public Dictionary<string, uint> Components = new();
+        public Dictionary<string, LittleJacobMod.Utils.Types.GroupedComponent> Attachments { get; set; }
+        public LittleJacobMod.Utils.Types.Component Camo { get; set; }
         public int Tint { get; set; }
         public int CamoColor { get; set; }
 
@@ -30,17 +30,14 @@ namespace LittleJacobMod.Saving.Utils
 
         public uint GetCamo()
         {
-            if (!Components.ContainsKey("Liveries")) return (uint) WeaponComponentHash.Invalid;
-            
-            return Components["Liveries"];
+            if (Camo != null) return Camo.Hash;
+            return (uint)WeaponComponentHash.Invalid;
         }
         
         public int GetCamoColor()
         {
-            if (!Components.ContainsKey("Liveries")) return 0;
-            
-            uint camo = Components["Liveries"];
-            return Function.Call<int>(Hash._GET_PED_WEAPON_LIVERY_COLOR, Main.PPID, WeaponHash, camo);
+            if (Camo == null) return 0;
+            return Function.Call<int>(Hash._GET_PED_WEAPON_LIVERY_COLOR, Main.PPID, WeaponHash, Camo.Hash);
         }
     }
 }

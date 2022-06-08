@@ -45,7 +45,7 @@ namespace LittleJacobMod.Saving
                 }
             }
 
-            StoredWeapon storedWeapon = new StoredWeapon(weapon)
+            StoredWeapon storedWeapon = new(weapon)
             {
                 Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon)
             };
@@ -63,74 +63,41 @@ namespace LittleJacobMod.Saving
             }
         }
 
-        public static void SetClip(uint hash, uint componentHash)
+        public static void SetAttachment(string group, uint weaponHash, uint componentHash)
         {
-            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
-            if (weapon != null)
-                weapon.Clip = componentHash;
-        }
+            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == weaponHash);
 
-        public static void SetVarmod(uint hash, uint varmod)
-        {
-            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
-            if (weapon != null)
-                weapon.Varmod = varmod;
-        }
+            if (weapon == null) return;
+            if (!weapon.Attachments.ContainsKey(group)) return;
 
-        public static void SetGrip(uint hash, uint componentHash)
-        {
-            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
-            if (weapon != null)
-                weapon.Grip = componentHash;
-        }
-
-        public static void SetBarrel(uint hash, uint componentHash)
-        {
-            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
-            if (weapon != null)
-                weapon.Barrel = componentHash;
+            weapon.Attachments[group] = new()
+            {
+                Hash = componentHash
+            };
         }
 
         public static void SetCamo(uint hash, uint componentHash)
         {
             StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
-            if (weapon != null)
-                weapon.Camo = componentHash;
+
+            if (weapon == null) return;
+
+            weapon.Camo = new()
+            {
+                Hash = componentHash
+            };
         }
 
         public static void SetTint(uint hash, int tint)
         {
             StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
-            if (weapon != null)
-                weapon.Tint = tint;
+            if (weapon != null) weapon.Tint = tint;
         }
 
         public static void SetCamoColor(uint hash, int color)
         {
             StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
-            if (weapon != null)
-                weapon.CamoColor = color;
-        }
-
-        public static void SetFlashlight(uint hash, uint flashlight)
-        {
-            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
-            if (weapon != null)
-                weapon.Flashlight = flashlight;
-        }
-
-        public static void SetMuzzle(uint hash, uint muzzle)
-        {
-            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
-            if (weapon != null)
-                weapon.Muzzle = muzzle;
-        }
-
-        public static void SetScope(uint hash, uint scope)
-        {
-            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
-            if (weapon != null)
-                weapon.Scope = scope;
+            if (weapon != null) weapon.CamoColor = color;
         }
 
         public static StoredWeapon GetStoreReference(uint hash)

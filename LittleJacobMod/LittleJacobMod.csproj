@@ -41,14 +41,16 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="iFruitAddon2">
-      <HintPath>..\..\..\..\..\..\Program Files\Epic Games\GTAV\scripts\iFruitAddon2.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files\Epic Games\GTAV\Scripts\iFruitAddon2.dll</HintPath>
     </Reference>
-    <Reference Include="LemonUI.SHVDN3, Version=1.6.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\LemonUI.SHVDN3.1.6.0\lib\net48\LemonUI.SHVDN3.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="LemonUI.SHVDN3, Version=1.7.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\LemonUI.SHVDN3.1.7.0\lib\net48\LemonUI.SHVDN3.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="ScriptHookVDotNet3, Version=3.4.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\ScriptHookVDotNet3.3.4.0\lib\net48\ScriptHookVDotNet3.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files\Epic Games\GTAV\ScriptHookVDotNet3.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -79,6 +81,12 @@
     <Compile Include="Saving\Mapper.cs" />
     <Compile Include="Saving\MissionSaving.cs" />
     <Compile Include="Saving\Utils\StoredWeapon.cs" />
+    <Compile Include="Utils\FileParser.cs" />
+    <Compile Include="Utils\Types\Color.cs" />
+    <Compile Include="Utils\Types\Component.cs" />
+    <Compile Include="Utils\Types\GroupedComponent.cs" />
+    <Compile Include="Utils\Types\MultiColorComponent.cs" />
+    <Compile Include="Utils\Types\Weapon.cs" />
     <Compile Include="VisionToggleMain.cs" />
     <Compile Include="Utils\ComoColorEventArgs.cs" />
     <Compile Include="Utils\ComponentPreviewEventArgs.cs" />

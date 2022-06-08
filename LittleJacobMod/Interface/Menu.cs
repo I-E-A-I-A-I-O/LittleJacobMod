@@ -31,16 +31,19 @@ namespace LittleJacobMod.Interface
 
         public Menu()
         {
+            string baseDir = $"{Directory.GetCurrentDirectory()}\\scripts\\LittleJacobMod\\Weapons";
+            List<Utils.Types.Weapon> weapons = FileParser.DesearilizeJsonContents($"{baseDir}\\Json\\Weapons.json");
+            Mapper.WeaponData = weapons;
+            Dictionary<string, NativeMenu> weaponGroupMenus = new Dictionary<string, NativeMenu>();
             Pool = new ObjectPool();
             _mainMenu = new NativeMenu("Little Jacob", "Weapon store");
-            NativeMenu melee = new NativeMenu("Melee", "Melee weapons");
-            NativeMenu pistols = new NativeMenu("Pistols", "Pistols");
-            NativeMenu rifles = new NativeMenu("Rifles", "Rifles");
-            NativeMenu mg = new NativeMenu("Machine guns", "Machine guns");
-            NativeMenu snipers = new NativeMenu("Sniper rifles", "Sniper rifles");
-            NativeMenu shotguns = new NativeMenu("Shotguns", "Shotguns");
-            NativeMenu explosives = new NativeMenu("Explosives", "Explosives");
-            NativeMenu heavy = new NativeMenu("Heavy Weapons", "Heavy Weapons");
+
+            foreach (var weapon in weapons)
+            {
+                if (weaponGroupMenus.ContainsKey(weapon.Group)) continue;
+                weaponGroupMenus.Add(weapon.Group, new NativeMenu(weapon.Group));
+            }
+
             NativeMenu gearMenu = new NativeMenu("Gear", "Gear");
             NativeItem armorOption = new NativeItem("Armor", "Buy armor");
             _helm1 = new NativeMenu("Thermal Vision Helmet", "Thermal Vision Helmet", "Price: $60000");
@@ -48,27 +51,16 @@ namespace LittleJacobMod.Interface
             _helm3 = new NativeMenu("Tactical Night Vision", "Tactical Night Vision", "Price: $20000");
 
             Pool.Add(_mainMenu);
-            Pool.Add(melee);
-            Pool.Add(pistols);
-            Pool.Add(rifles);
-            Pool.Add(mg);
-            Pool.Add(snipers);
-            Pool.Add(explosives);
-            Pool.Add(shotguns);
-            Pool.Add(heavy);
+
+            foreach (var menu in weaponGroupMenus) Pool.Add(menu.Value);
+
             Pool.Add(gearMenu);
             Pool.Add(_helm1);
             Pool.Add(_helm2);
             Pool.Add(_helm3);
 
-            _mainMenu.AddSubMenu(melee);
-            _mainMenu.AddSubMenu(pistols);
-            _mainMenu.AddSubMenu(rifles);
-            _mainMenu.AddSubMenu(shotguns);
-            _mainMenu.AddSubMenu(mg);
-            _mainMenu.AddSubMenu(snipers);
-            _mainMenu.AddSubMenu(heavy);
-            _mainMenu.AddSubMenu(explosives);
+            foreach (var menu in weaponGroupMenus) _mainMenu.AddSubMenu(menu.Value);
+
             _mainMenu.AddSubMenu(gearMenu);
             gearMenu.Add(armorOption);
             gearMenu.AddSubMenu(_helm1);
@@ -104,20 +96,10 @@ namespace LittleJacobMod.Interface
                 GTA.UI.Notification.Show("Armor purchased!");
             };
 
-            string baseDir = $"{Directory.GetCurrentDirectory()}\\scripts\\LittleJacobMod\\Weapons";
-            List<WeaponData> meleeList = AddSubmenu($"{baseDir}\\Normal\\Melee", melee, true);
-            List<WeaponData> pistolList = AddSubmenu($"{baseDir}\\Normal\\Pistols", pistols);
-            List<WeaponData> pistols2 = AddSubmenu($"{baseDir}\\MK2\\Pistols", pistols);
-            List<WeaponData> mgList = AddSubmenu($"{baseDir}\\Normal\\Machine Guns", mg);
-            List<WeaponData> mg2 = AddSubmenu($"{baseDir}\\MK2\\Machine Guns", mg);
-            List<WeaponData> rifleList = AddSubmenu($"{baseDir}\\Normal\\Rifles", rifles);
-            List<WeaponData> rifles2 = AddSubmenu($"{baseDir}\\MK2\\Rifles", rifles);
-            List<WeaponData> shotgunList = AddSubmenu($"{baseDir}\\Normal\\Shotguns", shotguns);
-            List<WeaponData> shotguns2 = AddSubmenu($"{baseDir}\\MK2\\Shotguns", shotguns);
-            List<WeaponData> sniperList = AddSubmenu($"{baseDir}\\Normal\\Snipers", snipers);
-            List<WeaponData> snipers2 = AddSubmenu($"{baseDir}\\MK2\\Snipers", snipers);
-            List<WeaponData> heavyList = AddSubmenu($"{baseDir}\\Normal\\Heavy", heavy);
-            List<WeaponData> explosiveList = AddSubmenu($"{baseDir}\\Normal\\Explosives", explosives);
+            foreach (var weapon in weapons)
+            {
+                AddSubmenu(weapon, weaponGroupMenus[weapon.Group]);
+            }
 
             pistolList.AddRange(pistols2);
             mgList.AddRange(mg2);
@@ -144,10 +126,38 @@ namespace LittleJacobMod.Interface
             explosives.SelectedIndexChanged += (_, e) => { SelectedIndexChanged(explosiveList[e.Index].WeaponHash); };
         }
 
-        private List<WeaponData> AddSubmenu(string path, NativeMenu parentMenu, bool melee = false)
+        private void AddSubmenu(Utils.Types.Weapon weapon, NativeMenu parentMenu)
         {
-            string[] files = Directory.GetFiles(path);
-            List<WeaponData> weaponData = new List<WeaponData>();
+            NativeMenu weaponMenu = new(weapon.Name, weapon.Name, $"Price: {weapon.Price}");
+            Dictionary<string, NativeMenu> menu = new();
+
+            if (weapon.Group.ToLower() != "melee")
+            {
+                NativeSliderItem ammoOptionItem = new("Ammo", 250, 1);
+                ammoOptionItem.Activated += (_, _) =>
+                {
+                    AmmoPurchased(weapon.Hash, ammoOptionItem.Value);
+                };
+                ammoOptionItem.Selected += (_, _) =>
+                {
+                    uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weapon.Hash);
+                    ScriptSettings ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+                    int price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
+                    ammoOptionItem.Description = $"Selected ammo: {ammoOptionItem.Value}\nPrice: ${price * ammoOptionItem.Value}";
+                };
+                ammoOptionItem.ValueChanged += (_, _) =>
+                {
+                    uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weapon.Hash);
+                    ScriptSettings ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+                    int price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
+                    ammoOptionItem.Description = $"Selected ammo: {ammoOptionItem.Value}\nPrice: ${price * ammoOptionItem.Value}";
+                };
+            }
+
+            for (int i = 0; i < weapon.Attachments.Count; i++)
+            {
+
+            }
 
             for (int i = 0; i < files.Length; i++)
             {
@@ -164,34 +174,6 @@ namespace LittleJacobMod.Interface
                     Flags = new List<bool>()
                 };
 
-                if (!melee)
-                {
-                    NativeSliderItem ammoOptionItem = new NativeSliderItem("Ammo", 250, 1);
-
-                    ammoOptionItem.Activated += (_, _) =>
-                    {
-                        AmmoPurchased(weaponHash, ammoOptionItem.Value);
-                    };
-
-                    ammoOptionItem.Selected += (_, _) =>
-                    {
-                        uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weaponHash);
-                        ScriptSettings ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
-                        int price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
-                        ammoOptionItem.Description = $"Selected ammo: {ammoOptionItem.Value.ToString()}\nPrice: ${(price * ammoOptionItem.Value).ToString()}";
-                    };
-
-                    ammoOptionItem.ValueChanged += (_, _) =>
-                    {
-                        uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weaponHash);
-                        ScriptSettings ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
-                        int price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
-                        ammoOptionItem.Description = $"Selected ammo: {ammoOptionItem.Value.ToString()}\nPrice: ${(price * ammoOptionItem.Value).ToString()}";
-                    };
-
-                    weaponMenu.Add(ammoOptionItem);
-                }
-                
                 SubMenuData subMenuData = new SubMenuData(weaponHash);
                 IEnumerable<XElement> att = document.Element("Attachments").Descendants();
                 var subMenuElements = att.ToList();
