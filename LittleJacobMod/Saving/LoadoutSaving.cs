@@ -103,8 +103,7 @@ namespace LittleJacobMod.Saving
 
         public static void PerformSave(uint ped)
         {
-            if (ped == 0)
-                return;
+            if (ped == 0) return;
 
             GTA.UI.LoadingPrompt.Show("Saving weapon loadout...");
             Busy = true;
@@ -119,11 +118,8 @@ namespace LittleJacobMod.Saving
                     Directory.CreateDirectory($"{dir}\\scripts\\LittleJacobMod\\Loadouts");
                 }
 
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                }
-                
+                if (File.Exists(filePath)) File.Delete(filePath);
+
                 File.WriteAllText(filePath, JsonConvert.SerializeObject(StoredWeapons));
             } catch (Exception)
             {
@@ -141,10 +137,7 @@ namespace LittleJacobMod.Saving
         {
             if (MapperMain.CurrentPed == 0) return;
 
-            if (!constructor)
-            {
-                GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
-            }
+            if (!constructor) GTA.UI.LoadingPrompt.Show("Loading weapon loadout...");
 
             Busy = true;
             StoredWeapons.Clear();
@@ -163,20 +156,14 @@ namespace LittleJacobMod.Saving
             {
                 GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ No weapon loadouts saved for this ped!");
 
-                if (!constructor)
-                {
-                    Script.Wait(1000);
-                }
+                if (!constructor) Script.Wait(1000);
 
                 GTA.UI.LoadingPrompt.Hide();
                 Busy = false;
                 return;
             }
             
-            if (!weaponsRemoved && !Main.MissionFlag)
-            {
-                RemoveWeapons();
-            }
+            if (!weaponsRemoved && !Main.MissionFlag) RemoveWeapons();
 
             List<uint> loadedAmmoTypes = new();
             var text = File.ReadAllText($"{filePath}.json");
@@ -186,10 +173,7 @@ namespace LittleJacobMod.Saving
             {
                 GTA.UI.Notification.Show("~g~Error loading weapons.");
 
-                if (!constructor)
-                {
-                    Script.Wait(1000);
-                }
+                if (!constructor) Script.Wait(1000);
 
                 GTA.UI.LoadingPrompt.Hide();
                 Busy = false;
@@ -199,10 +183,8 @@ namespace LittleJacobMod.Saving
             foreach (var weapon in storedWeaponsList)
             {
                 if (Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.WeaponHash, false))
-                {
                     Function.Call(Hash.REMOVE_WEAPON_FROM_PED, Main.PPID, weapon.WeaponHash);
-                }
-                
+
                 Function.Call(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weapon.WeaponHash, 0, false, false);
 
                 if (weapon.Attachments != null)
@@ -213,10 +195,8 @@ namespace LittleJacobMod.Saving
                     }    
                 }
                 
-                if (weapon.Tint != -1)
-                {
+                if (weapon.Tint != -1) 
                     Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, Main.PPID, weapon.WeaponHash, weapon.Tint);
-                }
 
                 if (weapon.Camo is not null && weapon.Camo.Hash is not (uint)WeaponComponentHash.Invalid)
                 {

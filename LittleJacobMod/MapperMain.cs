@@ -7,8 +7,8 @@ using LittleJacobMod.Utils;
 
 internal class MapperMain : Script
 {
-    private readonly Vector3 _gunRange1 = new Vector3(9.053967f, -1097.277f, 28.79702f);
-    private readonly Vector3 _gunRange2 = new Vector3(826.2507f, -2162.014f, 28.61901f);
+    private readonly Vector3 _gunRange1 = new(9.053967f, -1097.277f, 28.79702f);
+    private readonly Vector3 _gunRange2 = new(826.2507f, -2162.014f, 28.61901f);
     private bool _saveTriggered;
     private bool _missionFlag;
     private bool _updating;
