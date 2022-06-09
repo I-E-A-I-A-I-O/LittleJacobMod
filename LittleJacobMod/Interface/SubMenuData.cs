@@ -48,9 +48,9 @@ namespace LittleJacobMod.Interface
 
         private static void Restart(IReadOnlyCollection<ItemData> items)
         {
-            for (int i = 0; i < items.Count; i++)
+            for (var i = 0; i < items.Count; i++)
             {
-                ItemData data = items.ElementAt(i);
+                var data = items.ElementAt(i);
 
                 if (i == 0)
                 {
@@ -64,12 +64,12 @@ namespace LittleJacobMod.Interface
             }
         }
 
-        private static void SetIndex(IReadOnlyCollection<ItemData> items, string text, int index)
+        public static void SetIndex(IReadOnlyCollection<ItemData> items, string text, int index)
         {
             if (index == -1) return;
-            for (int i = 0; i < items.Count; i++)
+            for (var i = 0; i < items.Count; i++)
             {
-                ItemData data = items.ElementAt(i);
+                var data = items.ElementAt(i);
 
                 if (i != index && !data.Item.Enabled)
                 {
@@ -111,19 +111,19 @@ namespace LittleJacobMod.Interface
                 if (!storeRef.Attachments.ContainsKey(group.Key)) continue;
                 
                 var savedGroup = storeRef.Attachments[group.Key];
-                int index = group.Value.FindIndex(it => it.Hash == savedGroup.Hash);
+                var index = group.Value.FindIndex(it => it.Hash == savedGroup.Hash);
                 SetIndex(group.Value, group.Key, index);
             }
             
             if (TintItems.Count > 0)
             {
-                int index = storeRef.GetTintIndex();
+                var index = storeRef.GetTintIndex();
                 SetIndex(TintItems, "Tint", index);
             }
 
             if (CamoItems.Count > 0)
             {
-                int index = CamoItems.FindIndex(it => it.Hash == storeRef.Camo.Hash);
+                var index = CamoItems.FindIndex(it => it.Hash == storeRef.Camo.Hash);
                 SetIndex(CamoItems, "Livery", index);
                 index = storeRef.GetCamoColor();
                 SetIndex(CamoColorItems, "Livery Color", index);

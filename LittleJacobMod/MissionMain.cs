@@ -83,10 +83,10 @@ namespace LittleJacobMod
 
         public MissionMain()
         {
-            ScriptSettings settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+            var settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
             _dir = $"{BaseDirectory}\\LittleJacobMod\\Missions";
             _cancelMissionKey = settings.GetValue("Controls", "CancelMission", Controls.INPUT_SWITCH_VISOR);
-            int playerRel = Game.GenerateHash("PLAYER");
+            var playerRel = Game.GenerateHash("PLAYER");
             _dislike = World.AddRelationshipGroup("JACOB_MISSION_REL_DISLIKE");
             _neutral = World.AddRelationshipGroup("JACOB_MISSION_REL_NEUTRAL");
             _dislike.SetRelationshipBetweenGroups(playerRel, Relationship.Dislike, true);
@@ -104,22 +104,22 @@ namespace LittleJacobMod
 
         private void LoadFromFile(string name)
         {
-            XElement missionData = XElement.Load($"{_dir}\\{name}.xml");
+            var missionData = XElement.Load($"{_dir}\\{name}.xml");
             _data = new SpawnData
             {
                 ModelTypes = new List<ModelType>(),
                 Positions = new List<Position>()
             };
-            IEnumerable<XElement> elements = from item in missionData.Elements().Descendants("MapObject")
+            var elements = from item in missionData.Elements().Descendants("MapObject")
                           select item;
-            IEnumerable<XElement> markers = from item in missionData.Elements().Descendants("Marker")
+            var markers = from item in missionData.Elements().Descendants("Marker")
                                              select item;
 
-            for (int i = 0; i < elements.Count(); i++)
+            for (var i = 0; i < elements.Count(); i++)
             {
-                XElement element = elements.ElementAt(i);
-                Position pos = new Position();
-                ModelType modelType = new ModelType();
+                var element = elements.ElementAt(i);
+                var pos = new Position();
+                var modelType = new ModelType();
                 pos.Location.X = (float)element.Element("Position")?.Element("X");
                 pos.Location.Y = (float)element.Element("Position")?.Element("Y");
                 pos.Location.Z = (float)element.Element("Position")?.Element("Z");
@@ -301,34 +301,34 @@ namespace LittleJacobMod
 
         private void Clean()
         {
-            for (int i = 0; i < _peds.Count; i++)
+            for (var i = 0; i < _peds.Count; i++)
             {
-                int el = _peds[i];
+                var el = _peds[i];
                 unsafe
                 {
                     Function.Call(Hash.SET_PED_AS_NO_LONGER_NEEDED, &el);
                 }
             }
 
-            for (int i = 0; i < _vehicles.Count; i++)
+            for (var i = 0; i < _vehicles.Count; i++)
             {
-                int el = _vehicles[i];
+                var el = _vehicles[i];
                 unsafe
                 {
                     Function.Call(Hash.SET_VEHICLE_AS_NO_LONGER_NEEDED, &el);
                 }
             }
 
-            for (int i = 0; i < _props.Count; i++)
+            for (var i = 0; i < _props.Count; i++)
             {
-                int el = _props[i];
+                var el = _props[i];
                 unsafe
                 {
                     Function.Call(Hash.SET_OBJECT_AS_NO_LONGER_NEEDED, &el);
                 }
             }
 
-            for (int i = 0; i < _blips.Count; i++)
+            for (var i = 0; i < _blips.Count; i++)
                 _blips[i].Delete();
 
             _locations.Clear();
@@ -347,7 +347,7 @@ namespace LittleJacobMod
 
             if ((_mission == Missions.Mm2 || _mission == Missions.Mm3) && (_objective > 0 || _spawned))
             {
-                int v = _targetV;
+                var v = _targetV;
 
                 unsafe
                 {
@@ -436,7 +436,7 @@ namespace LittleJacobMod
 
         private static void EnemyBlip(int ped)
         {
-            Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, ped);
+            var blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, ped);
             blip.Scale = 0.7f;
             blip.Sprite = BlipSprite.Enemy;
             blip.Color = BlipColor.Red;
@@ -445,7 +445,7 @@ namespace LittleJacobMod
 
         private bool AnyFightingPlayer()
         {
-            for (int i = 0; i < _peds.Count; i++)
+            for (var i = 0; i < _peds.Count; i++)
                 if (Function.Call<bool>(Hash.IS_PED_IN_COMBAT, _peds[i], Main.PPID))
                     return true;
 
@@ -454,13 +454,13 @@ namespace LittleJacobMod
 
         private void RandomWeapon(int ped)
         {
-            int val = _ran.Next(0, _weapons.Count);
+            var val = _ran.Next(0, _weapons.Count);
             Function.Call(Hash.GIVE_WEAPON_TO_PED, ped, (uint)_weapons[val], 2000, false, true);
         }
 
         private void RandomScenario(int ped)
         {
-            int val = _ran.Next(0, 3);
+            var val = _ran.Next(0, 3);
             string scenario;
 
             switch (val)
@@ -481,10 +481,10 @@ namespace LittleJacobMod
 
         private void RemoveFarEnts(float distance)
         {
-            for (int i = _peds.Count - 1; i > -1; i--)
+            for (var i = _peds.Count - 1; i > -1; i--)
             {
-                int ped = _peds[i];
-                Vector3 coords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, ped);
+                var ped = _peds[i];
+                var coords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, ped);
 
                 if (Game.Player.Character.IsInRange(coords, distance)) continue;
                 unsafe
@@ -494,10 +494,10 @@ namespace LittleJacobMod
                 _peds.RemoveAt(i);
             }
 
-            for (int i = _vehicles.Count - 1; i > -1; i--)
+            for (var i = _vehicles.Count - 1; i > -1; i--)
             {
-                int v = _vehicles[i];
-                Vector3 coords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, v);
+                var v = _vehicles[i];
+                var coords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, v);
 
                 if (Game.Player.Character.IsInRange(coords, distance)) continue;
                 unsafe
@@ -510,7 +510,7 @@ namespace LittleJacobMod
 
         private static bool IsInRange(Vector3 a, Vector3 b, float range)
         {
-            Vector3 nv3 = new Vector3
+            var nv3 = new Vector3
             {
                 X = a.X - b.X,
                 Y = a.Y - b.Y,
@@ -521,9 +521,9 @@ namespace LittleJacobMod
 
         private void RemoveDeadEnts()
         {
-            for (int i = _peds.Count - 1; i > -1; i--)
+            for (var i = _peds.Count - 1; i > -1; i--)
             {
-                int ped = _peds[i];
+                var ped = _peds[i];
 
                 if (!Function.Call<bool>(Hash.IS_PED_DEAD_OR_DYING, ped, 1)) continue;
                 unsafe
@@ -533,9 +533,9 @@ namespace LittleJacobMod
                 _peds.RemoveAt(i);
             }
 
-            for (int i = _vehicles.Count - 1; i > -1; i--)
+            for (var i = _vehicles.Count - 1; i > -1; i--)
             {
-                int v = _vehicles[i];
+                var v = _vehicles[i];
 
                 if (!Function.Call<bool>(Hash.IS_ENTITY_DEAD, v)) continue;
                 unsafe
@@ -628,12 +628,12 @@ namespace LittleJacobMod
         private void ASS_0()
         {
             GTA.UI.Screen.ShowSubtitle("Go to the ~y~Gang's Location~w~.", 8000);
-            Vector3 pos = _locations[0];
+            var pos = _locations[0];
 
             if (!_objtvCrtd)
             {
                 _objtvCrtd = true;
-                Blip blip = World.CreateBlip(pos);
+                var blip = World.CreateBlip(pos);
                 blip.Scale = 0.8f;
                 blip.Color = BlipColor.Yellow;
                 blip.ShowRoute = true;
@@ -657,10 +657,10 @@ namespace LittleJacobMod
             {
                 _spawned = true;
 
-                for (int i = 0; i < _data.ModelTypes.Count; i++)
+                for (var i = 0; i < _data.ModelTypes.Count; i++)
                 {
-                    ModelType data1 = _data.ModelTypes[i];
-                    Position data2 = _data.Positions[i];
+                    var data1 = _data.ModelTypes[i];
+                    var data2 = _data.Positions[i];
                     int handle;
                     LoadModel(data1.Hash);
 
@@ -695,7 +695,7 @@ namespace LittleJacobMod
                 }
             } else if (Game.Player.Character.IsInRange(pos, 100) || AnyFightingPlayer())
             {
-                for (int i = 0; i < _peds.Count; i++)
+                for (var i = 0; i < _peds.Count; i++)
                     EnemyBlip(_peds[i]);
 
                 _blips[0].Delete();
@@ -782,7 +782,7 @@ namespace LittleJacobMod
 
         private void ForceFight()
         {
-            for (int i = 0; i < _peds.Count; i++)
+            for (var i = 0; i < _peds.Count; i++)
             {
                 Function.Call(Hash.TASK_COMBAT_PED, _peds[i], Main.PPID, 0, 16);
             }
@@ -800,14 +800,14 @@ namespace LittleJacobMod
 
         private void SpawnChaser(float range)
         {
-            OutputArgument outPos = new OutputArgument();
-            Vector3 arPPos = Game.Player.Character.Position.Around(range);
-            bool result = Function.Call<bool>(Hash.GET_CLOSEST_VEHICLE_NODE, arPPos.X, arPPos.Y, arPPos.Z, outPos, 0, 3, 0);
+            var outPos = new OutputArgument();
+            var arPPos = Game.Player.Character.Position.Around(range);
+            var result = Function.Call<bool>(Hash.GET_CLOSEST_VEHICLE_NODE, arPPos.X, arPPos.Y, arPPos.Z, outPos, 0, 3, 0);
 
             if (!result)
                 return;
 
-            Vector3 vCoords = outPos.GetResult<Vector3>();
+            var vCoords = outPos.GetResult<Vector3>();
             int v;
 
             switch(_mission)
@@ -826,16 +826,16 @@ namespace LittleJacobMod
             }
 
             Function.Call(Hash.SET_VEHICLE_ENGINE_ON, v, true, true, false);
-            Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, v);
+            var blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, v);
             blip.Scale = 0.85f;
             blip.Sprite = BlipSprite.Enemy;
             blip.Color = BlipColor.Red;
             blip.Name = "Enemy Vehicle";
-            int seats = Function.Call<int>(Hash.GET_VEHICLE_MAX_NUMBER_OF_PASSENGERS, v);
+            var seats = Function.Call<int>(Hash.GET_VEHICLE_MAX_NUMBER_OF_PASSENGERS, v);
 
-            for (int i = -1; i < seats; i++)
+            for (var i = -1; i < seats; i++)
             {
-                int ped = Function.Call<int>(Hash.CREATE_PED_INSIDE_VEHICLE, v, 0, _pedModel, i, false, false);
+                var ped = Function.Call<int>(Hash.CREATE_PED_INSIDE_VEHICLE, v, 0, _pedModel, i, false, false);
                 Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, ped, _dislike);
                 Function.Call(Hash.GIVE_WEAPON_TO_PED, ped, (uint)WeaponHash.MicroSMG, 2000, false, true);
 
@@ -859,12 +859,12 @@ namespace LittleJacobMod
         private void REP_0()
         {
             GTA.UI.Screen.ShowSubtitle($"Go to the ~y~{PosText(0)}~w~.", 8000);
-            Vector3 pos = _locations[0];
+            var pos = _locations[0];
 
             if (!_objtvCrtd)
             {
                 _objtvCrtd = true;
-                Blip blip = World.CreateBlip(pos);
+                var blip = World.CreateBlip(pos);
                 blip.Scale = 0.8f;
                 blip.Color = BlipColor.Yellow;
                 blip.ShowRoute = true;
@@ -890,10 +890,10 @@ namespace LittleJacobMod
             {
                 _spawned = true;
 
-                for (int i = 0; i < _data.ModelTypes.Count; i++)
+                for (var i = 0; i < _data.ModelTypes.Count; i++)
                 {
-                    ModelType data1 = _data.ModelTypes[i];
-                    Position data2 = _data.Positions[i];
+                    var data1 = _data.ModelTypes[i];
+                    var data2 = _data.Positions[i];
                     int handle;
                     LoadModel(data1.Hash);
 
@@ -941,7 +941,7 @@ namespace LittleJacobMod
             }
             else if (Game.Player.Character.IsInRange(pos, 100) || AnyFightingPlayer())
             {
-                for (int i = 0; i < _peds.Count; i++)
+                for (var i = 0; i < _peds.Count; i++)
                     EnemyBlip(_peds[i]);
 
                 _blips[0].Delete();
@@ -949,13 +949,13 @@ namespace LittleJacobMod
 
                 if (_mission == Missions.Mm1)
                 {
-                    Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _props[0]);
+                    var blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _props[0]);
                     blip.Scale = 0.7f;
                     blip.Color = BlipColor.Green;
                     blip.Name = "Drugs";
                 } else
                 {
-                    Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _targetV);
+                    var blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _targetV);
                     blip.Scale = 0.7f;
                     blip.Color = BlipColor.Green;
                     blip.Name = _mission == Missions.Mm2 ? "Sanctus" : "Phantom";
@@ -979,7 +979,7 @@ namespace LittleJacobMod
 
             if (_mission == Missions.Mm1)
             {
-                int prop = _props[0];
+                var prop = _props[0];
 
                 if (!_tookDrugs)
                 {
@@ -995,7 +995,7 @@ namespace LittleJacobMod
 
                     if (!Function.Call<bool>(Hash.IS_CONTROL_JUST_PRESSED, 0, (uint)Main.OpenMenuKey)) return;
                     _tookDrugs = true;
-                    TaskSequence sequence = new TaskSequence();
+                    var sequence = new TaskSequence();
                     //sequence.AddTask.AchieveHeading(Vector3.RelativeBack.ToHeading());
                     sequence.AddTask.PlayAnimation("pickup_object", "pickup_low");
                     Game.Player.Character.Task.PerformSequence(sequence);
@@ -1004,7 +1004,7 @@ namespace LittleJacobMod
                 {
                     if (Game.Player.Character.TaskSequenceProgress != -1) return;
                     _tookDrugs = false;
-                    Blip blip = World.CreateBlip(_locations[1]);
+                    var blip = World.CreateBlip(_locations[1]);
                     blip.Scale = 0.8f;
                     blip.Color = BlipColor.Yellow;
                     blip.Name = "Drop point";
@@ -1043,12 +1043,12 @@ namespace LittleJacobMod
                 }
 
                 Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
-                Blip blip = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, _targetV);
+                var blip = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, _targetV);
                 blip.Delete();
                 _blipOff = true;
                 if (_mission == Missions.Mm2 || _mission == Missions.Mm1)
                 {
-                    Blip wBlip = World.CreateBlip(_locations[1]);
+                    var wBlip = World.CreateBlip(_locations[1]);
                     wBlip.Scale = 0.85f;
                     wBlip.Color = BlipColor.Yellow;
                     wBlip.Name = "Drop point";
@@ -1073,7 +1073,7 @@ namespace LittleJacobMod
         private void REP_2()
         {
             GTA.UI.Screen.ShowSubtitle("Go to the ~y~drop point~w~.", 1000);
-            Vector3 targetCoords = _locations[1];
+            var targetCoords = _locations[1];
             Function.Call(Hash.DRAW_MARKER, 1, targetCoords.X, targetCoords.Y, targetCoords.Z, 0, 0, 0, 0, 0,
                     0, 2f, 2f, 1f, 255, 255, 0, 100, false, false, 2, false, false, false);
             RemoveDeadEnts();
@@ -1126,7 +1126,7 @@ namespace LittleJacobMod
                     return;
                 }
 
-                Vector3 vCoords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, _targetV);
+                var vCoords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, _targetV);
 
                 if (IsInRange(vCoords, targetCoords, 2))
                 {
@@ -1140,14 +1140,14 @@ namespace LittleJacobMod
                 }
                 else
                 {
-                    bool inVehicle = Function.Call<int>(Hash.GET_PED_IN_VEHICLE_SEAT, _targetV, -1) == Main.PPID;
+                    var inVehicle = Function.Call<int>(Hash.GET_PED_IN_VEHICLE_SEAT, _targetV, -1) == Main.PPID;
 
                     switch (inVehicle)
                     {
                         case false when _blipOff:
                         {
                             _blipOff = false;
-                            Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _targetV);
+                            var blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _targetV);
                             blip.Scale = 0.7f;
                             blip.Color = BlipColor.Green;
                             blip.Name = _mission == Missions.Mm2 ? "Sanctus" : "Phantom";
@@ -1156,7 +1156,7 @@ namespace LittleJacobMod
                         case true when !_blipOff:
                         {
                             _blipOff = true;
-                            Blip blip = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, _targetV);
+                            var blip = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, _targetV);
                             blip.Delete();
                             break;
                         }
@@ -1171,7 +1171,7 @@ namespace LittleJacobMod
 
             if (Game.Player.WantedLevel == 0)
             {
-                Blip wBlip = World.CreateBlip(_locations[1]);
+                var wBlip = World.CreateBlip(_locations[1]);
                 wBlip.Scale = 0.85f;
                 wBlip.Color = BlipColor.Yellow;
                 wBlip.Name = "Drop point";
@@ -1189,7 +1189,7 @@ namespace LittleJacobMod
                 return;
             }
 
-            Vector3 targetCoords = _locations[1];
+            var targetCoords = _locations[1];
             RemoveDeadEnts();
             RemoveFarEnts(270);
 
@@ -1213,14 +1213,14 @@ namespace LittleJacobMod
                 }
             }
 
-            bool inVehicle = Function.Call<int>(Hash.GET_PED_IN_VEHICLE_SEAT, _targetV, -1) == Main.PPID;
+            var inVehicle = Function.Call<int>(Hash.GET_PED_IN_VEHICLE_SEAT, _targetV, -1) == Main.PPID;
 
             switch (inVehicle)
             {
                 case false when _blipOff:
                 {
                     _blipOff = false;
-                    Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _targetV);
+                    var blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, _targetV);
                     blip.Scale = 0.7f;
                     blip.Color = BlipColor.Green;
                     blip.Name = _mission == Missions.Mm2 ? "Sanctus" : "Phantom";
@@ -1229,7 +1229,7 @@ namespace LittleJacobMod
                 case true when !_blipOff:
                 {
                     _blipOff = true;
-                    Blip blip = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, _targetV);
+                    var blip = Function.Call<Blip>(Hash.GET_BLIP_FROM_ENTITY, _targetV);
                     blip.Delete();
                     break;
                 }

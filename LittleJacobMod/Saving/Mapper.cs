@@ -2,6 +2,7 @@
 using GTA;
 using GTA.Native;
 using LittleJacobMod.Saving.Utils;
+using LittleJacobMod.Utils.Types;
 
 namespace LittleJacobMod.Saving
 {
@@ -14,20 +15,20 @@ namespace LittleJacobMod.Saving
             if (Main.PPID == 0 || !Main.MenuCreated)
                 return;
 
-            bool changes = false;
+            var changes = false;
 
-            for (int i = 0; i < WeaponData.Count; i++)
+            for (var i = 0; i < WeaponData.Count; i++)
             {
                 var weapon = WeaponData[i];
-                bool hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.Hash, false);
-                bool isInStore = LoadoutSaving.IsWeaponInStore(weapon.Hash);
+                var hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.Hash, false);
+                var isInStore = LoadoutSaving.IsWeaponInStore(weapon.Hash);
 
                 if (!hasWeapon || isInStore) continue;
                 changes = true;
                 StoredWeapon storedWeapon = new(weapon.Hash);
                 storedWeapon.Tint = storedWeapon.GetTintIndex();
                 storedWeapon.Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon.Hash);
-                storedWeapon.Attachments = new();
+                storedWeapon.Attachments = new Dictionary<string, GroupedComponent>();
 
                 foreach (var attachment in weapon.Attachments)
                 {
@@ -40,7 +41,7 @@ namespace LittleJacobMod.Saving
 
                 if (weapon.CamoComponents != null)
                 {
-                    storedWeapon.Camo = new();
+                    storedWeapon.Camo = new Component();
                     foreach (var camo in weapon.CamoComponents.Components)
                     {
                         if (camo.Hash == (uint)WeaponComponentHash.Invalid) continue;
@@ -53,13 +54,13 @@ namespace LittleJacobMod.Saving
                 weapons.Add(storedWeapon);
             }
 
-            for (int i = weapons.Count - 1; i > -1; i--)
+            for (var i = weapons.Count - 1; i > -1; i--)
             {
-                StoredWeapon weapon = weapons[i];
+                var weapon = weapons[i];
 
                 if (weapon.WeaponHash == (uint)WeaponHash.Unarmed) continue;
 
-                bool hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.WeaponHash, false);
+                var hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.WeaponHash, false);
 
                 if (!hasWeapon)
                 {
@@ -69,33 +70,36 @@ namespace LittleJacobMod.Saving
                 }
 
                 var weaponCatalogOption = WeaponData.Find(ti => ti.Hash == weapon.WeaponHash);
-                int ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon.WeaponHash);
+                var ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon.WeaponHash);
 
                 if (ammo != weapon.Ammo && !updating)
                 {
                     weapon.Ammo = ammo;
                 }
 
-                int tintIndex = weapon.GetTintIndex();
+                var tintIndex = weapon.GetTintIndex();
 
                 if (tintIndex != weapon.Tint)
                 {
                     weapon.Tint = tintIndex;
+                    changes = true;
                 }
                 
                 foreach (var attachment in weaponCatalogOption.Attachments)
                 {
                     if (attachment.Hash == (uint)WeaponComponentHash.Invalid) continue;
+                    if (weapon.Attachments == null) continue;
                     if (!weapon.Attachments.ContainsKey(attachment.Group)) continue;
                     if (attachment.Hash == weapon.Attachments[attachment.Group].Hash) continue;
 
                     if (weapon.HasComponent(attachment.Hash))
                     {
                         weapon.Attachments[attachment.Group] = attachment;
+                        changes = true;
                     }
                 }
 
-                if (weaponCatalogOption.CamoComponents != null)
+                if (weaponCatalogOption.CamoComponents?.Components != null)
                 {
                     foreach (var camo in weaponCatalogOption.CamoComponents.Components)
                     {
@@ -106,6 +110,7 @@ namespace LittleJacobMod.Saving
                         {
                             weapon.Camo = camo;
                             weapon.CamoColor = weapon.GetCamoColor();
+                            changes = true;
                         }
                     }
                 }

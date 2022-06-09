@@ -29,7 +29,7 @@ internal class WeaponPreview : Script
 
     public WeaponPreview()
     {
-        ScriptSettings settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+        var settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
         _yawRight = settings.GetValue("Controls", "RotateDown", Controls.INPUT_VEH_FLY_ROLL_RIGHT_ONLY);
         _yawLeft = settings.GetValue("Controls", "RotateUp", Controls.INPUT_VEH_FLY_ROLL_LEFT_ONLY);
         _pitchUp = settings.GetValue("Controls", "RotateBack", Controls.INPUT_VEH_FLY_PITCH_UP_ONLY);
@@ -48,7 +48,7 @@ internal class WeaponPreview : Script
     {
         _oldTime = _currentTime;
         _currentTime = Game.GameTime;
-        float deltaTime = _currentTime - _oldTime;
+        var deltaTime = _currentTime - _oldTime;
 
         if (_doComponentReload)
         {
@@ -89,7 +89,7 @@ internal class WeaponPreview : Script
 
         if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, (int)_yawLeft))
         {
-            float y = _weaponHandle.Rotation.Y;
+            var y = _weaponHandle.Rotation.Y;
             y -= 1.0f * 0.05f * deltaTime;
             _rotation = new Vector3(_weaponHandle.Rotation.X, y, _weaponHandle.Rotation.Z);
             _weaponHandle.Rotation = _rotation;
@@ -97,7 +97,7 @@ internal class WeaponPreview : Script
 
         if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, (int)_yawRight))
         {
-            float y = _weaponHandle.Rotation.Y;
+            var y = _weaponHandle.Rotation.Y;
             y += 1.0f * 0.05f * deltaTime;
             _rotation = new Vector3(_weaponHandle.Rotation.X, y, _weaponHandle.Rotation.Z);
             _weaponHandle.Rotation = _rotation;
@@ -105,7 +105,7 @@ internal class WeaponPreview : Script
 
         if (Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, (int)_pitchUp))
         {
-            float x = _weaponHandle.Rotation.X;
+            var x = _weaponHandle.Rotation.X;
             x -= 1.0f * 0.05f * deltaTime;
             _rotation = new Vector3(x, _weaponHandle.Rotation.Y, _weaponHandle.Rotation.Z);
             _weaponHandle.Rotation = _rotation;
@@ -113,7 +113,7 @@ internal class WeaponPreview : Script
 
         if (!Function.Call<bool>(Hash.IS_CONTROL_PRESSED, 0, (int) _pitchDown)) return;
         {
-            float x = _weaponHandle.Rotation.X;
+            var x = _weaponHandle.Rotation.X;
             x += 1.0f * 0.05f * deltaTime;
             _rotation = new Vector3(x, _weaponHandle.Rotation.Y, _weaponHandle.Rotation.Z);
             _weaponHandle.Rotation = _rotation;
@@ -150,30 +150,36 @@ internal class WeaponPreview : Script
         if (!LoadoutSaving.IsWeaponInStore(hash)) return;
         var storedWeapon = LoadoutSaving.GetStoreReference(hash);
 
-        foreach (var attachment in storedWeapon.Attachments.Where(attachment => SkipComponent(attachment.Value.Hash, attachment.Key)))
+        if (storedWeapon.Attachments is not null)
         {
-            if (attachment.Key.ToLower() == "varmod")
+            foreach (var attachment in storedWeapon.Attachments.Where(attachment => SkipComponent(attachment.Value.Hash, attachment.Key)))
             {
-                if (!luxOn) GiveWeaponComponentToObject(attachment.Value.Hash, false);
-            }
-            else
-            {
-                GiveWeaponComponentToObject(attachment.Value.Hash, true);
+                if (attachment.Key.ToLower() == "varmod")
+                {
+                    if (!luxOn) GiveWeaponComponentToObject(attachment.Value.Hash, false);
+                }
+                else
+                {
+                    GiveWeaponComponentToObject(attachment.Value.Hash, true);
+                }
             }
         }
 
-        if (SkipComponent(storedWeapon.Camo.Hash, "Livery"))
+        if (storedWeapon.Camo is not null)
         {
-            GiveWeaponComponentToObject(storedWeapon.Camo.Hash, true);
-            uint slide = TintsAndCamos.ReturnSlide(storedWeapon.Camo.Hash);
-
-            if (slide != (uint)WeaponComponentHash.Invalid)
+            if (SkipComponent(storedWeapon.Camo.Hash, "Livery"))
             {
-                GiveWeaponComponentToObject(slide, true);
-                Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, slide, storedWeapon.GetCamoColor());
-            }
+                GiveWeaponComponentToObject(storedWeapon.Camo.Hash, true);
+                var slide = TintsAndCamos.ReturnSlide(storedWeapon.Camo.Hash);
 
-            Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo.Hash, storedWeapon.GetCamoColor());
+                if (slide != (uint)WeaponComponentHash.Invalid)
+                {
+                    GiveWeaponComponentToObject(slide, true);
+                    Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, slide, storedWeapon.GetCamoColor());
+                }
+
+                Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo.Hash, storedWeapon.GetCamoColor());
+            }
         }
 
         Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, _weaponHandle.Handle, storedWeapon.GetTintIndex());
@@ -220,7 +226,7 @@ internal class WeaponPreview : Script
         _weaponHandle.HasGravity = false;
         _weaponHandle.IsCollisionEnabled = false;
         _weaponHandle.Heading = Main.Camera.ForwardVector.ToHeading();
-        float z = _weaponHandle.Rotation.Z - 10;
+        var z = _weaponHandle.Rotation.Z - 10;
         _weaponHandle.Rotation = new Vector3(_rotation.X, _rotation.Y, z);
         Function.Call(Hash.REMOVE_WEAPON_ASSET, hash);
         LoadAttachments(hash, luxOn);
@@ -239,7 +245,7 @@ internal class WeaponPreview : Script
 
     private int LoadComponentModel(uint component)
     {
-        int componentModel = Function.Call<int>(Hash.GET_WEAPON_COMPONENT_TYPE_MODEL, component);
+        var componentModel = Function.Call<int>(Hash.GET_WEAPON_COMPONENT_TYPE_MODEL, component);
 
         if (componentModel == 0) return 0;
         Function.Call(Hash.REQUEST_MODEL, componentModel);

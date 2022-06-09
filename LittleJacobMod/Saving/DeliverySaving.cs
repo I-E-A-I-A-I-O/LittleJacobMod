@@ -48,8 +48,8 @@ namespace LittleJacobMod.Saving
             GTA.UI.LoadingPrompt.Show("Saving delivery data...");
             try
             {
-                string dir = Directory.GetCurrentDirectory();
-                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\delivery.data";
+                var dir = Directory.GetCurrentDirectory();
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\delivery.data";
 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Missions"))
                 {
@@ -61,7 +61,7 @@ namespace LittleJacobMod.Saving
                     File.Delete(filePath);
                 }
 
-                using BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write));
+                using var writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write));
                 writer.Write(PoliceChanceHigh);
                 writer.Write(PoliceChanceLow);
                 writer.Write(BadDealChance);
@@ -91,15 +91,15 @@ namespace LittleJacobMod.Saving
 
             try
             {
-                string dir = Directory.GetCurrentDirectory();
-                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\delivery.data";
+                var dir = Directory.GetCurrentDirectory();
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\delivery.data";
 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Missions") || !File.Exists(filePath))
                 {
                     return;
                 }
 
-                using BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read));
+                using var reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read));
                 PoliceChanceHigh = reader.ReadInt32();
                 PoliceChanceLow = reader.ReadInt32();
                 BadDealChance = reader.ReadInt32();

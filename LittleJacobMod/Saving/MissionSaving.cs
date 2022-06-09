@@ -15,8 +15,8 @@ namespace LittleJacobMod.Saving
             GTA.UI.LoadingPrompt.Show("Saving mission progress...");
             try
             {
-                string dir = Directory.GetCurrentDirectory();
-                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\missions.data";
+                var dir = Directory.GetCurrentDirectory();
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\missions.data";
 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Missions"))
                 {
@@ -28,7 +28,7 @@ namespace LittleJacobMod.Saving
                     File.Delete(filePath);
                 }
 
-                using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
+                using (var writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
                 {
                     writer.Write(MProgress);
                     writer.Write(FProgress);
@@ -55,15 +55,15 @@ namespace LittleJacobMod.Saving
 
             try
             {
-                string dir = Directory.GetCurrentDirectory();
-                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\missions.data";
+                var dir = Directory.GetCurrentDirectory();
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Missions\\missions.data";
 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Missions") || !File.Exists(filePath))
                 {
                     return;
                 }
 
-                using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
+                using (var reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
                 {
                     MProgress = reader.ReadInt32();
                     FProgress = reader.ReadInt32();

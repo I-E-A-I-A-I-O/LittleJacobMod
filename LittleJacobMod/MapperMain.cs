@@ -28,7 +28,7 @@ internal class MapperMain : Script
 
     private void Initialize(bool firstStart)
     {
-        int id = Function.Call<int>(Hash.PLAYER_PED_ID);
+        var id = Function.Call<int>(Hash.PLAYER_PED_ID);
         CurrentPed = Function.Call<uint>(Hash.GET_ENTITY_MODEL, id);
 
         if (id == 0 || CurrentPed == 0)
@@ -63,7 +63,7 @@ internal class MapperMain : Script
 
     private void AutoSaveWatch(object o, EventArgs e)
     {
-        bool atRange = IsPlayerAtGunRange();
+        var atRange = IsPlayerAtGunRange();
 
         if (!Function.Call<bool>(Hash.GET_MISSION_FLAG) && _missionFlag && !atRange)
         {

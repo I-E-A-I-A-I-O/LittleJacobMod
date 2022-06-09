@@ -22,8 +22,8 @@ namespace LittleJacobMod.Saving
 
             try
             {
-                string dir = Directory.GetCurrentDirectory();
-                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Gear\\helmets.data";
+                var dir = Directory.GetCurrentDirectory();
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Gear\\helmets.data";
 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Gear"))
                 {
@@ -35,14 +35,14 @@ namespace LittleJacobMod.Saving
                     return;
                 }
 
-                using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
+                using (var reader = new BinaryReader(File.Open(filePath, FileMode.Open, FileAccess.Read)))
                 {
-                    bool mpFTV = reader.ReadBoolean();
-                    bool mpFNV1 = reader.ReadBoolean();
-                    bool mpFNV2 = reader.ReadBoolean();
-                    bool mpMTV = reader.ReadBoolean();
-                    bool mpMNV1 = reader.ReadBoolean();
-                    bool mpMNV2 = reader.ReadBoolean();
+                    var mpFTV = reader.ReadBoolean();
+                    var mpFNV1 = reader.ReadBoolean();
+                    var mpFNV2 = reader.ReadBoolean();
+                    var mpMTV = reader.ReadBoolean();
+                    var mpMNV1 = reader.ReadBoolean();
+                    var mpMNV2 = reader.ReadBoolean();
 
                     MpftvOwned = mpFTV;
                     Mpfnv1Owned = mpFNV1;
@@ -72,8 +72,8 @@ namespace LittleJacobMod.Saving
             GTA.UI.LoadingPrompt.Show("Saving helmets...");
             try
             {
-                string dir = Directory.GetCurrentDirectory();
-                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Gear\\helmets.data";
+                var dir = Directory.GetCurrentDirectory();
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Gear\\helmets.data";
 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Gear"))
                 {
@@ -85,7 +85,7 @@ namespace LittleJacobMod.Saving
                     File.Delete(filePath);
                 }
 
-                using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
+                using (var writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
                 {
                     writer.Write(MpftvOwned);
                     writer.Write(Mpfnv1Owned);

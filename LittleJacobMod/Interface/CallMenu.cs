@@ -26,7 +26,7 @@ namespace LittleJacobMod.Interface
             _mainMenu = new NativeMenu("Little Jacob", "Contact options");
             _jobs = new NativeItem("Jobs", "Complete jobs for Jacob and earn a especial reward.");
             _delivery = new NativeItem("Delivery", "Earn money delivering product for Jacob.");
-            NativeItem shop = new NativeItem("Weapons", "Meet with Jacob to buy weapons from him.");
+            var shop = new NativeItem("Weapons", "Meet with Jacob to buy weapons from him.");
             _mainMenu.Add(_jobs);
             _mainMenu.Add(_delivery);
             _mainMenu.Add(shop);
@@ -82,9 +82,9 @@ namespace LittleJacobMod.Interface
                 }
                 else
                 {
-                    int rem = 900000 - (Game.GameTime - _startT);
-                    string des = "Next job available in ";
-                    int val = rem / 1000 / 60;
+                    var rem = 900000 - (Game.GameTime - _startT);
+                    var des = "Next job available in ";
+                    var val = rem / 1000 / 60;
 
                     if (val < 10)
                         des = string.Concat(des, "0");
@@ -110,9 +110,9 @@ namespace LittleJacobMod.Interface
                 }
                 else
                 {
-                    int rem = 900000 - (Game.GameTime - _startD);
-                    string des = "Next delivery available in ";
-                    int val = rem / 1000 / 60;
+                    var rem = 900000 - (Game.GameTime - _startD);
+                    var des = "Next delivery available in ";
+                    var val = rem / 1000 / 60;
 
                     if (val < 10)
                         des = string.Concat(des, "0");

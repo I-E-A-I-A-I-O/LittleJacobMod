@@ -378,7 +378,7 @@ public class Main : Script
         Camera = Function.Call<Camera>(Hash.CREATE_CAM, "DEFAULT_SCRIPTED_CAMERA", 0);
         _trunkCam = Function.Call<Camera>(Hash.CREATE_CAM, "DEFAULT_SCRIPTED_CAMERA", 0);
         _faceCam = Function.Call<Camera>(Hash.CREATE_CAM, "DEFAULT_SCRIPTED_CAMERA", 0);
-        Vector3 rearPos = Game.Player.Character.RearPosition;
+        var rearPos = Game.Player.Character.RearPosition;
         _faceCam.AttachTo(Game.Player.Character.Bones[Bone.SkelHead], new Vector3(0.25f, 1, 0.7f));
         _faceCam.PointAt(new Vector3(rearPos.X, rearPos.Y, rearPos.Z + 0.7f));
         _trunkCam.Position = new Vector3(LittleJacob.Vehicle.RearPosition.X, LittleJacob.Vehicle.RearPosition.Y, LittleJacob.Vehicle.RearPosition.Z + 0.6f);

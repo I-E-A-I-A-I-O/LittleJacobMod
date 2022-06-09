@@ -7,6 +7,7 @@ using GTA;
 using GTA.Native;
 using LittleJacobMod.Utils;
 using LittleJacobMod.Saving;
+using LittleJacobMod.Utils.Types;
 
 namespace LittleJacobMod.Interface
 {
@@ -29,10 +30,10 @@ namespace LittleJacobMod.Interface
 
         public Menu()
         {
-            string baseDir = $"{Directory.GetCurrentDirectory()}\\scripts\\LittleJacobMod\\Weapons";
-            List<Utils.Types.Weapon> weapons = FileParser.DesearilizeJsonContents($"{baseDir}\\Json\\Weapons.json");
+            var baseDir = $"{Directory.GetCurrentDirectory()}\\scripts\\LittleJacobMod\\Weapons";
+            var weapons = FileParser.DesearilizeJsonContents($"{baseDir}\\Json\\Weapons.json");
             Mapper.WeaponData = weapons;
-            Dictionary<string, NativeMenu> weaponGroupMenus = new Dictionary<string, NativeMenu>();
+            var weaponGroupMenus = new Dictionary<string, NativeMenu>();
             Pool = new ObjectPool();
             _mainMenu = new NativeMenu("Little Jacob", "Weapon store");
             Pool.Add(_mainMenu);
@@ -40,18 +41,19 @@ namespace LittleJacobMod.Interface
             foreach (var weapon in weapons)
             {
                 if (weaponGroupMenus.ContainsKey(weapon.Group)) continue;
-                var groupMenu = new NativeMenu(weapon.Group);
+                var groupMenu = new NativeMenu(weapon.Group, weapon.Group);
                 weaponGroupMenus.Add(weapon.Group, groupMenu);
                 _mainMenu.AddSubMenu(groupMenu);
                 Pool.Add(groupMenu);
                 groupMenu.SelectedIndexChanged += (_, args) =>
                 {
-                    SpawnWeaponObject?.Invoke(this, weapons[args.Index].Hash);
+                    var groupedWeapons = weapons.FindAll(it => it.Group == groupMenu.Title.Text);
+                    SpawnWeaponObject?.Invoke(this, groupedWeapons[args.Index].Hash);
                 };
             }
 
-            NativeMenu gearMenu = new NativeMenu("Gear", "Gear");
-            NativeItem armorOption = new NativeItem("Armor", "Buy armor");
+            var gearMenu = new NativeMenu("Gear", "Gear");
+            var armorOption = new NativeItem("Armor", "Buy armor");
             _helm1 = new NativeMenu("Thermal Vision Helmet", "Thermal Vision Helmet", "Price: $60000");
             _helm2 = new NativeMenu("Night Vision Helmet", "Night Vision Helmet", "Price: $40000");
             _helm3 = new NativeMenu("Tactical Night Vision", "Tactical Night Vision", "Price: $20000");
@@ -105,11 +107,12 @@ namespace LittleJacobMod.Interface
         private void AddSubmenu(Utils.Types.Weapon weapon, NativeMenu parentMenu)
         {
             NativeMenu weaponMenu = new(weapon.Name, weapon.Name, $"Price: {weapon.Price}");
+            GTA.UI.Screen.ShowSubtitle(weapon.Name);
             Pool.Add(weaponMenu);
             parentMenu.AddSubMenu(weaponMenu);
             SubMenuData subMenuData = new(weapon.Hash);
 
-            weaponMenu.Opening += (_, _) =>
+            weaponMenu.Shown += (_, _) =>
             {
                 if (!WeaponSelected(weapon.Name, weapon.Hash, weapon.Price)) weaponMenu.Back();
                 else SpawnWeaponObject?.Invoke(this, weapon.Hash);
@@ -124,16 +127,16 @@ namespace LittleJacobMod.Interface
                 };
                 ammoOptionItem.Selected += (_, _) =>
                 {
-                    uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weapon.Hash);
-                    ScriptSettings ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
-                    int price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
+                    var ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weapon.Hash);
+                    var ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+                    var price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
                     ammoOptionItem.Description = $"Selected ammo: {ammoOptionItem.Value}\nPrice: ${price * ammoOptionItem.Value}";
                 };
                 ammoOptionItem.ValueChanged += (_, _) =>
                 {
-                    uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weapon.Hash);
-                    ScriptSettings ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
-                    int price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
+                    var ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weapon.Hash);
+                    var ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+                    var price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
                     ammoOptionItem.Description = $"Selected ammo: {ammoOptionItem.Value}\nPrice: ${price * ammoOptionItem.Value}";
                 };
                 weaponMenu.Add(ammoOptionItem);
@@ -141,11 +144,13 @@ namespace LittleJacobMod.Interface
 
             Dictionary<string, NativeMenu> attachmentCategories = new();
 
-            foreach (var attachment in weapon.Attachments)
+            for (var index = 0; index < weapon.Attachments.Count; index++)
             {
+                var attachment = weapon.Attachments[index];
+                var si = index;
                 if (!attachmentCategories.ContainsKey(attachment.Group))
                 {
-                    var category = new NativeMenu(attachment.Group);
+                    var category = new NativeMenu(attachment.Group, attachment.Group);
                     weaponMenu.AddSubMenu(category);
                     Pool.Add(category);
                     attachmentCategories.Add(attachment.Group, category);
@@ -156,13 +161,20 @@ namespace LittleJacobMod.Interface
                             it => it.Group == category.Title.Text);
                         var selectedAttachment = groupedAttachments[args.Index];
                         ComponentSelected?.Invoke(this,
-                            new ComponentPreviewEventArgs(weapon.Hash, selectedAttachment.Hash, selectedAttachment.Group));
+                            new ComponentPreviewEventArgs(weapon.Hash, selectedAttachment.Hash,
+                                selectedAttachment.Group));
                     };
                 }
+
                 var categoryMenu = attachmentCategories[attachment.Group];
                 var componentItemOption = new NativeItem(attachment.Name, $"Price: ${attachment.Price}");
-                componentItemOption.Selected += (_, _) => 
-                    ComponentPurchased(weapon.Hash, attachment.Hash, attachment.Price, attachment.Name);
+                componentItemOption.Activated += (_, _) =>
+                {
+                    if (ComponentPurchased(weapon.Hash, attachment.Hash, attachment.Price, attachment.Name, attachment.Group, false))
+                    {
+                        SubMenuData.SetIndex(subMenuData.Attachments[attachment.Group], "attachment", si);
+                    }
+                };
                 categoryMenu.Add(componentItemOption);
                 subMenuData.Attachments[attachment.Group].Add(
                     new ItemData(attachment.Price, componentItemOption, attachment.Hash));
@@ -170,17 +182,21 @@ namespace LittleJacobMod.Interface
 
             if (weapon.Tints != null)
             {
-                NativeMenu tintCategory = new("Tints");
+                NativeMenu tintCategory = new("Tints", "Tints");
                 weaponMenu.AddSubMenu(tintCategory);
                 Pool.Add(tintCategory);
                 
-                for (int i = 0; i < weapon.Tints.Count; i++)
+                for (var i = 0; i < weapon.Tints.Count; i++)
                 {
-                    int si = i;
+                    var si = i;
                     var tint = weapon.Tints[i];
                     NativeItem tintItem = new(tint.Name, $"Price: ${tint.Price}");
                     tintCategory.Add(tintItem);
-                    tintItem.Activated += (_, _) => TintPurchased(weapon.Hash, si, tint.Price);
+                    tintItem.Activated += (_, _) =>
+                    {
+                        if (TintPurchased(weapon.Hash, si, tint.Price))
+                            SubMenuData.SetIndex(subMenuData.TintItems, "tint", si);
+                    };
                     subMenuData.TintItems.Add(
                         new ItemData(tint.Price, tintItem, 0));
                 }
@@ -191,30 +207,44 @@ namespace LittleJacobMod.Interface
 
             if (weapon.CamoComponents != null)
             {
-                NativeMenu styleCategory = new("Livery");
-                NativeMenu colorCategory = new("Livery Color");
+                NativeMenu styleCategory = new("Livery", "Livery");
+                NativeMenu colorCategory = new("Livery Color", "Livery Color");
                 weaponMenu.AddSubMenu(styleCategory);
                 weaponMenu.AddSubMenu(colorCategory);
                 Pool.Add(styleCategory);
                 Pool.Add(colorCategory);
 
-                foreach (var style in weapon.CamoComponents.Components)
+                for (var index = 0; index < weapon.CamoComponents.Components.Count; index++)
                 {
+                    var style = weapon.CamoComponents.Components[index];
+                    var sc = index;
                     NativeItem styleItem = new(style.Name, $"Price: ${style.Price}");
                     styleCategory.Add(styleItem);
                     styleItem.Activated += (_, _) =>
-                        ComponentPurchased(weapon.Hash, style.Hash, style.Price, style.Name);
+                    {
+                        if (ComponentPurchased(weapon.Hash, style.Hash, style.Price, style.Name, "", true))
+                        {
+                            SubMenuData.SetIndex(subMenuData.CamoItems, "livery", sc);
+                        }
+                    };
+
                     subMenuData.CamoItems.Add(new ItemData(style.Price, styleItem, style.Hash));
                 }
-                
-                for (int i = 0; i < weapon.CamoComponents.Colors.Count; i++)
+
+                for (var i = 0; i < weapon.CamoComponents.Colors.Count; i++)
                 {
-                    int si = i;
+                    var si = i;
                     var color = weapon.CamoComponents.Colors[i];
                     NativeItem colorItem = new(color.Name, $"Price: ${color.Price}");
                     colorCategory.Add(colorItem);
-                    colorItem.Activated += (_, _) => 
-                        CamoColorPurchased(weapon.Hash, si, color.Name, color.Price);
+                    colorItem.Activated += (_, _) =>
+                    {
+                        if (CamoColorPurchased(weapon.Hash, si, color.Name, color.Price))
+                        {
+                            SubMenuData.SetIndex(subMenuData.CamoColorItems, "color", si);
+                        }
+                    };
+                        
                     subMenuData.CamoColorItems.Add(new ItemData(color.Price, colorItem, 0));
                 }
 
@@ -243,7 +273,7 @@ namespace LittleJacobMod.Interface
 
         public void ReloadOptions()
         {
-            foreach (SubMenuData sub in _subMenus)
+            foreach (var sub in _subMenus)
             {
                 sub.LoadAttachments();
             }
@@ -314,10 +344,10 @@ namespace LittleJacobMod.Interface
                 colors = TintsAndCamos.HelmColors;
             }
 
-            for (int i = 0; i < colors.Count; i++)
+            for (var i = 0; i < colors.Count; i++)
             {
-                int index = i;
-                NativeItem item = new NativeItem(colors[i], $"Price: ${price.ToString()}");
+                var index = i;
+                var item = new NativeItem(colors[i], $"Price: ${price.ToString()}");
 
                 item.Activated += (_, _) =>
                 {
@@ -337,7 +367,7 @@ namespace LittleJacobMod.Interface
 
             menu.Shown += (_, _) =>
             {
-                int pedType = Main.IsMPped();
+                var pedType = Main.IsMPped();
 
                 if (pedType == -1)
                 {
@@ -346,15 +376,15 @@ namespace LittleJacobMod.Interface
                     return;
                 }
 
-                int compIndx = code;
+                var compIndx = code;
 
                 if (pedType == 0)
                 {
                     compIndx += 1;
                 }
 
-                int helmIndx = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
-                bool purchased = false;
+                var helmIndx = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
+                var purchased = false;
 
                 if (compIndx != helmIndx)
                 {
@@ -463,13 +493,13 @@ namespace LittleJacobMod.Interface
 
             menu.Closed += (_, _) =>
             {
-                int helmIndx = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
+                var helmIndx = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
                 Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmIndx, _helmColor, 1);
             };
 
             menu.SelectedIndexChanged += (_, e) =>
             {
-                int helmIndx = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
+                var helmIndx = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
                 Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmIndx, e.Index, 1);
             };
         }
@@ -481,7 +511,7 @@ namespace LittleJacobMod.Interface
 
         private static bool WeaponSelected(string name, uint weapon, int price)
         {
-            bool hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon, 0);
+            var hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon, 0);
 
             if (!hasWeapon)
             {
@@ -514,7 +544,7 @@ namespace LittleJacobMod.Interface
             {
                 Function.Call(Hash.GET_MAX_AMMO, Main.PPID, weapon, &maxAmmo);
             }
-            int purchasableAmmo = maxAmmo - Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon);
+            var purchasableAmmo = maxAmmo - Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon);
 
             if (purchasableAmmo == 0)
             {
@@ -522,15 +552,15 @@ namespace LittleJacobMod.Interface
                 return;
             }
 
-            int ammoToPurchase = value >= purchasableAmmo ? value - purchasableAmmo : value;
-            uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weapon);
-            ScriptSettings ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
-            int price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
+            var ammoToPurchase = value >= purchasableAmmo ? value - purchasableAmmo : value;
+            var ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Main.PPID, weapon);
+            var ini = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
+            var price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
 
             if (price == 0)
                 price = 50000;
 
-            int ammoPrice = ammoToPurchase * price;
+            var ammoPrice = ammoToPurchase * price;
 
             if (Game.Player.Money < ammoPrice)
             {
@@ -544,14 +574,14 @@ namespace LittleJacobMod.Interface
             LoadoutSaving.SetAmmo(weapon, Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon));
         }
 
-        private void TintPurchased(uint weapon, int index, int price)
+        private bool TintPurchased(uint weapon, int index, int price)
         {
             price = ApplyDiscount(price);
 
             if (Game.Player.Money < price)
             {
                 GTA.UI.Notification.Show("Couldn't purchase this tint. Not enough money!");
-                return;
+                return false;
             }
             
             Game.Player.Money -= price;
@@ -560,9 +590,10 @@ namespace LittleJacobMod.Interface
             GTA.UI.Notification.Show("Tint purchased!");
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "WEAPON_PURCHASE", "HUD_AMMO_SHOP_SOUNDSET", true);
             LoadoutSaving.SetTint(weapon, index);
+            return true;
         }
 
-        private bool ComponentPurchased(uint weapon, uint component, int price, string name)
+        private bool ComponentPurchased(uint weapon, uint component, int price, string name, string group, bool camo)
         {
             price = ApplyDiscount(price);
 
@@ -574,7 +605,7 @@ namespace LittleJacobMod.Interface
 
             Game.Player.Money -= price;
             Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weapon, component);
-            uint slide = TintsAndCamos.ReturnSlide(component);
+            var slide = TintsAndCamos.ReturnSlide(component);
 
             if (slide != (uint)WeaponComponentHash.Invalid) 
             { 
@@ -583,21 +614,36 @@ namespace LittleJacobMod.Interface
                 
             GTA.UI.Notification.Show($"{name} purchased!");
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "WEAPON_PURCHASE", "HUD_AMMO_SHOP_SOUNDSET", true);
+            
+            if (camo) LoadoutSaving.SetCamo(weapon, new Component
+            {
+                Hash = component,
+                Name = name,
+                Price = price
+            });
+            else LoadoutSaving.SetAttachment(weapon, new GroupedComponent
+            {
+                Group = group,
+                Hash = component,
+                Name = name,
+                Price = price
+            });
+            
             return true;
         }
 
-        private void CamoColorPurchased(uint weapon, int index, string name, int price)
+        private bool CamoColorPurchased(uint weapon, int index, string name, int price)
         {
             var storedWeapon = LoadoutSaving.GetStoreReference(weapon);
 
-            if (storedWeapon == null) return;
+            if (storedWeapon == null) return false;
 
             var camo = storedWeapon.GetCamo();
             
             if (camo == (uint)WeaponComponentHash.Invalid)
             {
                 GTA.UI.Notification.Show("Buy a camo first!");
-                return;
+                return false;
             }
 
             price = ApplyDiscount(price);
@@ -605,12 +651,12 @@ namespace LittleJacobMod.Interface
             if (Game.Player.Money < price)
             {
                 GTA.UI.Notification.Show("Couldn't purchase camo color. Not enough money!");
-                return;
+                return false;
             }
             
             Game.Player.Money -= price;
             Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Main.PPID, weapon, camo, index);
-            uint slide = TintsAndCamos.ReturnSlide(camo);
+            var slide = TintsAndCamos.ReturnSlide(camo);
             
             if (slide != (uint)WeaponComponentHash.Invalid)
             {
@@ -620,11 +666,12 @@ namespace LittleJacobMod.Interface
             GTA.UI.Notification.Show($"Camo color {name} purchased!");
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "WEAPON_PURCHASE", "HUD_AMMO_SHOP_SOUNDSET", true);
             LoadoutSaving.SetCamoColor(weapon, index);
+            return true;
         }
 
         private int ApplyDiscount(int price)
         {
-            bool canApply = false;
+            var canApply = false;
 
             if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, (uint)PedHash.Michael) && MissionSaving.MProgress >= 4)
                 canApply = true;
@@ -634,7 +681,7 @@ namespace LittleJacobMod.Interface
                 canApply = true;
 
             if (!canApply) return price;
-            float disc = price * 0.20f;
+            var disc = price * 0.20f;
             return (int)(price - disc);
 
         }

@@ -9,8 +9,8 @@ namespace LittleJacobMod.Utils
     {
         public static List<Weapon> DesearilizeJsonContents(string path)
         {
-            string contents = File.ReadAllText(path);
-            List<Weapon> weapons = JsonConvert.DeserializeObject<List<Weapon>>(contents);
+            var contents = File.ReadAllText(path);
+            var weapons = JsonConvert.DeserializeObject<List<Weapon>>(contents);
 
             if (weapons != null) return weapons;
 

@@ -5,6 +5,7 @@ using LittleJacobMod.Saving.Utils;
 using System.IO;
 using System.Linq;
 using GTA.Native;
+using LittleJacobMod.Utils.Types;
 using Newtonsoft.Json;
 
 namespace LittleJacobMod.Saving
@@ -22,7 +23,7 @@ namespace LittleJacobMod.Saving
 
         public static bool IsWeaponInStore(uint weapon)
         {
-            for (int i = 0; i < StoredWeapons.Count; i++)
+            for (var i = 0; i < StoredWeapons.Count; i++)
             {
                 if (StoredWeapons[i].WeaponHash == weapon)
                 {
@@ -55,16 +56,42 @@ namespace LittleJacobMod.Saving
                 return;
             }
         }
+        
+        public static void SetAttachment(uint weaponHash, GroupedComponent component)
+        {
+            var weapon = StoredWeapons.Find(ti => ti.WeaponHash == weaponHash);
 
+            if (weapon == null) return;
+            weapon.Attachments ??= new Dictionary<string, GroupedComponent>();
+            
+            if (!weapon.Attachments.ContainsKey(component.Group))
+            {
+                weapon.Attachments.Add(component.Group, component);
+            }
+            else
+            {
+                weapon.Attachments[component.Group] = component;
+            }
+        }
+
+        public static void SetCamo(uint weaponHash, Component component)
+        {
+            var weapon = StoredWeapons.Find(ti => ti.WeaponHash == weaponHash);
+
+            if (weapon == null) return;
+
+            weapon.Camo = component;
+        }
+        
         public static void SetTint(uint hash, int tint)
         {
-            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
+            var weapon = StoredWeapons.Find(ti => ti.WeaponHash == hash);
             if (weapon != null) weapon.Tint = tint;
         }
 
         public static void SetCamoColor(uint hash, int color)
         {
-            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
+            var weapon = StoredWeapons.Find(ti => ti.WeaponHash == hash);
             if (weapon != null) weapon.CamoColor = color;
         }
 
@@ -83,8 +110,8 @@ namespace LittleJacobMod.Saving
 
             try
             {
-                string dir = Directory.GetCurrentDirectory();
-                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{ped.ToString()}.json";
+                var dir = Directory.GetCurrentDirectory();
+                var filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{ped.ToString()}.json";
                 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
                 {
@@ -140,7 +167,7 @@ namespace LittleJacobMod.Saving
 
             Busy = true;
             StoredWeapons.Clear();
-            bool weaponsRemoved = false;
+            var weaponsRemoved = false;
 
             if (!Main.IsMainCharacter())
             {
@@ -148,8 +175,8 @@ namespace LittleJacobMod.Saving
                 weaponsRemoved = true;
             }
 
-            string dir = Directory.GetCurrentDirectory();
-            string filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{MapperMain.CurrentPed.ToString()}";
+            var dir = Directory.GetCurrentDirectory();
+            var filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{MapperMain.CurrentPed.ToString()}";
 
             if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts") || !File.Exists($"{filePath}.json"))
             {
@@ -171,7 +198,7 @@ namespace LittleJacobMod.Saving
             }
 
             List<uint> loadedAmmoTypes = new();
-            string text = File.ReadAllText($"{filePath}.json");
+            var text = File.ReadAllText($"{filePath}.json");
             var storedWeaponsList = JsonConvert.DeserializeObject<List<StoredWeapon>>(text);
 
             if (storedWeaponsList == null)
@@ -197,11 +224,20 @@ namespace LittleJacobMod.Saving
                 
                 Function.Call<bool>(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weapon.WeaponHash, 0, false, false);
 
-                foreach (var attachment in weapon.Attachments.Where(attachment => attachment.Value.Hash != (uint)WeaponComponentHash.Invalid))
+                if (weapon.Attachments != null)
                 {
-                    Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weapon.WeaponHash, attachment.Value.Hash);
+                    foreach (var attachment in weapon.Attachments.Where(attachment => attachment.Value.Hash != (uint)WeaponComponentHash.Invalid))
+                    {
+                        GTA.UI.Screen.ShowSubtitle(attachment.Key);
+                        Script.Wait(500);
+                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weapon.WeaponHash, attachment.Value.Hash);
+                    }    
                 }
-
+                else
+                {
+                    GTA.UI.Screen.ShowSubtitle("IS NULLLLLLLLLLLLLLLLLL");
+                }
+                
                 if (weapon.Tint != -1)
                 {
                     Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, Main.PPID, weapon.WeaponHash, weapon.Tint);
@@ -210,7 +246,7 @@ namespace LittleJacobMod.Saving
                 if (weapon.Camo is not null && weapon.Camo.Hash is not (uint)WeaponComponentHash.Invalid)
                 {
                     Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weapon.WeaponHash, weapon.Camo.Hash);
-                    uint slide = LittleJacobMod.Utils.TintsAndCamos.ReturnSlide(weapon.Camo.Hash);
+                    var slide = LittleJacobMod.Utils.TintsAndCamos.ReturnSlide(weapon.Camo.Hash);
 
                     if (slide != (uint)WeaponComponentHash.Invalid)
                     {
@@ -228,7 +264,7 @@ namespace LittleJacobMod.Saving
                     }
                 }
                 
-                uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weapon.WeaponHash);
+                var ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weapon.WeaponHash);
 
                 if (loadedAmmoTypes.Contains(ammoType)) continue;
 

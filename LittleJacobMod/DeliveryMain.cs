@@ -95,7 +95,7 @@ internal class DeliveryMain : Script
         _hateCops = World.AddRelationshipGroup("DRUG_DELIVERY_HATE_COPS_REL");
         _hate = Game.GenerateHash("HATES_PLAYER");
         _cop = Game.GenerateHash("COP");
-        int player = Game.GenerateHash("PLAYER");
+        var player = Game.GenerateHash("PLAYER");
         _neutral.SetRelationshipBetweenGroups(player, Relationship.Neutral, true);
         _neutral.SetRelationshipBetweenGroups(_cop, Relationship.Neutral, true);
         _hateCops.SetRelationshipBetweenGroups(player, Relationship.Like, true);
@@ -145,9 +145,9 @@ internal class DeliveryMain : Script
 
     private void DrawBadge(string title, string content, bool red, int slot)
     {
-        Vector3 bPos = _badgeSlots[slot];
-        Vector3 cPos = _contentSlots[slot];
-        Vector3 tPos = _titleSlots[slot];
+        var bPos = _badgeSlots[slot];
+        var cPos = _contentSlots[slot];
+        var tPos = _titleSlots[slot];
         DrawSprite(bPos.X, bPos.Y, red);
         DrawSpriteText(cPos.X, cPos.Y, 0.42f, content, true);
         DrawSpriteText(tPos.X, tPos.Y, 0.295f, title, false);
@@ -203,20 +203,20 @@ internal class DeliveryMain : Script
 
     private void Start(object o, EventArgs e)
     {
-        XElement doc = XElement.Load($"{BaseDirectory}\\LittleJacobMod\\Missions\\drug_delivery.xml");
-        IEnumerable<XElement> cars = doc.Element("CarLocations")?.Descendants("Location");
+        var doc = XElement.Load($"{BaseDirectory}\\LittleJacobMod\\Missions\\drug_delivery.xml");
+        var cars = doc.Element("CarLocations")?.Descendants("Location");
         var xElements = cars?.ToList();
 
         if (xElements == null) return;
 
-        int size = xElements.Count();
-        List<HeadingPoint> points = new List<HeadingPoint>();
-        Random ran = new Random();
+        var size = xElements.Count();
+        var points = new List<HeadingPoint>();
+        var ran = new Random();
 
-        for (int i = 0; i < size; i++)
+        for (var i = 0; i < size; i++)
         {
-            HeadingPoint point = new HeadingPoint();
-            XElement el = xElements.ElementAt(i);
+            var point = new HeadingPoint();
+            var el = xElements.ElementAt(i);
             point.X = (float) el.Element("X");
             point.Y = (float) el.Element("Y");
             point.Z = (float) el.Element("Z");
@@ -228,32 +228,32 @@ internal class DeliveryMain : Script
             points.Add(point);
         }
 
-        HeadingPoint carPoint = points.ElementAt(ran.Next(0, points.Count));
+        var carPoint = points.ElementAt(ran.Next(0, points.Count));
         points.Clear();
-        IEnumerable<XElement> buyers = doc.Elements("BuyerLocations").Descendants("Location");
+        var buyers = doc.Elements("BuyerLocations").Descendants("Location");
         var enumerable = buyers.ToList();
         size = enumerable.Count();
-        List<HeadingPoint> validBuyers = new List<HeadingPoint>();
-        List<Vector3> markers = new List<Vector3>();
-        Vector3 carVector = new Vector3(carPoint.X, carPoint.Y, carPoint.Z);
+        var validBuyers = new List<HeadingPoint>();
+        var markers = new List<Vector3>();
+        var carVector = new Vector3(carPoint.X, carPoint.Y, carPoint.Z);
 
-        for (int i = 0; i < size; i++)
+        for (var i = 0; i < size; i++)
         {
-            XElement el = enumerable.ElementAt(i);
-            XElement buyer = el.Element("Buyer");
-            XElement marker = el.Element("Marker");
-            Vector3 markerPoint = new Vector3
+            var el = enumerable.ElementAt(i);
+            var buyer = el.Element("Buyer");
+            var marker = el.Element("Marker");
+            var markerPoint = new Vector3
             {
                 X = (float) marker?.Element("X"),
                 Y = (float) marker?.Element("Y"),
                 Z = (float) marker?.Element("Z")
             };
-            float dist = World.CalculateTravelDistance(carVector, markerPoint);
+            var dist = World.CalculateTravelDistance(carVector, markerPoint);
 
             if (dist < 1500)
                 continue;
 
-            HeadingPoint buyerPoint = new HeadingPoint
+            var buyerPoint = new HeadingPoint
             {
                 X = (float) buyer?.Element("X"),
                 Y = (float) buyer?.Element("Y"),
@@ -272,8 +272,8 @@ internal class DeliveryMain : Script
         }
         else
         {
-            int index = ran.Next(0, validBuyers.Count);
-            HeadingPoint selectedBuyer = validBuyers.ElementAt(index);
+            var index = ran.Next(0, validBuyers.Count);
+            var selectedBuyer = validBuyers.ElementAt(index);
             RequestModel(selectedBuyer.Hash);
             _buyer = Function.Call<Ped>(Hash.CREATE_PED, 0, selectedBuyer.Hash, selectedBuyer.X, selectedBuyer.Y,
                 selectedBuyer.Z, selectedBuyer.Heading, false, false);
@@ -282,7 +282,7 @@ internal class DeliveryMain : Script
             _buyer.Task.StartScenario("WORLD_HUMAN_STAND_IMPATIENT", 0);
             _buyer.RelationshipGroup = _neutral;
             _buyer.Weapons.Give(WeaponHash.Pistol, 100, false, true);
-            Vector3 bagLocation = _buyer.Position.Around(0.4f);
+            var bagLocation = _buyer.Position.Around(0.4f);
             RequestModel(3898412430);
             _bag = Function.Call<Prop>(Hash.CREATE_OBJECT, 3898412430, bagLocation.X, bagLocation.Y,
                 bagLocation.Z, false, false, false);
@@ -326,7 +326,7 @@ internal class DeliveryMain : Script
 
     private void SetModels(bool belongs)
     {
-        uint buyerModel = Function.Call<uint>(Hash.GET_ENTITY_MODEL, _buyer.Handle);
+        var buyerModel = Function.Call<uint>(Hash.GET_ENTITY_MODEL, _buyer.Handle);
         _chaserType = ThrowInPool(buyerModel);
 
         if (!belongs)
@@ -379,18 +379,18 @@ internal class DeliveryMain : Script
 
     private static PedTypes GetEnemy(PedTypes type)
     {
-        int intType = (int) type;
-        int num = ExclusiveRanNum(intType, 0, 10);
+        var intType = (int) type;
+        var num = ExclusiveRanNum(intType, 0, 10);
         return (PedTypes) num;
     }
 
     private static int ExclusiveRanNum(int num, int min, int max)
     {
-        Random ran = new Random();
-        int it = 0;
+        var ran = new Random();
+        var it = 0;
         while (true)
         {
-            int val = ran.Next(min, max);
+            var val = ran.Next(min, max);
             if (val == num)
             {
                 it++;
@@ -521,13 +521,13 @@ internal class DeliveryMain : Script
         if (Game.GameTime - _lastSpawn < 30000)
             return;
         
-        OutputArgument outPos = new OutputArgument();
-        Vector3 arPPos = Game.Player.Character.Position.Around(range);
-        bool result = Function.Call<bool>(Hash.GET_CLOSEST_VEHICLE_NODE, arPPos.X, arPPos.Y, arPPos.Z, outPos, 0, 3, 0);
+        var outPos = new OutputArgument();
+        var arPPos = Game.Player.Character.Position.Around(range);
+        var result = Function.Call<bool>(Hash.GET_CLOSEST_VEHICLE_NODE, arPPos.X, arPPos.Y, arPPos.Z, outPos, 0, 3, 0);
         if (!result)
             return;
-        Vector3 vCoords = outPos.GetResult<Vector3>();
-        int v = Function.Call<int>(Hash.CREATE_VEHICLE, _vehicleModel, vCoords.X, vCoords.Y, vCoords.Z, 0, false, false);
+        var vCoords = outPos.GetResult<Vector3>();
+        var v = Function.Call<int>(Hash.CREATE_VEHICLE, _vehicleModel, vCoords.X, vCoords.Y, vCoords.Z, 0, false, false);
 
         switch (_chaserType)
         {
@@ -535,22 +535,22 @@ internal class DeliveryMain : Script
             case PedTypes.Groove:
             case PedTypes.Mex:
                 Function.Call(Hash.SET_VEHICLE_MOD_KIT, v, 0);
-                VehicleColor color = GetVehicleColor(_chaserType);
+                var color = GetVehicleColor(_chaserType);
                 Function.Call(Hash.SET_VEHICLE_COLOURS, v, (int) color, (int) color);
                 break;
         }
         
         Function.Call(Hash.SET_VEHICLE_ENGINE_ON, v, true, true, false);
-        Blip blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, v);
+        var blip = Function.Call<Blip>(Hash.ADD_BLIP_FOR_ENTITY, v);
         blip.Scale = 0.85f;
         blip.Sprite = BlipSprite.Enemy;
         blip.Color = BlipColor.Red;
         blip.Name = "Enemy Vehicle";
-        int seats = Function.Call<int>(Hash.GET_VEHICLE_MAX_NUMBER_OF_PASSENGERS, v);
+        var seats = Function.Call<int>(Hash.GET_VEHICLE_MAX_NUMBER_OF_PASSENGERS, v);
 
-        for (int i = -1; i < seats; i++)
+        for (var i = -1; i < seats; i++)
         {
-            int ped = Function.Call<int>(Hash.CREATE_PED_INSIDE_VEHICLE, v, 0, _pedModel, i, false, false);
+            var ped = Function.Call<int>(Hash.CREATE_PED_INSIDE_VEHICLE, v, 0, _pedModel, i, false, false);
             Function.Call(Hash.SET_PED_RELATIONSHIP_GROUP_HASH, ped, _hate);
             Function.Call(Hash.GIVE_WEAPON_TO_PED, ped, (uint)WeaponHash.MicroSMG, 2000, false, true);
 
@@ -575,10 +575,10 @@ internal class DeliveryMain : Script
     
     private void RemoveChasers(float distance)
     {
-        for (int i = _peds.Count - 1; i > -1; i--)
+        for (var i = _peds.Count - 1; i > -1; i--)
         {
-            int ped = _peds[i];
-            Vector3 coords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, ped);
+            var ped = _peds[i];
+            var coords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, ped);
 
             if (Game.Player.Character.IsInRange(coords, distance) && !Function.Call<bool>(Hash.IS_ENTITY_DEAD, ped)) continue;
             unsafe
@@ -588,10 +588,10 @@ internal class DeliveryMain : Script
             _peds.RemoveAt(i);
         }
 
-        for (int i = _vehicles.Count - 1; i > -1; i--)
+        for (var i = _vehicles.Count - 1; i > -1; i--)
         {
-            int v = _vehicles[i];
-            Vector3 coords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, v);
+            var v = _vehicles[i];
+            var coords = Function.Call<Vector3>(Hash.GET_ENTITY_COORDS, v);
 
             if (Game.Player.Character.IsInRange(coords, distance) && !Function.Call<bool>(Hash.IS_ENTITY_DEAD, v)) continue;
             unsafe
@@ -644,14 +644,14 @@ internal class DeliveryMain : Script
             return;
 
         _car.AttachedBlip.Delete();
-        Random ran = new Random();
+        var ran = new Random();
 
         if (ran.Next(1, 101) <= (_highSpeed ? DeliverySaving.PoliceChanceLow + 6 : DeliverySaving.PoliceChanceLow))
         {
             Screen.ShowHelpText("The police were watching this car. Lose them!", 8000);
             Game.Player.WantedLevel = 2;
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
-            float distance = World.CalculateTravelDistance(Game.Player.Character.Position, _destination);
+            var distance = World.CalculateTravelDistance(Game.Player.Character.Position, _destination);
             _travelTime = (int) Math.Ceiling(distance * 60);
 
             if (_travelTime > 330000)
@@ -680,7 +680,7 @@ internal class DeliveryMain : Script
             }
             CreateDestinationBlip(0);
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(1));
-            float distance = World.CalculateTravelDistance(Game.Player.Character.Position, _destination);
+            var distance = World.CalculateTravelDistance(Game.Player.Character.Position, _destination);
             _travelTime = (int) Math.Ceiling(distance * 60);
             if (_travelTime > 330000)
             {
@@ -738,7 +738,7 @@ internal class DeliveryMain : Script
         if (_car.IsInRange(_destination, 5))
         {
             _routeBlip.Delete();
-            Random ran = new Random();
+            var ran = new Random();
 
             if (ran.Next(0, 101) <= DeliverySaving.PoliceChanceLow)
             {
@@ -776,7 +776,7 @@ internal class DeliveryMain : Script
                 _bag.AttachedBlip.Color = BlipColor.Green;
                 _bag.AttachedBlip.Name = "Money";
                 Wait(1000);
-                TaskSequence sequence = new TaskSequence();
+                var sequence = new TaskSequence();
                 sequence.AddTask.ClearAllImmediately();
                 sequence.AddTask.EnterVehicle(_car, VehicleSeat.Driver);
                 sequence.AddTask.CruiseWithVehicle(_car, 50, DrivingStyle.Rushed);
@@ -802,7 +802,7 @@ internal class DeliveryMain : Script
 
     private void DEL_2()
     {
-        bool farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
+        var farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
 
         if (farAway)
             _car.IsConsideredDestroyed = true;
@@ -840,7 +840,7 @@ internal class DeliveryMain : Script
 
         if (_car.IsInRange(_destination, 20))
         {
-            Random ran = new Random();
+            var ran = new Random();
 
             if (ran.Next(0, 101) <= DeliverySaving.PoliceChanceHigh)
             {
@@ -872,7 +872,7 @@ internal class DeliveryMain : Script
                     _bag.AttachedBlip.Color = BlipColor.Green;
                     _bag.AttachedBlip.Name = "Money";
                     Wait(1000);
-                    TaskSequence sequence = new TaskSequence();
+                    var sequence = new TaskSequence();
                     sequence.AddTask.ClearAllImmediately();
                     sequence.AddTask.CruiseWithVehicle(_car, 50, DrivingStyle.Rushed);
                     _buyer.Task.PerformSequence(sequence);
@@ -935,7 +935,7 @@ internal class DeliveryMain : Script
     private void DEL_4()
     {
         Screen.ShowSubtitle("Take the ~g~money~w~ and leave the area.", 1000);
-        bool buyerLeft = !_buyer.IsInRange(_destination, 50) || !_buyer.IsInRange(Game.Player.Character.Position, 50);
+        var buyerLeft = !_buyer.IsInRange(_destination, 50) || !_buyer.IsInRange(Game.Player.Character.Position, 50);
 
         switch (_bagTaken)
         {
@@ -971,7 +971,7 @@ internal class DeliveryMain : Script
 
     private void DEL_5()
     {
-        bool farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
+        var farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
 
         if (farAway)
             _car.IsConsideredDestroyed = true;
@@ -1004,7 +1004,7 @@ internal class DeliveryMain : Script
 
     private void DEL_6()
     {
-        bool farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
+        var farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
 
         if (farAway)
             _car.IsConsideredDestroyed = true;
@@ -1168,8 +1168,8 @@ internal class DeliveryMain : Script
 
         if (_bagTaken && _carRecovered)
         {
-            float multiplier = _health / 10 * 0.01f;
-            int carBonus = (int) (_baseReward * multiplier);
+            var multiplier = _health / 10 * 0.01f;
+            var carBonus = (int) (_baseReward * multiplier);
             Game.Player.Money += _lockedAt + carBonus;
 
             switch (_rainyDay)
@@ -1247,18 +1247,18 @@ internal class DeliveryMain : Script
 
         if (_bag != null && _bag.Handle != 0)
             _bag.Delete();
-        for (int i = _peds.Count - 1; i > -1; i--)
+        for (var i = _peds.Count - 1; i > -1; i--)
         {
-            int ped = _peds[i];
+            var ped = _peds[i];
             unsafe
             {
                 Function.Call(Hash.SET_PED_AS_NO_LONGER_NEEDED, &ped);
             }
             _peds.RemoveAt(i);
         }
-        for (int i = _vehicles.Count - 1; i > -1; i--)
+        for (var i = _vehicles.Count - 1; i > -1; i--)
         {
-            int v = _vehicles[i];
+            var v = _vehicles[i];
             unsafe
             {
                 Function.Call(Hash.SET_VEHICLE_AS_NO_LONGER_NEEDED, &v);
@@ -1316,11 +1316,11 @@ internal class DeliveryMain : Script
 
         if (_objective > 0)
         {
-            string mod = ColorModifier(_lockedAt, _carRecovered ? _baseReward * 2 : _baseReward);
+            var mod = ColorModifier(_lockedAt, _carRecovered ? _baseReward * 2 : _baseReward);
 
             if (!_bagTaken)
             {
-                float multiplier = _health / 10 * 0.01f;
+                var multiplier = _health / 10 * 0.01f;
                 _lockedAt = (int) (_baseReward * multiplier);
 
                 if (Game.Player.Character.IsInRange(_bag.Position, 1.25f) && !Game.Player.Character.IsInVehicle())
@@ -1348,8 +1348,8 @@ internal class DeliveryMain : Script
             {
                 if (_carRecovered)
                 {
-                    float multiplier = _health / 10 * 0.01f;
-                    int carBonus = (int) (_baseReward * multiplier);
+                    var multiplier = _health / 10 * 0.01f;
+                    var carBonus = (int) (_baseReward * multiplier);
                     mod = ColorModifier(_lockedAt + carBonus, 160000);
                     DrawBadge($"{mod}REWARD", $"{mod}${(_lockedAt + carBonus).ToString()}", mod == "~r~", 0);
                 }
@@ -1362,7 +1362,7 @@ internal class DeliveryMain : Script
 
             if (_objective < 4)
             {
-                int remaining = _travelTime - (Game.GameTime - _travelStartTime);
+                var remaining = _travelTime - (Game.GameTime - _travelStartTime);
 
                 if (Game.GameTime - _travelStartTime >= _travelTime)
                 {
@@ -1373,7 +1373,7 @@ internal class DeliveryMain : Script
                 }
 
                 string colorModifier;
-                bool red = false;
+                var red = false;
 
                 if (remaining > _travelTime / 1.5f)
                 {
@@ -1400,9 +1400,9 @@ internal class DeliveryMain : Script
                     red = true;
                 }
 
-                string title = $"{colorModifier}TIME LEFT";
-                string content = $"{colorModifier}";
-                int val = remaining / 1000 / 60;
+                var title = $"{colorModifier}TIME LEFT";
+                var content = $"{colorModifier}";
+                var val = remaining / 1000 / 60;
 
                 if (val < 10)
                     content = string.Concat(content, "0");
