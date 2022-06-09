@@ -232,7 +232,7 @@ namespace LittleJacobMod.Interface
                 styleCategory.SelectedIndexChanged += (_, args) =>
                 {
                     var style = weapon.CamoComponents.Components[args.Index];
-                    ComponentSelected?.Invoke(this, new ComponentPreviewEventArgs(weapon.Hash, style.Hash, style.Name));
+                    ComponentSelected?.Invoke(this, new ComponentPreviewEventArgs(weapon.Hash, style.Hash, "Livery"));
                 };
                 
                 styleCategory.Closed += (_, _) => SpawnWeaponObject?.Invoke(this, weapon.Hash);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using GTA;
 using GTA.Math;
 using GTA.Native;
@@ -149,16 +150,22 @@ internal class WeaponPreview : Script
         if (!LoadoutSaving.IsWeaponInStore(hash)) return;
         var storedWeapon = LoadoutSaving.GetStoreReference(hash);
 
-        if (SkipComponent(storedWeapon.Varmod, ComponentIndex.Varmod))
+        foreach (var attachment in storedWeapon.Attachments.Where(attachment => SkipComponent(attachment.Value.Hash, attachment.Key)))
         {
-            if (!luxOn)
-                GiveWeaponComponentToObject(storedWeapon.Varmod, false);
+            if (attachment.Key.ToLower() == "varmod")
+            {
+                if (!luxOn) GiveWeaponComponentToObject(attachment.Value.Hash, false);
+            }
+            else
+            {
+                GiveWeaponComponentToObject(attachment.Value.Hash, true);
+            }
         }
 
-        if (SkipComponent(storedWeapon.Camo, ComponentIndex.Livery))
+        if (SkipComponent(storedWeapon.Camo.Hash, "Livery"))
         {
-            GiveWeaponComponentToObject(storedWeapon.Camo, true);
-            uint slide = TintsAndCamos.ReturnSlide(storedWeapon.Camo);
+            GiveWeaponComponentToObject(storedWeapon.Camo.Hash, true);
+            uint slide = TintsAndCamos.ReturnSlide(storedWeapon.Camo.Hash);
 
             if (slide != (uint)WeaponComponentHash.Invalid)
             {
@@ -166,40 +173,10 @@ internal class WeaponPreview : Script
                 Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, slide, storedWeapon.GetCamoColor());
             }
 
-            Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo, storedWeapon.GetCamoColor());
+            Function.Call(Hash._SET_WEAPON_OBJECT_LIVERY_COLOR, _weaponHandle.Handle, storedWeapon.Camo.Hash, storedWeapon.GetCamoColor());
         }
 
         Function.Call(Hash.SET_WEAPON_OBJECT_TINT_INDEX, _weaponHandle.Handle, storedWeapon.GetTintIndex());
-
-        if (SkipComponent(storedWeapon.Barrel, ComponentIndex.Barrel))
-        {
-            GiveWeaponComponentToObject(storedWeapon.Barrel, true);
-        }
-
-        if (SkipComponent(storedWeapon.Clip, ComponentIndex.Clip))
-        {
-            GiveWeaponComponentToObject(storedWeapon.Clip, true);
-        }
-
-        if (SkipComponent(storedWeapon.Flashlight, ComponentIndex.Flashlight))
-        {
-            GiveWeaponComponentToObject(storedWeapon.Flashlight, true);
-        }
-
-        if (SkipComponent(storedWeapon.Grip, ComponentIndex.Grip))
-        {
-            GiveWeaponComponentToObject(storedWeapon.Grip, true);
-        }
-
-        if (SkipComponent(storedWeapon.Scope, ComponentIndex.Scope))
-        {
-            GiveWeaponComponentToObject(storedWeapon.Scope, true);
-        }
-
-        if (SkipComponent(storedWeapon.Muzzle, ComponentIndex.Muzzle))
-        {
-            GiveWeaponComponentToObject(storedWeapon.Muzzle, true);
-        }
     }
 
     private bool SkipComponent(uint component, string index)
@@ -278,7 +255,7 @@ internal class WeaponPreview : Script
 
     private void GiveWeaponComponentToObject(uint component, bool force)
     {
-        var isLuxe = _skipIndex == ComponentIndex.Varmod && component != (uint)WeaponComponentHash.Invalid;
+        var isLuxe = _skipIndex == "Varmod" && component != (uint)WeaponComponentHash.Invalid;
 
         if (!force && (component == (uint)WeaponComponentHash.Invalid || isLuxe))
         {
