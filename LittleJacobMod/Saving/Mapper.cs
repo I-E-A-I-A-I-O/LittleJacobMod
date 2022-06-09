@@ -6,7 +6,7 @@ using LittleJacobMod.Utils.Types;
 
 namespace LittleJacobMod.Saving
 {
-    internal class Mapper
+    internal static class Mapper
     {
         public static List<LittleJacobMod.Utils.Types.Weapon> WeaponData = new();
 
@@ -25,7 +25,10 @@ namespace LittleJacobMod.Saving
 
                 if (!hasWeapon || isInStore) continue;
                 changes = true;
-                StoredWeapon storedWeapon = new(weapon.Hash);
+                StoredWeapon storedWeapon = new()
+                {
+                    WeaponHash = weapon.Hash
+                };
                 storedWeapon.Tint = storedWeapon.GetTintIndex();
                 storedWeapon.Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon.Hash);
                 storedWeapon.Attachments = new Dictionary<string, GroupedComponent>();

@@ -40,9 +40,10 @@ namespace LittleJacobMod.Saving
                 return;
             }
 
-            StoredWeapon storedWeapon = new(weapon)
+            StoredWeapon storedWeapon = new()
             {
-                Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon)
+                Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon),
+                WeaponHash = weapon
             };
 
             StoredWeapons.Add(storedWeapon);
@@ -124,26 +125,6 @@ namespace LittleJacobMod.Saving
                 }
                 
                 File.WriteAllText(filePath, JsonConvert.SerializeObject(StoredWeapons));
-
-                /*using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
-                {
-                    writer.Write(StoredWeapons.Count);
-                    foreach (StoredWeapon weapon in StoredWeapons)
-                    {
-                        writer.Write(weapon.Ammo);
-                        writer.Write(weapon.Barrel);
-                        writer.Write(weapon.Camo);
-                        writer.Write(weapon.CamoColor);
-                        writer.Write(weapon.Clip);
-                        writer.Write(weapon.Flashlight);
-                        writer.Write(weapon.Grip);
-                        writer.Write(weapon.Muzzle);
-                        writer.Write(weapon.Scope);
-                        writer.Write(weapon.Tint);
-                        writer.Write(weapon.Varmod);
-                        writer.Write(weapon.WeaponHash);
-                    }
-                }*/
             } catch (Exception)
             {
                 GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error saving weapon loadout!");
@@ -199,6 +180,9 @@ namespace LittleJacobMod.Saving
 
             List<uint> loadedAmmoTypes = new();
             var text = File.ReadAllText($"{filePath}.json");
+            Script.Wait(50);
+            GTA.UI.Screen.ShowSubtitle($"Weapon hash: {text}");
+            Script.Wait(50);
             var storedWeaponsList = JsonConvert.DeserializeObject<List<StoredWeapon>>(text);
 
             if (storedWeaponsList == null)
@@ -219,17 +203,21 @@ namespace LittleJacobMod.Saving
             {
                 if (Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.WeaponHash, false))
                 {
-                    Function.Call<bool>(Hash.REMOVE_WEAPON_FROM_PED, Main.PPID, weapon.WeaponHash);
+                    Function.Call(Hash.REMOVE_WEAPON_FROM_PED, Main.PPID, weapon.WeaponHash);
+                    Script.Wait(50);
                 }
                 
-                Function.Call<bool>(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weapon.WeaponHash, 0, false, false);
+                Script.Wait(50);
+                GTA.UI.Screen.ShowSubtitle($"Weapon hash: {weapon.WeaponHash}");
+                Script.Wait(50);
+                Function.Call(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weapon.WeaponHash, 1, false, false);
 
                 if (weapon.Attachments != null)
                 {
                     foreach (var attachment in weapon.Attachments.Where(attachment => attachment.Value.Hash != (uint)WeaponComponentHash.Invalid))
                     {
                         GTA.UI.Screen.ShowSubtitle(attachment.Key);
-                        Script.Wait(500);
+                        Script.Wait(50);
                         Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weapon.WeaponHash, attachment.Value.Hash);
                     }    
                 }
@@ -273,6 +261,7 @@ namespace LittleJacobMod.Saving
             }
 
             StoredWeapons.AddRange(storedWeaponsList);
+            GTA.UI.Screen.ShowSubtitle($"COUNT: {StoredWeapons.Count}");
 
             if (!constructor)
             {
@@ -282,23 +271,6 @@ namespace LittleJacobMod.Saving
             GTA.UI.LoadingPrompt.Hide();
             WeaponsLoaded?.Invoke(null, EventArgs.Empty);
             Busy = false;
-        }
-
-        private static bool TakesCamo(uint weapon)
-        {
-            return weapon == (uint)WeaponHash.AssaultrifleMk2
-                || weapon == (uint)WeaponHash.BullpupRifleMk2
-                || weapon == (uint)WeaponHash.CarbineRifleMk2
-                || weapon == (uint)WeaponHash.CombatMGMk2
-                || weapon == (uint)WeaponHash.HeavySniperMk2
-                || weapon == (uint)WeaponHash.MarksmanRifleMk2
-                || weapon == (uint)WeaponHash.PistolMk2
-                || weapon == (uint)WeaponHash.PumpShotgunMk2
-                || weapon == (uint)WeaponHash.RevolverMk2
-                || weapon == (uint)WeaponHash.SMGMk2
-                || weapon == (uint)WeaponHash.SNSPistolMk2
-                || weapon == (uint)WeaponHash.SpecialCarbineMk2
-                || weapon == 3347935668;
         }
 
         private static void RemoveWeapons()

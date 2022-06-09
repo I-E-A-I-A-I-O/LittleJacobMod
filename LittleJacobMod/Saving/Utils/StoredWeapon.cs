@@ -7,26 +7,30 @@ namespace LittleJacobMod.Saving.Utils
 {
     internal class StoredWeapon
     {
-        [JsonProperty("weaponHash")]
-        public uint WeaponHash { get; }
+        [JsonProperty("WeaponHash", Required = Required.Always)]
+        public uint WeaponHash { get; set; }
         
-        [JsonProperty("ammo")]
+        [JsonProperty("Ammo", Required = Required.Always)]
         public int Ammo { get; set; }
         
-        [JsonProperty("attachments")]
+        [JsonProperty("Attachments")]
         public Dictionary<string, LittleJacobMod.Utils.Types.GroupedComponent> Attachments { get; set; }
         
-        [JsonProperty("livery")]
+        [JsonProperty("Camo")]
         public LittleJacobMod.Utils.Types.Component Camo { get; set; }
 
-        [JsonProperty("tint")] public int Tint { get; set; } = -1;
+        [JsonProperty("Tint")] public int Tint { get; set; } = -1;
 
-        [JsonProperty("camoColor")] public int CamoColor { get; set; } = -1;
+        [JsonProperty("CamoColor")] public int CamoColor { get; set; } = -1;
 
-        public StoredWeapon (uint hash)
+        [JsonConstructor]
+        public StoredWeapon() { }
+        
+        
+        /*public StoredWeapon (uint WeaponHash)
         {
-            WeaponHash = hash;
-        }
+            this.WeaponHash = WeaponHash;
+        }*/
 
         public int GetTintIndex()
         {
