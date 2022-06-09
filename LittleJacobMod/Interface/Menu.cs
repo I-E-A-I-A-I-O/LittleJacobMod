@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
 using System.IO;
 using LemonUI;
 using LemonUI.Menus;
@@ -14,7 +12,7 @@ namespace LittleJacobMod.Interface
 {
     public class Menu
     {
-        public ObjectPool Pool { get; private set; }
+        public ObjectPool Pool { get; }
         private readonly List<SubMenuData> _subMenus = new List<SubMenuData>();
         private readonly NativeMenu _mainMenu;
         private readonly NativeMenu _helm1;
@@ -37,11 +35,19 @@ namespace LittleJacobMod.Interface
             Dictionary<string, NativeMenu> weaponGroupMenus = new Dictionary<string, NativeMenu>();
             Pool = new ObjectPool();
             _mainMenu = new NativeMenu("Little Jacob", "Weapon store");
+            Pool.Add(_mainMenu);
 
             foreach (var weapon in weapons)
             {
                 if (weaponGroupMenus.ContainsKey(weapon.Group)) continue;
-                weaponGroupMenus.Add(weapon.Group, new NativeMenu(weapon.Group));
+                var groupMenu = new NativeMenu(weapon.Group);
+                weaponGroupMenus.Add(weapon.Group, groupMenu);
+                _mainMenu.AddSubMenu(groupMenu);
+                Pool.Add(groupMenu);
+                groupMenu.SelectedIndexChanged += (_, args) =>
+                {
+                    SpawnWeaponObject?.Invoke(this, weapons[args.Index].Hash);
+                };
             }
 
             NativeMenu gearMenu = new NativeMenu("Gear", "Gear");
@@ -49,17 +55,11 @@ namespace LittleJacobMod.Interface
             _helm1 = new NativeMenu("Thermal Vision Helmet", "Thermal Vision Helmet", "Price: $60000");
             _helm2 = new NativeMenu("Night Vision Helmet", "Night Vision Helmet", "Price: $40000");
             _helm3 = new NativeMenu("Tactical Night Vision", "Tactical Night Vision", "Price: $20000");
-
-            Pool.Add(_mainMenu);
-
-            foreach (var menu in weaponGroupMenus) Pool.Add(menu.Value);
-
+            
             Pool.Add(gearMenu);
             Pool.Add(_helm1);
             Pool.Add(_helm2);
             Pool.Add(_helm3);
-
-            foreach (var menu in weaponGroupMenus) _mainMenu.AddSubMenu(menu.Value);
 
             _mainMenu.AddSubMenu(gearMenu);
             gearMenu.Add(armorOption);
@@ -100,36 +100,20 @@ namespace LittleJacobMod.Interface
             {
                 AddSubmenu(weapon, weaponGroupMenus[weapon.Group]);
             }
-
-            pistolList.AddRange(pistols2);
-            mgList.AddRange(mg2);
-            rifleList.AddRange(rifles2);
-            shotgunList.AddRange(shotguns2);
-            sniperList.AddRange(snipers2);
-
-            Mapper.WeaponData.AddRange(meleeList);
-            Mapper.WeaponData.AddRange(pistolList);
-            Mapper.WeaponData.AddRange(mgList);
-            Mapper.WeaponData.AddRange(rifleList);
-            Mapper.WeaponData.AddRange(shotgunList);
-            Mapper.WeaponData.AddRange(sniperList);
-            Mapper.WeaponData.AddRange(heavyList);
-            Mapper.WeaponData.AddRange(explosiveList);
-
-            melee.SelectedIndexChanged += (_, e) => { SelectedIndexChanged(meleeList[e.Index].WeaponHash); };
-            pistols.SelectedIndexChanged += (_, e) => { SelectedIndexChanged(pistolList[e.Index].WeaponHash); };
-            rifles.SelectedIndexChanged += (_, e) => { SelectedIndexChanged(rifleList[e.Index].WeaponHash); };
-            mg.SelectedIndexChanged += (_, e) => { SelectedIndexChanged(mgList[e.Index].WeaponHash); };
-            shotguns.SelectedIndexChanged += (_, e) => { SelectedIndexChanged(shotgunList[e.Index].WeaponHash); };
-            snipers.SelectedIndexChanged += (_, e) => { SelectedIndexChanged(sniperList[e.Index].WeaponHash); };
-            heavy.SelectedIndexChanged += (_, e) => { SelectedIndexChanged(heavyList[e.Index].WeaponHash); };
-            explosives.SelectedIndexChanged += (_, e) => { SelectedIndexChanged(explosiveList[e.Index].WeaponHash); };
         }
 
         private void AddSubmenu(Utils.Types.Weapon weapon, NativeMenu parentMenu)
         {
             NativeMenu weaponMenu = new(weapon.Name, weapon.Name, $"Price: {weapon.Price}");
-            Dictionary<string, NativeMenu> menu = new();
+            Pool.Add(weaponMenu);
+            parentMenu.AddSubMenu(weaponMenu);
+            SubMenuData subMenuData = new(weapon.Hash);
+
+            weaponMenu.Opening += (_, _) =>
+            {
+                if (!WeaponSelected(weapon.Name, weapon.Hash, weapon.Price)) weaponMenu.Back();
+                else SpawnWeaponObject?.Invoke(this, weapon.Hash);
+            };
 
             if (weapon.Group.ToLower() != "melee")
             {
@@ -152,344 +136,109 @@ namespace LittleJacobMod.Interface
                     int price = ini.GetValue("AmmoPrices", ammoType.ToString(), 1);
                     ammoOptionItem.Description = $"Selected ammo: {ammoOptionItem.Value}\nPrice: ${price * ammoOptionItem.Value}";
                 };
+                weaponMenu.Add(ammoOptionItem);
             }
 
-            for (int i = 0; i < weapon.Attachments.Count; i++)
-            {
+            Dictionary<string, NativeMenu> attachmentCategories = new();
 
+            foreach (var attachment in weapon.Attachments)
+            {
+                if (!attachmentCategories.ContainsKey(attachment.Group))
+                {
+                    var category = new NativeMenu(attachment.Group);
+                    weaponMenu.AddSubMenu(category);
+                    Pool.Add(category);
+                    attachmentCategories.Add(attachment.Group, category);
+                    subMenuData.Attachments.Add(attachment.Group, new List<ItemData>());
+                    category.SelectedIndexChanged += (_, args) =>
+                    {
+                        var groupedAttachments = weapon.Attachments.FindAll(
+                            it => it.Group == category.Title.Text);
+                        var selectedAttachment = groupedAttachments[args.Index];
+                        ComponentSelected?.Invoke(this,
+                            new ComponentPreviewEventArgs(weapon.Hash, selectedAttachment.Hash, selectedAttachment.Group));
+                    };
+                }
+                var categoryMenu = attachmentCategories[attachment.Group];
+                var componentItemOption = new NativeItem(attachment.Name, $"Price: ${attachment.Price}");
+                componentItemOption.Selected += (_, _) => 
+                    ComponentPurchased(weapon.Hash, attachment.Hash, attachment.Price, attachment.Name);
+                categoryMenu.Add(componentItemOption);
+                subMenuData.Attachments[attachment.Group].Add(
+                    new ItemData(attachment.Price, componentItemOption, attachment.Hash));
             }
 
-            for (int i = 0; i < files.Length; i++)
+            if (weapon.Tints != null)
             {
-                XElement document = XElement.Load(files[i]);
-                string weaponName = (string)document.Element("Name");
-                int weaponPrice = (int)document.Element("Price");
-                NativeMenu weaponMenu = new NativeMenu(
-                    weaponName, weaponName, $"Price: ${weaponPrice.ToString()}"
-                );
-                uint weaponHash = (uint)document.Element("Hash");
-                WeaponData data = new WeaponData
+                NativeMenu tintCategory = new("Tints");
+                weaponMenu.AddSubMenu(tintCategory);
+                Pool.Add(tintCategory);
+                
+                for (int i = 0; i < weapon.Tints.Count; i++)
                 {
-                    WeaponHash = weaponHash,
-                    Flags = new List<bool>()
-                };
-
-                SubMenuData subMenuData = new SubMenuData(weaponHash);
-                IEnumerable<XElement> att = document.Element("Attachments").Descendants();
-                var subMenuElements = att.ToList();
-                int size = subMenuElements.Count();
-
-                for (int n = 0; i < size; i++)
-                {
-                    int ix = n;
-                    XElement currentSubmenu = subMenuElements.ElementAt(n);
-                    var title = (string)currentSubmenu.Attribute("Title");
-                    var subtitle = (string) currentSubmenu.Attribute("Subtitle");
-                    NativeMenu submenu = new NativeMenu(title, subtitle);
-                    var subMenuItems = currentSubmenu.Descendants().ToList();
-
-                    for (int c = 0; c < subMenuItems.Count; c++)
-                    {
-                        int itemIndex = c;
-                        XElement currentItem = subMenuItems.ElementAt(c);
-                        var itemTitle = (string) currentItem.Attribute("Name");
-                        var itemPrice = (int) currentItem.Attribute("Price");
-                        NativeItem menuItem = new NativeItem(itemTitle, $"Price: ${itemPrice.ToString()}");
-
-                        menuItem.Activated += currentSubmenu.Name.ToString() switch
-                        {
-                            "Tints" => (_, _) => { TintPurchased(weaponHash, itemIndex); },
-                            "LiveryColors" => (_, _) => { CamoColorPurchased(weaponHash, ix, itemTitle, itemPrice); },
-                            _ => (_, _) =>
-                            {
-                                uint attHash = (uint) currentItem;
-
-                                if (!ComponentPurchased(weaponHash, attHash, itemPrice, itemTitle)) return;
-                            }
-                        };
-
-                        submenu.Add(menuItem);
-                    }
-
-                    submenu.SelectedIndexChanged += currentSubmenu.Name.ToString() switch
-                    {
-                        "Tints" => (_, e) => { TintChanged?.Invoke(this, e.Index); },
-                        "LiveryColors" => (_, e) =>
-                        {
-                            var reference = LoadoutSaving.GetStoreReference(weaponHash);
-                            var camo = reference.GetCamo();
-
-                            if (camo == (uint) WeaponComponentHash.Invalid) return;
-
-                            CamoColorEventArgs ev = new CamoColorEventArgs {Camo = camo, ColorIndex = e.Index};
-                            CamoColorChanged?.Invoke(this, ev);
-                        },
-                        _ => (_, e) =>
-                        {
-                            uint attHash = (uint) subMenuItems.ElementAt(e.Index);
-                            string name = currentSubmenu.Name.ToString();
-
-                            ComponentSelected?.Invoke(this,
-                                new ComponentPreviewEventArgs(weaponHash, attHash, name));
-                        }
-                    };
-
-                    submenu.Closed += (_, _) =>
-                    {
-                        SpawnWeaponObject?.Invoke(this, weaponHash);
-                    };
-
-                    weaponMenu.AddSubMenu(submenu);
-                    Pool.Add(submenu);
+                    int si = i;
+                    var tint = weapon.Tints[i];
+                    NativeItem tintItem = new(tint.Name, $"Price: ${tint.Price}");
+                    tintCategory.Add(tintItem);
+                    tintItem.Activated += (_, _) => TintPurchased(weapon.Hash, si, tint.Price);
+                    subMenuData.TintItems.Add(
+                        new ItemData(tint.Price, tintItem, 0));
                 }
 
-                if (att.Element("Tints") != null)
-                {
-                    IEnumerable<XElement> tints = att.Element("Tints").Descendants();
-                    NativeMenu tintMenu = new NativeMenu("Weapon Tints", "Tints");
-                    var xElements = tints.ToList();
-                    int size = xElements.Count();
-
-                    for (int n = 0; n < size; n++)
-                    {
-                        int ix = n;
-                        XElement tint = xElements.ElementAt(n);
-                        NativeItem tintItem = new NativeItem(
-                            (string)tint, $"Price: ${tint.Attribute("Price")}"
-                            );
-                        ItemData itemData = new ItemData
-                        {
-                            Item = tintItem,
-                            Price = (int)tint.Attribute("Price")
-                        };
-                        subMenuData.TintItems.Add(itemData);
-
-                        tintItem.Activated += (_, _) =>
-                        {
-                            SubMenuData.SetIndex(subMenuData.TintItems, "Tint", ix);
-                            TintPurchased(weaponHash, ix);
-                            //Main.LittleJacob.ProcessVoice(true);
-                        };
-
-                        tintMenu.Add(tintItem);
-                    }
-
-                    tintMenu.SelectedIndexChanged += (_, e) =>
-                    {
-                        TintChanged?.Invoke(this, e.Index);
-                    };
-    
-                    tintMenu.Closed += (_, _) =>
-                    {
-                        SpawnWeaponObject?.Invoke(this, weaponHash);
-                    };
-
-                    weaponMenu.AddSubMenu(tintMenu);
-                    Pool.Add(tintMenu);
-                }
-
-                if ((bool)document.Element("Flags").Element("Muzzle"))
-                {
-                    XElement att = document.Element("Attachments");
-                    IEnumerable<XElement> muzzles = att.Element("Muzzle").Descendants();
-                    var xElements = muzzles.ToList();
-                    NativeMenu attMenu = AddOption("Muzzle Attachments", "Muzzle", weaponHash, xElements,
-                    ComponentIndex.Muzzle, LoadoutSaving.SetMuzzle, subMenuData);
-                    weaponMenu.AddSubMenu(attMenu);
-                    Pool.Add(attMenu);
-                    data.Flags.Add(true);
-                    data.Muzzles = new List<uint>();
-                    for (int c = 0; c < xElements.Count(); c++)
-                        data.Muzzles.Add((uint)xElements.ElementAt(c));
-                } else
-                    data.Flags.Add(false);
-
-                if ((bool)document.Element("Flags").Element("Clip"))
-                {
-                    XElement att = document.Element("Attachments");
-                    IEnumerable<XElement> clips = att.Element("Clip").Descendants();
-                    var xElements = clips.ToList();
-                    NativeMenu attMenu = AddOption("Weapon Clips", "Clip", weaponHash, xElements,
-                    ComponentIndex.Clip, LoadoutSaving.SetClip, subMenuData);
-                    weaponMenu.AddSubMenu(attMenu);
-                    Pool.Add(attMenu);
-                    data.Flags.Add(true);
-                    data.Clips = new List<uint>();
-                    for (int c = 0; c < xElements.Count(); c++)
-                        data.Clips.Add((uint)xElements.ElementAt(c));
-                } else
-                    data.Flags.Add(false);
-
-                if ((bool)document.Element("Flags").Element("Barrel"))
-                {
-                    XElement att = document.Element("Attachments");
-                    IEnumerable<XElement> barrels = att.Element("Barrel").Descendants();
-                    var xElements = barrels.ToList();
-                    NativeMenu attMenu = AddOption("Weapon Barrels", "Barrel", weaponHash, xElements,
-                    ComponentIndex.Barrel, LoadoutSaving.SetBarrel, subMenuData);
-                    weaponMenu.AddSubMenu(attMenu);
-                    Pool.Add(attMenu);
-                    data.Flags.Add(true);
-                    data.Barrels = new List<uint>();
-                    for (int c = 0; c < xElements.Count(); c++)
-                        data.Barrels.Add((uint)xElements.ElementAt(c));
-                } else
-                    data.Flags.Add(false);
-
-                if ((bool)document.Element("Flags").Element("Grip"))
-                {
-                    XElement att = document.Element("Attachments");
-                    IEnumerable<XElement> grips = att.Element("Grip").Descendants();
-                    var xElements = grips.ToList();
-                    NativeMenu attMenu = AddOption("Grip Attachments", "Grip", weaponHash, xElements,
-                    ComponentIndex.Grip, LoadoutSaving.SetGrip, subMenuData);
-                    weaponMenu.AddSubMenu(attMenu);
-                    Pool.Add(attMenu);
-                    data.Flags.Add(true);
-                    data.Grips = new List<uint>();
-                    for (int c = 0; c < xElements.Count(); c++)
-                        data.Grips.Add((uint)xElements.ElementAt(c));
-                } else
-                    data.Flags.Add(false);
-
-                if ((bool)document.Element("Flags").Element("Scope"))
-                {
-                    XElement att = document.Element("Attachments");
-                    IEnumerable<XElement> scopes = att.Element("Scope").Descendants();
-                    var xElements = scopes.ToList();
-                    NativeMenu attMenu = AddOption("Scope Attachments", "Scope", weaponHash, xElements,
-                    ComponentIndex.Scope, LoadoutSaving.SetScope, subMenuData);
-                    weaponMenu.AddSubMenu(attMenu);
-                    Pool.Add(attMenu);
-                    data.Flags.Add(true);
-                    data.Scopes = new List<uint>();
-                    for (int c = 0; c < xElements.Count(); c++)
-                        data.Scopes.Add((uint)xElements.ElementAt(c));
-                } else
-                    data.Flags.Add(false);
-
-                if ((bool)document.Element("Flags").Element("Camo"))
-                {
-                    XElement att = document.Element("Attachments");
-                    IEnumerable<XElement> camos = att.Element("Camos").Element("Styles").Descendants();
-                    var xElements = camos.ToList();
-                    NativeMenu attMenu = AddOption("Weapon Liveries", "Livery", weaponHash, xElements,
-                    ComponentIndex.Livery, LoadoutSaving.SetCamo, subMenuData);
-                    weaponMenu.AddSubMenu(attMenu);
-                    Pool.Add(attMenu);
-                    data.Camos = new List<uint>();
-                    for (int c = 0; c < xElements.Count(); c++)
-                        data.Camos.Add((uint)xElements.ElementAt(c));
-
-                    IEnumerable<XElement> camoColors = att.Element("Camos").Element("Colors").Descendants();
-                    NativeMenu camoColorMenu = new NativeMenu("Livery colors", "Livery color");
-                    var enumerable = camoColors.ToList();
-                    int size = enumerable.Count();
-
-                    for (int n = 0; n < size; n++)
-                    {
-                        int ix = n;
-                        XElement camoColor = enumerable.ElementAt(n);
-                        int price = (int)camoColor.Attribute("Price");
-                        string colorName = (string)camoColor;
-                        NativeItem camoColorItem = new NativeItem(colorName)
-                        {
-                            Description = $"Price: ${price.ToString()}"
-                        };
-                        ItemData itemData = new ItemData
-                        {
-                            Price = price,
-                            Item = camoColorItem
-                        };
-                        subMenuData.CamoColorItems.Add(itemData);
-
-                        camoColorItem.Activated += (_, _) =>
-                        {
-                            SubMenuData.SetIndex(subMenuData.CamoColorItems, colorName, ix);
-                            CamoColorPurchased(weaponHash, ix, colorName, price);
-                            //Main.LittleJacob.ProcessVoice(true);
-                        };
-
-                        camoColorMenu.Add(camoColorItem);
-                    }
-
-                    camoColorMenu.SelectedIndexChanged += (_, e) =>
-                    {
-                        var reference = LoadoutSaving.GetStoreReference(weaponHash);
-
-                        CamoColorEventArgs ev = new CamoColorEventArgs
-                        {
-                            Camo = reference.Camo,
-                            ColorIndex = e.Index
-                        };
-
-                        CamoColorChanged?.Invoke(this, ev);
-                    };
-
-                    camoColorMenu.Closed += (_, _) =>
-                    {
-                        SpawnWeaponObject?.Invoke(this, weaponHash);
-                    };
-
-                    Pool.Add(camoColorMenu);
-                    weaponMenu.AddSubMenu(camoColorMenu);
-                    data.Flags.Add(true);
-                } else
-                    data.Flags.Add(false);
-
-                if ((bool)document.Element("Flags").Element("Flashlight"))
-                {
-                    XElement att = document.Element("Attachments");
-                    IEnumerable<XElement> flash = att.Element("Flashlight").Descendants();
-                    var xElements = flash.ToList();
-                    NativeMenu attMenu = AddOption("Flashlights", "Flashlight", weaponHash, xElements,
-                    ComponentIndex.Flashlight, LoadoutSaving.SetFlashlight, subMenuData);
-                    weaponMenu.AddSubMenu(attMenu);
-                    Pool.Add(attMenu);
-                    data.Flags.Add(true);
-                    data.Flashlights = new List<uint>();
-                    for (int c = 0; c < xElements.Count(); c++)
-                        data.Flashlights.Add((uint)xElements.ElementAt(c));
-                } else
-                    data.Flags.Add(false);
-
-                if ((bool)document.Element("Flags").Element("Varmod"))
-                {
-                    XElement att = document.Element("Attachments");
-                    IEnumerable<XElement> varmods = att.Element("Varmod").Descendants();
-                    var xElements = varmods.ToList();
-                    NativeMenu attMenu = AddOption("Weapon Finishes", "Finish", weaponHash, xElements,
-                    ComponentIndex.Varmod, LoadoutSaving.SetVarmod, subMenuData);
-                    weaponMenu.AddSubMenu(attMenu);
-                    Pool.Add(attMenu);
-                    data.Flags.Add(true);
-                    data.Varmods = new List<uint>();
-                    for (int c = 0; c < xElements.Count(); c++)
-                        data.Varmods.Add((uint)xElements.ElementAt(c));
-                } else
-                    data.Flags.Add(false);
-
-                weaponMenu.Shown += (_, _) =>
-                {
-                    bool result = WeaponSelected((string)document.Element("Name"), weaponHash, 
-                    (int)document.Element("Price"));
-
-                    if (!result)
-                    {
-                        weaponMenu.Back();
-                        return;
-                    }
-
-                    SpawnWeaponObject?.Invoke(this, weaponHash);
-                };
-
-                _subMenus.Add(subMenuData);
-                parentMenu.AddSubMenu(weaponMenu);
-                Pool.Add(weaponMenu);
-                weaponData.Add(data);
+                tintCategory.SelectedIndexChanged += (_, args) => TintChanged?.Invoke(this, args.Index);
+                tintCategory.Closed += (_, _) => SpawnWeaponObject?.Invoke(this, weapon.Hash);
             }
 
-            return weaponData;
+            if (weapon.CamoComponents != null)
+            {
+                NativeMenu styleCategory = new("Livery");
+                NativeMenu colorCategory = new("Livery Color");
+                weaponMenu.AddSubMenu(styleCategory);
+                weaponMenu.AddSubMenu(colorCategory);
+                Pool.Add(styleCategory);
+                Pool.Add(colorCategory);
+
+                foreach (var style in weapon.CamoComponents.Components)
+                {
+                    NativeItem styleItem = new(style.Name, $"Price: ${style.Price}");
+                    styleCategory.Add(styleItem);
+                    styleItem.Activated += (_, _) =>
+                        ComponentPurchased(weapon.Hash, style.Hash, style.Price, style.Name);
+                    subMenuData.CamoItems.Add(new ItemData(style.Price, styleItem, style.Hash));
+                }
+                
+                for (int i = 0; i < weapon.CamoComponents.Colors.Count; i++)
+                {
+                    int si = i;
+                    var color = weapon.CamoComponents.Colors[i];
+                    NativeItem colorItem = new(color.Name, $"Price: ${color.Price}");
+                    colorCategory.Add(colorItem);
+                    colorItem.Activated += (_, _) => 
+                        CamoColorPurchased(weapon.Hash, si, color.Name, color.Price);
+                    subMenuData.CamoColorItems.Add(new ItemData(color.Price, colorItem, 0));
+                }
+
+                colorCategory.SelectedIndexChanged += (_, args) =>
+                {
+                    var reference = LoadoutSaving.GetStoreReference(weapon.Hash);
+                    var camo = reference.GetCamo();
+
+                    if (camo == (uint) WeaponComponentHash.Invalid) return;
+
+                    var ev = new CamoColorEventArgs { Camo = camo, ColorIndex = args.Index };
+                    CamoColorChanged?.Invoke(this, ev);
+                };
+                
+                styleCategory.SelectedIndexChanged += (_, args) =>
+                {
+                    var style = weapon.CamoComponents.Components[args.Index];
+                    ComponentSelected?.Invoke(this, new ComponentPreviewEventArgs(weapon.Hash, style.Hash, style.Name));
+                };
+                
+                styleCategory.Closed += (_, _) => SpawnWeaponObject?.Invoke(this, weapon.Hash);
+                colorCategory.Closed += (_, _) => SpawnWeaponObject?.Invoke(this, weapon.Hash);
+            }
+            _subMenus.Add(subMenuData);
         }
 
         public void ReloadOptions()
@@ -525,20 +274,26 @@ namespace LittleJacobMod.Interface
         {
             if (pedType == 1)
             {
-                if (helmet == 115 || helmet == 116)
-                    return 1;
-                if (helmet == 117 || helmet == 118)
-                    return 0;
-                if (helmet == 146 || helmet == 147)
-                    return 2;
+                switch (helmet)
+                {
+                    case 115 or 116:
+                        return 1;
+                    case 117 or 118:
+                        return 0;
+                    case 146 or 147:
+                        return 2;
+                }
             } else
             {
-                if (helmet == 116 || helmet == 117)
-                    return 4;
-                if (helmet == 118 || helmet == 119)
-                    return 3;
-                if (helmet == 147 || helmet == 148)
-                    return 5;
+                switch (helmet)
+                {
+                    case 116 or 117:
+                        return 4;
+                    case 118 or 119:
+                        return 3;
+                    case 147 or 148:
+                        return 5;
+                }
             }
 
             return -1;
@@ -719,11 +474,6 @@ namespace LittleJacobMod.Interface
             };
         }
 
-        private void SelectedIndexChanged(uint weapon)
-        {
-            SpawnWeaponObject?.Invoke(this, weapon);
-        }
-
         public void ShowMainMenu()
         {
             _mainMenu.Visible = true;
@@ -737,7 +487,7 @@ namespace LittleJacobMod.Interface
             {
                 if (Game.Player.Money < price)
                 {
-                    GTA.UI.Notification.Show("You don't have enough money!");
+                    GTA.UI.Notification.Show($"Can't buy {name}. Not enough money!");
                     return false;
                 }
 
@@ -755,115 +505,6 @@ namespace LittleJacobMod.Interface
             LoadoutSaving.AddWeapon(weapon);
 
             return true;
-        }
-
-        private NativeMenu AddOption(string title, string subtitle, uint weaponHash, IEnumerable<XElement> elements, 
-        ComponentIndex compIndex, Action<uint, uint> onSuccess, SubMenuData subMenuData)
-        {
-            NativeMenu atcmntMenu = new NativeMenu(title, subtitle);
-            var xElements = elements.ToList();
-            int size = xElements.Count();
-
-            for (int i = 0; i < size; i++)
-            {
-                int ix = i;
-                XElement att = xElements.ElementAt(i);
-                string name = (string)att.Attribute("Name");
-                int price = (int)att.Attribute("Price");
-                uint attHash = (uint)att;
-
-                NativeItem menuItem = new NativeItem(name)
-                {
-                    Description = $"Price: ${price.ToString()}"
-                };
-
-                ItemData itemData = new ItemData
-                {
-                    Hash = attHash,
-                    Item = menuItem,
-                    Price = price
-                };
-
-                switch (compIndex)
-                {
-                    case ComponentIndex.Livery:
-                        subMenuData.CamoItems.Add(itemData);
-                        break;
-                    case ComponentIndex.Scope:
-                        subMenuData.ScopeItems.Add(itemData);
-                        break;
-                    case ComponentIndex.Clip:
-                        subMenuData.ClipItems.Add(itemData);
-                        break;
-                    case ComponentIndex.Muzzle:
-                        subMenuData.MuzzleItems.Add(itemData);
-                        break;
-                    case ComponentIndex.Flashlight:
-                        subMenuData.FlashlightItems.Add(itemData);
-                        break;
-                    case ComponentIndex.Barrel:
-                        subMenuData.BarrelItems.Add(itemData);
-                        break;
-                    case ComponentIndex.Grip:
-                        subMenuData.GripItems.Add(itemData);
-                        break;
-                    case ComponentIndex.Varmod:
-                        subMenuData.VarmodItems.Add(itemData);
-                        break;
-                }
-
-                menuItem.Activated += (_, _) =>
-                {
-                    if (!ComponentPurchased(weaponHash, attHash, price, name, xElements, onSuccess))
-                        return;
-                    
-                    switch (compIndex)
-                    {
-                        case ComponentIndex.Livery:
-                            SubMenuData.SetIndex(subMenuData.CamoItems, "Livery", ix);
-                            break;
-                        case ComponentIndex.Scope:
-                            SubMenuData.SetIndex(subMenuData.ScopeItems, "Scope", ix);
-                            break;
-                        case ComponentIndex.Clip:
-                            SubMenuData.SetIndex(subMenuData.ClipItems, "Clip", ix);
-                            break;
-                        case ComponentIndex.Muzzle:
-                            SubMenuData.SetIndex(subMenuData.MuzzleItems, "Muzzle", ix);
-                            break;
-                        case ComponentIndex.Flashlight:
-                            SubMenuData.SetIndex(subMenuData.FlashlightItems, "Flashlight", ix);
-                            break;
-                        case ComponentIndex.Barrel:
-                            SubMenuData.SetIndex(subMenuData.BarrelItems, "Barrel", ix);
-                            break;
-                        case ComponentIndex.Grip:
-                            SubMenuData.SetIndex(subMenuData.GripItems, "Grip", ix);
-                            break;
-                        case ComponentIndex.Varmod:
-                            SubMenuData.SetIndex(subMenuData.VarmodItems, "Finish", ix);
-                            break;
-                    }
-
-                    //Main.LittleJacob.ProcessVoice(true);
-                };
-
-                atcmntMenu.Add(menuItem);
-            }
-
-            atcmntMenu.SelectedIndexChanged += (_, e) =>
-            {
-                ComponentSelected?.Invoke(this,
-                    new ComponentPreviewEventArgs(weaponHash,
-                    (uint)xElements.ElementAt(e.Index), compIndex));
-            };
-
-            atcmntMenu.Closed += (_, _) =>
-            {
-                SpawnWeaponObject?.Invoke(this, weaponHash);
-            };
-
-            return atcmntMenu;
         }
 
         private void AmmoPurchased(uint weapon, int value)
@@ -903,9 +544,8 @@ namespace LittleJacobMod.Interface
             LoadoutSaving.SetAmmo(weapon, Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon));
         }
 
-        private void TintPurchased(uint weapon, int index)
+        private void TintPurchased(uint weapon, int index, int price)
         {
-            int price = 5000;
             price = ApplyDiscount(price);
 
             if (Game.Player.Money < price)

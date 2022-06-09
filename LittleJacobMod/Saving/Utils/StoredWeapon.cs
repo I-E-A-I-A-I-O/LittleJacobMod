@@ -1,17 +1,27 @@
 ﻿using System.Collections.Generic;
 using GTA;
 using GTA.Native;
+using Newtonsoft.Json;
 
 namespace LittleJacobMod.Saving.Utils
 {
     internal class StoredWeapon
     {
+        [JsonProperty("weaponHash")]
         public uint WeaponHash { get; }
+        
+        [JsonProperty("ammo")]
         public int Ammo { get; set; }
+        
+        [JsonProperty("attachments")]
         public Dictionary<string, LittleJacobMod.Utils.Types.GroupedComponent> Attachments { get; set; }
+        
+        [JsonProperty("livery")]
         public LittleJacobMod.Utils.Types.Component Camo { get; set; }
-        public int Tint { get; set; }
-        public int CamoColor { get; set; }
+
+        [JsonProperty("tint")] public int Tint { get; set; } = -1;
+
+        [JsonProperty("camoColor")] public int CamoColor { get; set; } = -1;
 
         public StoredWeapon (uint hash)
         {

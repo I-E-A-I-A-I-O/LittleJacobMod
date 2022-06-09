@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using GTA;
 using LittleJacobMod.Saving.Utils;
 using System.IO;
+using System.Linq;
 using GTA.Native;
+using Newtonsoft.Json;
 
 namespace LittleJacobMod.Saving
 {
@@ -16,11 +18,6 @@ namespace LittleJacobMod.Saving
         public static void UpdateWeaponMap(bool updating)
         {
             Mapper.Process(StoredWeapons, updating);
-        }
-
-        public static int Count()
-        {
-            return StoredWeapons.Count;
         }
 
         public static bool IsWeaponInStore(uint weapon)
@@ -37,12 +34,9 @@ namespace LittleJacobMod.Saving
 
         public static void AddWeapon (uint weapon)
         {
-            for (int i = 0; i < StoredWeapons.Count; i++)
+            if (StoredWeapons.Any(t => t.WeaponHash == weapon))
             {
-                if (StoredWeapons[i].WeaponHash == weapon)
-                {
-                    return;
-                }
+                return;
             }
 
             StoredWeapon storedWeapon = new(weapon)
@@ -55,37 +49,11 @@ namespace LittleJacobMod.Saving
 
         public static void SetAmmo(uint hash, int ammo)
         {
-            for (var i = 0; i < StoredWeapons.Count; i++)
+            foreach (var t in StoredWeapons.Where(t => t.WeaponHash == hash))
             {
-                if (StoredWeapons[i].WeaponHash != hash) continue;
-                StoredWeapons[i].Ammo = ammo;
+                t.Ammo = ammo;
                 return;
             }
-        }
-
-        public static void SetAttachment(string group, uint weaponHash, uint componentHash)
-        {
-            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == weaponHash);
-
-            if (weapon == null) return;
-            if (!weapon.Attachments.ContainsKey(group)) return;
-
-            weapon.Attachments[group] = new()
-            {
-                Hash = componentHash
-            };
-        }
-
-        public static void SetCamo(uint hash, uint componentHash)
-        {
-            StoredWeapon weapon = StoredWeapons.Find((ti) => ti.WeaponHash == hash);
-
-            if (weapon == null) return;
-
-            weapon.Camo = new()
-            {
-                Hash = componentHash
-            };
         }
 
         public static void SetTint(uint hash, int tint)
@@ -102,7 +70,7 @@ namespace LittleJacobMod.Saving
 
         public static StoredWeapon GetStoreReference(uint hash)
         {
-            return StoredWeapons.Find((ti) => ti.WeaponHash == hash);
+            return StoredWeapons.Find(ti => ti.WeaponHash == hash);
         }
 
         public static void PerformSave(uint ped)
@@ -116,7 +84,7 @@ namespace LittleJacobMod.Saving
             try
             {
                 string dir = Directory.GetCurrentDirectory();
-                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{ped.ToString()}.loadout";
+                string filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{ped.ToString()}.json";
                 
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
                 {
@@ -127,8 +95,10 @@ namespace LittleJacobMod.Saving
                 {
                     File.Delete(filePath);
                 }
+                
+                File.WriteAllText(filePath, JsonConvert.SerializeObject(StoredWeapons));
 
-                using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
+                /*using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write)))
                 {
                     writer.Write(StoredWeapons.Count);
                     foreach (StoredWeapon weapon in StoredWeapons)
@@ -146,7 +116,7 @@ namespace LittleJacobMod.Saving
                         writer.Write(weapon.Varmod);
                         writer.Write(weapon.WeaponHash);
                     }
-                }
+                }*/
             } catch (Exception)
             {
                 GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ Error saving weapon loadout!");
@@ -157,146 +127,11 @@ namespace LittleJacobMod.Saving
                 Busy = false;
             }
         }
-
-        private static void LoadNew(string path, bool constructor, bool weaponsRemoved)
-        {
-            if (!weaponsRemoved && !Main.MissionFlag)
-            {
-                RemoveWeapons();
-            }
-
-            List<uint> loadedAmmoTypes = new List<uint>();
-
-            using (BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open, FileAccess.Read)))
-            {
-                int count = reader.ReadInt32();
-                for (int i = 0; i < count; i++)
-                {
-                    int ammo = reader.ReadInt32();
-                    uint barrel = reader.ReadUInt32();
-                    uint camo = reader.ReadUInt32();
-                    int camoColor = reader.ReadInt32();
-                    uint clip = reader.ReadUInt32();
-                    uint flash = reader.ReadUInt32();
-                    uint grip = reader.ReadUInt32();
-                    uint muzzle = reader.ReadUInt32();
-                    uint scope = reader.ReadUInt32();
-                    int tint = reader.ReadInt32();
-                    uint varmod = reader.ReadUInt32();
-                    uint weaponHash = reader.ReadUInt32();
-
-                    if (Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weaponHash, false))
-                    {
-                        Function.Call<bool>(Hash.REMOVE_WEAPON_FROM_PED, Main.PPID, weaponHash);
-                    }
-
-                    Function.Call<bool>(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weaponHash, 0, false, false);
-
-                    StoredWeapon storedWeapon = new StoredWeapon(weaponHash)
-                    {
-                        Ammo = ammo
-                    };
-
-                    if (varmod != (uint)WeaponComponentHash.Invalid)
-                    {
-                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, varmod);
-                        storedWeapon.Varmod = varmod;
-                    }
-
-                    if (barrel != (uint)WeaponComponentHash.Invalid)
-                    {
-                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, barrel);
-                        storedWeapon.Barrel = barrel;
-                    }
-
-                    if (camo != (uint)WeaponComponentHash.Invalid)
-                    {
-                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, camo);
-                        uint slide = LittleJacobMod.Utils.TintsAndCamos.ReturnSlide(camo);
-
-                        if (slide != (uint)WeaponComponentHash.Invalid)
-                        {
-                            Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, slide);
-                        }
-
-                        storedWeapon.Camo = camo;
-
-                        if (camoColor != -1)
-                        {
-                            Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Main.PPID, weaponHash, camo, camoColor);
-
-                            if (slide != (uint)WeaponComponentHash.Invalid)
-                            {
-                                Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Main.PPID, weaponHash, slide, camoColor);
-                            }
-
-                            storedWeapon.CamoColor = camoColor;
-                        }
-                    }
-
-                    if (clip != (uint)WeaponComponentHash.Invalid)
-                    {
-                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, clip);
-                        storedWeapon.Clip = clip;
-                    }
-
-                    if (flash != (uint)WeaponComponentHash.Invalid)
-                    {
-                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, flash);
-                        storedWeapon.Flashlight = flash;
-                    }
-
-                    if (grip != (uint)WeaponComponentHash.Invalid)
-                    {
-                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, grip);
-                        storedWeapon.Grip = grip;
-                    }
-
-                    if (muzzle != (uint)WeaponComponentHash.Invalid)
-                    {
-                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, muzzle);
-                        storedWeapon.Muzzle = muzzle;
-                    }
-
-                    if (scope != (uint)WeaponComponentHash.Invalid)
-                    {
-                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weaponHash, scope);
-                        storedWeapon.Scope = scope;
-                    }
-
-                    if (tint != -1)
-                    {
-                        Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, Main.PPID, weaponHash, tint);
-                        storedWeapon.Tint = tint;
-                    }
-
-                    uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weaponHash);
-
-                    if (loadedAmmoTypes.Contains(ammoType))
-                    {
-                        StoredWeapons.Add(storedWeapon);
-                        continue;
-                    }
-
-                    Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Main.PPID, ammoType, ammo);
-                    loadedAmmoTypes.Add(ammoType);
-                    StoredWeapons.Add(storedWeapon);
-                }
-            }
-
-            if (!constructor)
-            {
-                Script.Wait(1000);
-            }
-
-            GTA.UI.LoadingPrompt.Hide();
-            WeaponsLoaded?.Invoke(null, EventArgs.Empty);
-        }
+        
 
         public static void PerformLoad(bool constructor = false)
         {
-            if (MapperMain.CurrentPed == 0)
-                return;
+            if (MapperMain.CurrentPed == 0) return;
 
             if (!constructor)
             {
@@ -316,24 +151,7 @@ namespace LittleJacobMod.Saving
             string dir = Directory.GetCurrentDirectory();
             string filePath = $"{dir}\\scripts\\LittleJacobMod\\Loadouts\\{MapperMain.CurrentPed.ToString()}";
 
-            if (Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts"))
-            {
-                if (File.Exists($"{filePath}.loadout"))
-                {
-                    LoadNew($"{filePath}.loadout", constructor, weaponsRemoved);
-                }
-                else
-                {
-                    GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ No weapon loadouts saved for this ped!");
-
-                    if (!constructor)
-                    {
-                        Script.Wait(1000);
-                    }
-
-                    GTA.UI.LoadingPrompt.Hide();
-                }
-            } else
+            if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Loadouts") || !File.Exists($"{filePath}.json"))
             {
                 GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ No weapon loadouts saved for this ped!");
 
@@ -343,8 +161,90 @@ namespace LittleJacobMod.Saving
                 }
 
                 GTA.UI.LoadingPrompt.Hide();
+                Busy = false;
+                return;
+            }
+            
+            if (!weaponsRemoved && !Main.MissionFlag)
+            {
+                RemoveWeapons();
             }
 
+            List<uint> loadedAmmoTypes = new();
+            string text = File.ReadAllText($"{filePath}.json");
+            var storedWeaponsList = JsonConvert.DeserializeObject<List<StoredWeapon>>(text);
+
+            if (storedWeaponsList == null)
+            {
+                GTA.UI.Notification.Show("~g~Error loading weapons.");
+
+                if (!constructor)
+                {
+                    Script.Wait(1000);
+                }
+
+                GTA.UI.LoadingPrompt.Hide();
+                Busy = false;
+                return;
+            }
+            
+            foreach (var weapon in storedWeaponsList)
+            {
+                if (Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.WeaponHash, false))
+                {
+                    Function.Call<bool>(Hash.REMOVE_WEAPON_FROM_PED, Main.PPID, weapon.WeaponHash);
+                }
+                
+                Function.Call<bool>(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weapon.WeaponHash, 0, false, false);
+
+                foreach (var attachment in weapon.Attachments.Where(attachment => attachment.Value.Hash != (uint)WeaponComponentHash.Invalid))
+                {
+                    Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weapon.WeaponHash, attachment.Value.Hash);
+                }
+
+                if (weapon.Tint != -1)
+                {
+                    Function.Call(Hash.SET_PED_WEAPON_TINT_INDEX, Main.PPID, weapon.WeaponHash, weapon.Tint);
+                }
+
+                if (weapon.Camo is not null && weapon.Camo.Hash is not (uint)WeaponComponentHash.Invalid)
+                {
+                    Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weapon.WeaponHash, weapon.Camo.Hash);
+                    uint slide = LittleJacobMod.Utils.TintsAndCamos.ReturnSlide(weapon.Camo.Hash);
+
+                    if (slide != (uint)WeaponComponentHash.Invalid)
+                    {
+                        Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weapon.WeaponHash, slide);
+                    }
+
+                    if (weapon.CamoColor != -1)
+                    {
+                        Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Main.PPID, weapon.WeaponHash, weapon.Camo.Hash, weapon.CamoColor);
+
+                        if (slide != (uint)WeaponComponentHash.Invalid)
+                        {
+                            Function.Call(Hash._SET_PED_WEAPON_LIVERY_COLOR, Main.PPID, weapon.WeaponHash, slide, weapon.CamoColor);
+                        }
+                    }
+                }
+                
+                uint ammoType = Function.Call<uint>(Hash.GET_PED_AMMO_TYPE_FROM_WEAPON, Game.Player.Character.Handle, weapon.WeaponHash);
+
+                if (loadedAmmoTypes.Contains(ammoType)) continue;
+
+                Function.Call(Hash._ADD_AMMO_TO_PED_BY_TYPE, Main.PPID, ammoType, weapon.Ammo);
+                loadedAmmoTypes.Add(ammoType);
+            }
+
+            StoredWeapons.AddRange(storedWeaponsList);
+
+            if (!constructor)
+            {
+                Script.Wait(1000);
+            }
+
+            GTA.UI.LoadingPrompt.Hide();
+            WeaponsLoaded?.Invoke(null, EventArgs.Empty);
             Busy = false;
         }
 

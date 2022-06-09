@@ -9,24 +9,25 @@ namespace LittleJacobMod.Interface
 {
     internal struct ItemData
     {
-        public int Price;
-        public NativeItem Item;
-        public uint Hash;
+        public readonly int Price;
+        public readonly NativeItem Item;
+        public readonly uint Hash;
+
+        public ItemData(int price, NativeItem item, uint hash)
+        {
+            Price = price;
+            Item = item;
+            Hash = hash;
+        }
     }
 
     internal class SubMenuData
     {
         private readonly uint _weapon;
-        public List<ItemData> TintItems { get; } = new List<ItemData>();
-        public List<ItemData> CamoColorItems { get; } = new List<ItemData>();
-        public List<ItemData> CamoItems { get; } = new List<ItemData>();
-        public List<ItemData> ClipItems { get; } = new List<ItemData>();
-        public List<ItemData> MuzzleItems { get; } = new List<ItemData>();
-        public List<ItemData> BarrelItems { get; } = new List<ItemData>();
-        public List<ItemData> GripItems { get; } = new List<ItemData>();
-        public List<ItemData> ScopeItems { get; } = new List<ItemData>();
-        public List<ItemData> FlashlightItems { get; } = new List<ItemData>();
-        public List<ItemData> VarmodItems { get; } = new List<ItemData>();
+        public Dictionary<string, List<ItemData>> Attachments = new();
+        public List<ItemData> TintItems { get; } = new();
+        public List<ItemData> CamoColorItems { get; } = new();
+        public List<ItemData> CamoItems { get; } = new();
 
         public SubMenuData(uint weapon)
         {
@@ -36,18 +37,16 @@ namespace LittleJacobMod.Interface
         public void ClearLists()
         {
             TintItems.Clear();
-            ClipItems.Clear();
-            MuzzleItems.Clear();
-            BarrelItems.Clear();
-            GripItems.Clear();
-            ScopeItems.Clear();
             CamoItems.Clear();
-            FlashlightItems.Clear();
             CamoItems.Clear();
-            VarmodItems.Clear();
+
+            foreach (var attachmentsValue in Attachments.Values)
+            {
+                attachmentsValue.Clear();
+            }
         }
 
-        private static void Restart(IReadOnlyCollection<ItemData> items, string text)
+        private static void Restart(IReadOnlyCollection<ItemData> items)
         {
             for (int i = 0; i < items.Count; i++)
             {
@@ -56,7 +55,7 @@ namespace LittleJacobMod.Interface
                 if (i == 0)
                 {
                     data.Item.Enabled = false;
-                    data.Item.Description = $"Current {text}";
+                    data.Item.Description = "Current attachment";
                     continue;
                 }
 
@@ -65,7 +64,7 @@ namespace LittleJacobMod.Interface
             }
         }
 
-        public static void SetIndex(List<ItemData> items, string text, int index)
+        private static void SetIndex(IReadOnlyCollection<ItemData> items, string text, int index)
         {
             if (index == -1) return;
             for (int i = 0; i < items.Count; i++)
@@ -87,16 +86,14 @@ namespace LittleJacobMod.Interface
 
         private void RestartLists()
         {
-            Restart(TintItems, "Tint");
-            Restart(ClipItems, "Clip");
-            Restart(MuzzleItems, "Muzzle attachment");
-            Restart(BarrelItems, "Barrel");
-            Restart(GripItems, "Grip");
-            Restart(ScopeItems, "Scope");
-            Restart(CamoItems, "Livery");
-            Restart(FlashlightItems, "Flashlight");
-            Restart(CamoColorItems, "Livery color");
-            Restart(VarmodItems, "Finish");
+            Restart(TintItems);
+            Restart(CamoItems);
+            Restart(CamoColorItems);
+
+            foreach (var attachment in Attachments.Values)
+            {
+                Restart(attachment);
+            }
         }
 
         public void LoadAttachments()
@@ -109,62 +106,27 @@ namespace LittleJacobMod.Interface
                 return;
             }
 
-            int index;
-
+            foreach (var group in Attachments)
+            {
+                if (!storeRef.Attachments.ContainsKey(group.Key)) continue;
+                
+                var savedGroup = storeRef.Attachments[group.Key];
+                int index = group.Value.FindIndex(it => it.Hash == savedGroup.Hash);
+                SetIndex(group.Value, group.Key, index);
+            }
+            
             if (TintItems.Count > 0)
             {
-                index = storeRef.GetTintIndex();
+                int index = storeRef.GetTintIndex();
                 SetIndex(TintItems, "Tint", index);
-            }
-
-            if (BarrelItems.Count > 0)
-            {
-                index = BarrelItems.FindIndex((it) => it.Hash == storeRef.Barrel);
-                SetIndex(BarrelItems, "Barrel", index);
-            }
-
-            if (ClipItems.Count > 0)
-            {
-                index = ClipItems.FindIndex((it) => it.Hash == storeRef.Clip);
-                SetIndex(ClipItems, "Clip", index);
-            }
-
-            if (FlashlightItems.Count > 0)
-            {
-                index = FlashlightItems.FindIndex((it) => it.Hash == storeRef.Flashlight);
-                SetIndex(FlashlightItems, "Flashlight", index);
-            }
-            
-            if (GripItems.Count > 0)
-            {
-                index = GripItems.FindIndex((it) => it.Hash == storeRef.Grip);
-                SetIndex(GripItems, "Grip", index);
-            }
-            
-            if (MuzzleItems.Count > 0)
-            {
-                index = MuzzleItems.FindIndex((it) => it.Hash == storeRef.Muzzle);
-                SetIndex(MuzzleItems, "Muzzle attachment", index);
-            }
-
-            if (ScopeItems.Count > 0)
-            {
-                index = ScopeItems.FindIndex((it) => it.Hash == storeRef.Scope);
-                SetIndex(ScopeItems, "Scope", index);
             }
 
             if (CamoItems.Count > 0)
             {
-                index = CamoItems.FindIndex((it) => it.Hash == storeRef.Camo);
+                int index = CamoItems.FindIndex(it => it.Hash == storeRef.Camo.Hash);
                 SetIndex(CamoItems, "Livery", index);
                 index = storeRef.GetCamoColor();
                 SetIndex(CamoColorItems, "Livery Color", index);
-            }
-
-            if (VarmodItems.Count <= 0) return;
-            {
-                index = VarmodItems.FindIndex((it) => it.Hash == storeRef.Varmod);
-                SetIndex(VarmodItems, "Finish", index);
             }
         }
     }
