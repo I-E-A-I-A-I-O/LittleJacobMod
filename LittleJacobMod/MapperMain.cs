@@ -31,13 +31,8 @@ internal class MapperMain : Script
         var id = Function.Call<int>(Hash.PLAYER_PED_ID);
         CurrentPed = Function.Call<uint>(Hash.GET_ENTITY_MODEL, id);
 
-        if (id == 0 || CurrentPed == 0)
-            return;
-
-        if (firstStart)
-        {
-            Tick -= WaitForGameLoad;
-        }
+        if (id == 0 || CurrentPed == 0) return;
+        if (firstStart) Tick -= WaitForGameLoad;
 
         Main.PPID = id;
         LoadoutSaving.PerformLoad(!firstStart);
@@ -81,39 +76,28 @@ internal class MapperMain : Script
 
         if (Function.Call<bool>(Hash.IS_AUTO_SAVE_IN_PROGRESS))
         {
-            if (!_saveTriggered)
-            {
-                LoadoutSaving.PerformSave(CurrentPed);
-                _saveTriggered = true;
-            }
+            if (_saveTriggered) return;
+            LoadoutSaving.PerformSave(CurrentPed);
+            _saveTriggered = true;
             return;
         }
 
-        if (_saveTriggered)
-        {
-            _saveTriggered = false;
-        }
-
+        if (_saveTriggered) _saveTriggered = false;
         if (Main.JacobActive) return;
+        
         if (!LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
-        {
             LoadoutSaving.UpdateWeaponMap(_updating);
-        }
 
         if (Timers.AutoSaveTimer() && !LoadoutSaving.Busy && !Function.Call<bool>(Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.Player.IsDead)
-        {
             LoadoutSaving.PerformSave(CurrentPed);
-        }
     }
 
     private void ModelWatcher(object o, EventArgs e)
     {
-        if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, CurrentPed) || _missionFlag)
-        {
-            return;
-        }
+        if (Function.Call<bool>(Hash.IS_PED_MODEL, Main.PPID, CurrentPed) || _missionFlag) return;
 
         var newModel = Function.Call<uint>(Hash.GET_ENTITY_MODEL, Main.PPID);
+        
         if (CurrentPed == newModel)
         {
             GTA.UI.Screen.ShowHelpTextThisFrame("Little Jacob Mod: Infinite loop detected.\n" +

@@ -14,7 +14,7 @@ namespace LittleJacobMod.Interface
     public class Menu
     {
         public ObjectPool Pool { get; }
-        private readonly List<SubMenuData> _subMenus = new List<SubMenuData>();
+        private readonly List<SubMenuData> _subMenus = new();
         private readonly NativeMenu _mainMenu;
         private readonly NativeMenu _helm1;
         private readonly NativeMenu _helm2;

@@ -180,9 +180,6 @@ namespace LittleJacobMod.Saving
 
             List<uint> loadedAmmoTypes = new();
             var text = File.ReadAllText($"{filePath}.json");
-            Script.Wait(50);
-            GTA.UI.Screen.ShowSubtitle($"Weapon hash: {text}");
-            Script.Wait(50);
             var storedWeaponsList = JsonConvert.DeserializeObject<List<StoredWeapon>>(text);
 
             if (storedWeaponsList == null)
@@ -204,26 +201,16 @@ namespace LittleJacobMod.Saving
                 if (Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.WeaponHash, false))
                 {
                     Function.Call(Hash.REMOVE_WEAPON_FROM_PED, Main.PPID, weapon.WeaponHash);
-                    Script.Wait(50);
                 }
                 
-                Script.Wait(50);
-                GTA.UI.Screen.ShowSubtitle($"Weapon hash: {weapon.WeaponHash}");
-                Script.Wait(50);
-                Function.Call(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weapon.WeaponHash, 1, false, false);
+                Function.Call(Hash.GIVE_WEAPON_TO_PED, Main.PPID, weapon.WeaponHash, 0, false, false);
 
                 if (weapon.Attachments != null)
                 {
                     foreach (var attachment in weapon.Attachments.Where(attachment => attachment.Value.Hash != (uint)WeaponComponentHash.Invalid))
                     {
-                        GTA.UI.Screen.ShowSubtitle(attachment.Key);
-                        Script.Wait(50);
                         Function.Call(Hash.GIVE_WEAPON_COMPONENT_TO_PED, Main.PPID, weapon.WeaponHash, attachment.Value.Hash);
                     }    
-                }
-                else
-                {
-                    GTA.UI.Screen.ShowSubtitle("IS NULLLLLLLLLLLLLLLLLL");
                 }
                 
                 if (weapon.Tint != -1)
@@ -261,12 +248,8 @@ namespace LittleJacobMod.Saving
             }
 
             StoredWeapons.AddRange(storedWeaponsList);
-            GTA.UI.Screen.ShowSubtitle($"COUNT: {StoredWeapons.Count}");
 
-            if (!constructor)
-            {
-                Script.Wait(1000);
-            }
+            if (!constructor) Script.Wait(1000);
 
             GTA.UI.LoadingPrompt.Hide();
             WeaponsLoaded?.Invoke(null, EventArgs.Empty);

@@ -1,29 +1,25 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using GTA;
 using GTA.Native;
 using LittleJacobMod.Saving.Utils;
 using LittleJacobMod.Utils.Types;
+using Weapon = LittleJacobMod.Utils.Types.Weapon;
 
 namespace LittleJacobMod.Saving
 {
     internal static class Mapper
     {
-        public static List<LittleJacobMod.Utils.Types.Weapon> WeaponData = new();
+        public static List<Weapon> WeaponData = new();
 
         public static void Process(List<StoredWeapon> weapons, bool updating)
         {
-            if (Main.PPID == 0 || !Main.MenuCreated)
-                return;
+            if (Main.PPID == 0 || !Main.MenuCreated || updating) return;
 
             var changes = false;
 
-            for (var i = 0; i < WeaponData.Count; i++)
+            foreach (var weapon in from weapon in WeaponData let hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.Hash, false) let isInStore = LoadoutSaving.IsWeaponInStore(weapon.Hash) where hasWeapon && !isInStore select weapon)
             {
-                var weapon = WeaponData[i];
-                var hasWeapon = Function.Call<bool>(Hash.HAS_PED_GOT_WEAPON, Main.PPID, weapon.Hash, false);
-                var isInStore = LoadoutSaving.IsWeaponInStore(weapon.Hash);
-
-                if (!hasWeapon || isInStore) continue;
                 changes = true;
                 StoredWeapon storedWeapon = new()
                 {
@@ -33,11 +29,8 @@ namespace LittleJacobMod.Saving
                 storedWeapon.Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon.Hash);
                 storedWeapon.Attachments = new Dictionary<string, GroupedComponent>();
 
-                foreach (var attachment in weapon.Attachments)
+                foreach (var attachment in weapon.Attachments.Where(attachment => attachment.Hash != (uint)WeaponComponentHash.Invalid).Where(attachment => storedWeapon.HasComponent(attachment.Hash)))
                 {
-                    if (attachment.Hash == (uint)WeaponComponentHash.Invalid) continue;
-                    if (!storedWeapon.HasComponent(attachment.Hash)) continue;
-
                     if (storedWeapon.Attachments.ContainsKey(attachment.Group)) storedWeapon.Attachments[attachment.Group] = attachment;
                     else storedWeapon.Attachments.Add(attachment.Group, attachment);
                 }
@@ -45,10 +38,8 @@ namespace LittleJacobMod.Saving
                 if (weapon.CamoComponents != null)
                 {
                     storedWeapon.Camo = new Component();
-                    foreach (var camo in weapon.CamoComponents.Components)
+                    foreach (var camo in weapon.CamoComponents.Components.Where(camo => camo.Hash != (uint)WeaponComponentHash.Invalid).Where(camo => storedWeapon.HasComponent(camo.Hash)))
                     {
-                        if (camo.Hash == (uint)WeaponComponentHash.Invalid) continue;
-                        if (!storedWeapon.HasComponent(camo.Hash)) continue;
                         storedWeapon.Camo = camo;
                         storedWeapon.CamoColor = storedWeapon.GetCamoColor();
                     }
@@ -88,33 +79,19 @@ namespace LittleJacobMod.Saving
                     changes = true;
                 }
                 
-                foreach (var attachment in weaponCatalogOption.Attachments)
+                foreach (var attachment in from attachment in weaponCatalogOption.Attachments where attachment.Hash != (uint)WeaponComponentHash.Invalid where weapon.Attachments != null where weapon.Attachments.ContainsKey(attachment.Group) where attachment.Hash != weapon.Attachments[attachment.Group].Hash where weapon.HasComponent(attachment.Hash) select attachment)
                 {
-                    if (attachment.Hash == (uint)WeaponComponentHash.Invalid) continue;
-                    if (weapon.Attachments == null) continue;
-                    if (!weapon.Attachments.ContainsKey(attachment.Group)) continue;
-                    if (attachment.Hash == weapon.Attachments[attachment.Group].Hash) continue;
-
-                    if (weapon.HasComponent(attachment.Hash))
-                    {
-                        weapon.Attachments[attachment.Group] = attachment;
-                        changes = true;
-                    }
+                    weapon.Attachments[attachment.Group] = attachment;
+                    changes = true;
                 }
 
                 if (weaponCatalogOption.CamoComponents?.Components != null)
                 {
-                    foreach (var camo in weaponCatalogOption.CamoComponents.Components)
+                    foreach (var camo in from camo in weaponCatalogOption.CamoComponents.Components where camo.Hash != (uint)WeaponComponentHash.Invalid where camo.Hash != weapon.Camo.Hash where weapon.HasComponent(camo.Hash) select camo)
                     {
-                        if (camo.Hash == (uint)WeaponComponentHash.Invalid) continue;
-                        if (camo.Hash == weapon.Camo.Hash) continue;
-
-                        if (weapon.HasComponent(camo.Hash))
-                        {
-                            weapon.Camo = camo;
-                            weapon.CamoColor = weapon.GetCamoColor();
-                            changes = true;
-                        }
+                        weapon.Camo = camo;
+                        weapon.CamoColor = weapon.GetCamoColor();
+                        changes = true;
                     }
                 }
             }
