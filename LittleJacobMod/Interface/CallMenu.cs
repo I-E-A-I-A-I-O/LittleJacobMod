@@ -9,8 +9,8 @@ namespace LittleJacobMod.Interface
 {
     public class CallMenu
     {
-        public static event EventHandler JobSelected;
-        public static event EventHandler DeliverySelected;
+        public static event EventHandler? JobSelected;
+        public static event EventHandler? DeliverySelected;
         public ObjectPool Pool { get; private set; }
         private bool _jobsTimer;
         private bool _deliveryTimer;

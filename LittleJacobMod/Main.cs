@@ -37,17 +37,21 @@ public class Main : Script
     public static bool ScaleformActive { get; private set; }
     private static int _scaleformType;
     private static uint _weaponHash;
+    private Controls _openGearMenuKey;
+    private GearMenu _gearMenu;
 
     public Main()
     {
         var settings = ScriptSettings.Load("scripts\\LittleJacobMod.ini");
         OpenMenuKey = settings.GetValue("Controls", "OpenMenu", Controls.INPUT_CONTEXT);
+        _openGearMenuKey = settings.GetValue("Controls", "OpenGearMenu", Controls.INPUT_REPLAY_CAMERADOWN);
         JacobHash = settings.GetValue("Gameplay", "JacobModel", PedHash.Soucent03AMY);
         JacobsCarHash = settings.GetValue("Gameplay", "JacobsCarModel", VehicleHash.Virgo2);
         LoadoutSaving.WeaponsLoaded += LoadoutSaving_WeaponsLoaded;
         HelmetSaving.HelmetsLoaded += HelmetSavingOnHelmetsLoaded;
         _ifruit = new PhoneContact();
         _menu = new Menu();
+        _gearMenu = new GearMenu();
         MenuCreated = true;
         CallMenu = new CallMenu();
 
@@ -67,7 +71,7 @@ public class Main : Script
     {
         _processMenu = false;
         _menu.ReloadHelmetOptions();
-        GTA.UI.Screen.ShowSubtitle("INVOKEEEEEEEEED HELMETS");
+        _gearMenu.ReloadOptions();
         _processMenu = true;
     }
 
@@ -173,7 +177,6 @@ public class Main : Script
     {
         _processMenu = false;
         _menu.ReloadOptions();
-        GTA.UI.Screen.ShowSubtitle("INVOKEEEEEEEEED");
         _processMenu = true;
     }
 
@@ -219,6 +222,7 @@ public class Main : Script
         if (_processMenu)
         {
             _menu.Pool.Process();
+            _gearMenu.Pool.Process();
         }
     }
 
@@ -382,6 +386,13 @@ public class Main : Script
     {
         if (!JacobActive || LittleJacob == null)
         {
+            var pedType = IsMPped();
+
+            if (pedType == -1) return;
+            if (!Function.Call<bool>(Hash.IS_CONTROL_JUST_PRESSED, 0, (int) _openGearMenuKey)) return;
+
+            _gearMenu.Open();
+
             return;
         }
 

@@ -11,6 +11,7 @@ using GTA.Native;
 public class GearMenu
 {
     public ObjectPool Pool { get; }
+    private NativeMenu _mainMenu;
     private NativeItem _thermalItem;
     private NativeItem _nightVisionItem1;
     private NativeItem _nightVisionItem2;
@@ -21,21 +22,21 @@ public class GearMenu
     public GearMenu() 
     {
         Pool = new ObjectPool();
-        var mainMenu = new NativeMenu("Gear Menu", "Gear Menu");
-        Pool.Add(mainMenu);
+        _mainMenu = new NativeMenu("Gear Menu", "Gear Menu");
+        Pool.Add(_mainMenu);
         _thermalItem = new NativeItem("Thermal Vision Helmet");
         _nightVisionItem1 = new NativeItem("Night Vision Helmet");
         _nightVisionItem2 = new NativeItem("Tactival Night Vision");
-        mainMenu.Add(_thermalItem);
-        mainMenu.Add(_nightVisionItem1);
-        mainMenu.Add(_nightVisionItem2);
+        _mainMenu.Add(_thermalItem);
+        _mainMenu.Add(_nightVisionItem1);
+        _mainMenu.Add(_nightVisionItem2);
         _colorsMenu = new NativeMenu("Helmet Colors", "Helmet Colors");
         _colorsMenu.NoItemsText = "No colors available.";
-        mainMenu.AddSubMenu(_colorsMenu);
+        _mainMenu.AddSubMenu(_colorsMenu);
         Pool.Add(_colorsMenu);
         _colorsMenu.Shown += ColorsMenuShown;
 
-        mainMenu.Opening += (_, _) =>
+        _mainMenu.Opening += (_, _) =>
         {
             _propIndex = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
             _propColor = Function.Call<int>(Hash.GET_PED_PROP_TEXTURE_INDEX, Main.PPID, 0);
@@ -43,19 +44,19 @@ public class GearMenu
 
             if (index == -1) return;
 
-            mainMenu.Items[index].Enabled = false;
-            mainMenu.Items[index].Description = "Current Helmet";
+            _mainMenu.Items[index].Enabled = false;
+            _mainMenu.Items[index].Description = "Current Helmet";
         };
         
-        mainMenu.ItemActivated += (_, args) =>
+        _mainMenu.ItemActivated += (_, args) =>
         {
-            var index = mainMenu.SelectedIndex;
+            var index = _mainMenu.SelectedIndex;
 
-            for (int i = 0; i < mainMenu.Items.Count; i++) 
+            for (int i = 0; i < _mainMenu.Items.Count; i++) 
             {
-                if (i == index || i == mainMenu.Items.Count - 1) continue;
-                mainMenu.Items[i].Enabled = true;
-                mainMenu.Items[i].Description = "";
+                if (i == index || i == _mainMenu.Items.Count - 1) continue;
+                _mainMenu.Items[i].Enabled = true;
+                _mainMenu.Items[i].Description = "";
             }
 
             args.Item.Enabled = false;
@@ -67,7 +68,7 @@ public class GearMenu
             Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
         };
 
-        mainMenu.SelectedIndexChanged += (_, args) =>
+        _mainMenu.SelectedIndexChanged += (_, args) =>
         {
             if (args.Index == 3) Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
             else
@@ -78,7 +79,7 @@ public class GearMenu
             }
         };
 
-        mainMenu.Closed += (_, _) => Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
+        _mainMenu.Closed += (_, _) => Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
     }
 
     private void ColorsMenuShown(object sender, EventArgs args) 
@@ -123,6 +124,11 @@ public class GearMenu
 
         _colorsMenu.SelectedIndexChanged += (_, e) => Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmet, e.Index, 1);
         _colorsMenu.Closed += (_, _) => Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmet, _propColor, 1);
+    }
+
+    public void Open() 
+    {
+        _mainMenu.Visible = true;
     }
 
     public void ReloadOptions()
