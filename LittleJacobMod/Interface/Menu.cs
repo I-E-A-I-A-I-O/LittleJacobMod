@@ -392,7 +392,7 @@ public class Menu
         };
     }
     
-    private static int HelmetType(int helmet, int pedType)
+    public static int HelmetType(int helmet, int pedType)
     {
         if (pedType == 1)
         {

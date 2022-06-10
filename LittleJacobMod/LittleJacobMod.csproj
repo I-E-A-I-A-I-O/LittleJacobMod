@@ -64,6 +64,7 @@
     <Compile Include="Interface\Menu.cs" />
     <Compile Include="Interface\PhoneContact.cs" />
     <Compile Include="Interface\SubMenuData.cs" />
+    <Compile Include="Interface\GearMenu.cs" />
     <Compile Include="Loading\Initialize.cs" />
     <Compile Include="Loading\JacobSpawnpoint.cs" />
     <Compile Include="Main.cs" />
