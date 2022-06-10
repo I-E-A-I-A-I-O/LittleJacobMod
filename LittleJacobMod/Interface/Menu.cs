@@ -48,7 +48,10 @@ namespace LittleJacobMod.Interface
                 groupMenu.SelectedIndexChanged += (_, args) =>
                 {
                     var groupedWeapons = weapons.FindAll(it => it.Group == groupMenu.Title.Text);
-                    SpawnWeaponObject?.Invoke(this, groupedWeapons[args.Index].Hash);
+                    var selectedWeapon = groupedWeapons[args.Index];
+                    SpawnWeaponObject?.Invoke(this, selectedWeapon.Hash);
+                    groupMenu.Items[args.Index].Description = LoadoutSaving.IsWeaponInStore(selectedWeapon.Hash) ? 
+                        "Owned" : $"Price: ${selectedWeapon.Price}";
                 };
             }
 
@@ -106,8 +109,7 @@ namespace LittleJacobMod.Interface
 
         private void AddSubmenu(Utils.Types.Weapon weapon, NativeMenu parentMenu)
         {
-            NativeMenu weaponMenu = new(weapon.Name, weapon.Name, $"Price: {weapon.Price}");
-            GTA.UI.Screen.ShowSubtitle(weapon.Name);
+            NativeMenu weaponMenu = new(weapon.Name, weapon.Name, $"Price: ${weapon.Price}");
             Pool.Add(weaponMenu);
             parentMenu.AddSubMenu(weaponMenu);
             SubMenuData subMenuData = new(weapon.Hash);
@@ -144,10 +146,8 @@ namespace LittleJacobMod.Interface
 
             Dictionary<string, NativeMenu> attachmentCategories = new();
 
-            for (var index = 0; index < weapon.Attachments.Count; index++)
+            foreach (var attachment in weapon.Attachments)
             {
-                var attachment = weapon.Attachments[index];
-                var si = index;
                 if (!attachmentCategories.ContainsKey(attachment.Group))
                 {
                     var category = new NativeMenu(attachment.Group, attachment.Group);
@@ -168,11 +168,12 @@ namespace LittleJacobMod.Interface
 
                 var categoryMenu = attachmentCategories[attachment.Group];
                 var componentItemOption = new NativeItem(attachment.Name, $"Price: ${attachment.Price}");
+                var attachment1 = attachment;
                 componentItemOption.Activated += (_, _) =>
                 {
-                    if (ComponentPurchased(weapon.Hash, attachment.Hash, attachment.Price, attachment.Name, attachment.Group, false))
+                    if (ComponentPurchased(weapon.Hash, attachment1.Hash, attachment1.Price, attachment1.Name, attachment1.Group, false))
                     {
-                        SubMenuData.SetIndex(subMenuData.Attachments[attachment.Group], "attachment", si);
+                        SubMenuData.SetIndex(subMenuData.Attachments[attachment1.Group], "attachment", categoryMenu.SelectedIndex);
                     }
                 };
                 categoryMenu.Add(componentItemOption);
