@@ -63,7 +63,7 @@ public class Menu
         _helm2 = new NativeMenu("Night Vision Helmet", "Night Vision Helmet", "Price: $40000");
         _helm3 = new NativeMenu("Tactical Night Vision", "Tactical Night Vision", "Price: $20000");
 
-        gearMenu.Shown += (_, _) =>
+        gearMenu.Opening += (_, _) =>
         {
             int pedType = Main.IsMPped();
 
