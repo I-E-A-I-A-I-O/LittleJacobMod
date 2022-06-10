@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.CompilerServices;
 using GTA;
 using LittleJacobMod.Utils.Types;
 using Newtonsoft.Json;
@@ -27,12 +26,14 @@ namespace LittleJacobMod.Saving
                 if (!Directory.Exists($"{dir}\\scripts\\LittleJacobMod\\Gear"))
                 {
                     State = new();
+                    HelmetsLoaded?.Invoke(null, EventArgs.Empty);
                     return;
                 }
                 else if (!File.Exists(filePath))
                 {
                     State = new();
                     GTA.UI.Notification.Show("~g~LittleJacobMod:~w~ No helmet data saved!");
+                    HelmetsLoaded?.Invoke(null, EventArgs.Empty);
                     return;
                 }
 

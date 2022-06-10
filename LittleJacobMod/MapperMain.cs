@@ -113,6 +113,7 @@ internal class MapperMain : Script
         LoadoutSaving.PerformSave(CurrentPed);
         CurrentPed = newModel;
         LoadoutSaving.PerformLoad();
+        HelmetSaving.Load();
         _updating = false;
     }
 }

@@ -316,8 +316,9 @@ public class Menu
     {
         _propColor = 0;
         _propIndex = 0;
+        var pedType = Main.IsMPped();
         
-        switch (Main.IsMPped())
+        switch (pedType)
         {
             case 0:
                 if (HelmetSaving.State != null)
@@ -344,8 +345,17 @@ public class Menu
                 break;
         }
 
+        if (pedType == -1) return;
+
         foreach (var helmetColors in _helmetColors)
         {
+            switch (pedType)
+            {
+                case 0 when helmetColors.Key is not (118 or 116 or 147):
+                case 1 when helmetColors.Key is not (119 or 117 or 148):
+                    continue;
+            }
+
             if (HelmetSaving.State!.OwnedColors == null ||
                 !HelmetSaving.State.OwnedColors.ContainsKey(helmetColors.Key))
             {
@@ -497,6 +507,7 @@ public class Menu
                                 return;
                             }
                             HelmetSaving.State.MpFemaleThermalVision = true;
+                            GTA.UI.Screen.ShowSubtitle($"THERMAL PURCHASED {HelmetSaving.State.MpFemaleThermalVision}");
                             menu.Description = "Select to equip";
                             Game.Player.Money -= helmPrice;
                             purchased = true;
