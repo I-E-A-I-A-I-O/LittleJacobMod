@@ -400,8 +400,8 @@ namespace LittleJacobMod.Interface
                                     menu.Back();
                                     return;
                                 }
-                                menu.Description = "Select to equip";
                                 HelmetState.MpftvOwned = true;
+                                menu.Description = "Select to equip";
                                 Game.Player.Money -= helmPrice;
                                 purchased = true;
                             }
@@ -415,8 +415,8 @@ namespace LittleJacobMod.Interface
                                     menu.Back();
                                     return;
                                 }
-                                menu.Description = "Select to equip";
                                 HelmetState.Mpfnv1Owned = true;
+                                menu.Description = "Select to equip";
                                 Game.Player.Money -= helmPrice;
                                 purchased = true;
                             }
@@ -430,8 +430,8 @@ namespace LittleJacobMod.Interface
                                     menu.Back();
                                     return;
                                 }
-                                menu.Description = "Select to equip";
                                 HelmetState.Mpfnv2Owned = true;
+                                menu.Description = "Select to equip";
                                 Game.Player.Money -= helmPrice;
                                 purchased = true;
                             }
@@ -445,8 +445,8 @@ namespace LittleJacobMod.Interface
                                     menu.Back();
                                     return;
                                 }
-                                menu.Description = "Select to equip";
                                 HelmetState.MpmtvOwned = true;
+                                menu.Description = "Select to equip";
                                 Game.Player.Money -= helmPrice;
                                 purchased = true;
                             }
@@ -460,8 +460,8 @@ namespace LittleJacobMod.Interface
                                     menu.Back();
                                     return;
                                 }
-                                menu.Description = "Select to equip";
                                 HelmetState.Mpmnv1Owned = true;
+                                menu.Description = "Select to equip";
                                 Game.Player.Money -= helmPrice;
                                 purchased = true;
                             }
@@ -475,8 +475,8 @@ namespace LittleJacobMod.Interface
                                     menu.Back();
                                     return;
                                 }
-                                menu.Description = "Select to equip";
                                 HelmetState.Mpmnv2Owned = true;
+                                menu.Description = "Select to equip";
                                 Game.Player.Money -= helmPrice;
                                 purchased = true;
                             }
