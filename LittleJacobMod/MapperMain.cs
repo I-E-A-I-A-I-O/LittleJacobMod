@@ -1,9 +1,10 @@
-﻿using System;
+﻿namespace LittleJacobMod;
+using System;
 using GTA;
 using GTA.Native;
 using GTA.Math;
-using LittleJacobMod.Saving;
-using LittleJacobMod.Utils;
+using Saving;
+using Utils;
 
 internal class MapperMain : Script
 {
@@ -36,7 +37,7 @@ internal class MapperMain : Script
 
         Main.PPID = id;
         LoadoutSaving.PerformLoad(!firstStart);
-        HelmetState.Load(!firstStart);
+        HelmetSaving.Load(!firstStart);
         MissionSaving.Load(!firstStart);
         DeliverySaving.Load(!firstStart);
         Tick += ModelWatcher;
@@ -112,6 +113,7 @@ internal class MapperMain : Script
         LoadoutSaving.PerformSave(CurrentPed);
         CurrentPed = newModel;
         LoadoutSaving.PerformLoad();
+        HelmetSaving.Load();
         _updating = false;
     }
 }

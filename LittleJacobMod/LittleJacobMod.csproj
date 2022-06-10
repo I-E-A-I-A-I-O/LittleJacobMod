@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <LangVersion>10</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -79,12 +80,13 @@
     <Compile Include="Saving\LoadoutSaving.cs" />
     <Compile Include="Saving\Mapper.cs" />
     <Compile Include="Saving\MissionSaving.cs" />
-    <Compile Include="Saving\Utils\StoredWeapon.cs" />
     <Compile Include="Utils\FileParser.cs" />
     <Compile Include="Utils\Types\Color.cs" />
     <Compile Include="Utils\Types\Component.cs" />
     <Compile Include="Utils\Types\GroupedComponent.cs" />
+    <Compile Include="Utils\Types\HelmetOwnership.cs" />
     <Compile Include="Utils\Types\MultiColorComponent.cs" />
+    <Compile Include="Utils\Types\StoredWeapon.cs" />
     <Compile Include="Utils\Types\Weapon.cs" />
     <Compile Include="VisionToggleMain.cs" />
     <Compile Include="Utils\ComoColorEventArgs.cs" />
@@ -104,6 +106,5 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

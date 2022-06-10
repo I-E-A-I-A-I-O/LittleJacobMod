@@ -1,133 +1,129 @@
-﻿using System;
+﻿namespace LittleJacobMod.Interface;
 using System.Collections.Generic;
 using System.Linq;
-using GTA;
 using LemonUI.Menus;
-using LittleJacobMod.Saving;
+using Saving;
 
-namespace LittleJacobMod.Interface
+internal struct ItemData
 {
-    internal struct ItemData
-    {
-        public readonly int Price;
-        public readonly NativeItem Item;
-        public readonly uint Hash;
+    public readonly int Price;
+    public readonly NativeItem Item;
+    public readonly uint Hash;
 
-        public ItemData(int price, NativeItem item, uint hash)
+    public ItemData(int price, NativeItem item, uint hash)
+    {
+        Price = price;
+        Item = item;
+        Hash = hash;
+    }
+}
+
+internal class SubMenuData
+{
+    private readonly uint _weapon;
+    public Dictionary<string, List<ItemData>> Attachments = new();
+    public List<ItemData> TintItems { get; } = new();
+    public List<ItemData> CamoColorItems { get; } = new();
+    public List<ItemData> CamoItems { get; } = new();
+
+    public SubMenuData(uint weapon)
+    {
+        _weapon = weapon;
+    }
+
+    public void ClearLists()
+    {
+        TintItems.Clear();
+        CamoItems.Clear();
+        CamoItems.Clear();
+
+        foreach (var attachmentsValue in Attachments.Values)
         {
-            Price = price;
-            Item = item;
-            Hash = hash;
+            attachmentsValue.Clear();
         }
     }
 
-    internal class SubMenuData
+    private static void Restart(IReadOnlyCollection<ItemData> items)
     {
-        private readonly uint _weapon;
-        public Dictionary<string, List<ItemData>> Attachments = new();
-        public List<ItemData> TintItems { get; } = new();
-        public List<ItemData> CamoColorItems { get; } = new();
-        public List<ItemData> CamoItems { get; } = new();
-
-        public SubMenuData(uint weapon)
+        for (var i = 0; i < items.Count; i++)
         {
-            _weapon = weapon;
-        }
+            var data = items.ElementAt(i);
 
-        public void ClearLists()
-        {
-            TintItems.Clear();
-            CamoItems.Clear();
-            CamoItems.Clear();
-
-            foreach (var attachmentsValue in Attachments.Values)
+            if (i == 0)
             {
-                attachmentsValue.Clear();
+                data.Item.Enabled = false;
+                data.Item.Description = "Current attachment";
+                continue;
             }
+
+            data.Item.Enabled = true;
+            data.Item.Description = $"Price: ${data.Price.ToString()}";
         }
+    }
 
-        private static void Restart(IReadOnlyCollection<ItemData> items)
+    public static void SetIndex(IReadOnlyCollection<ItemData> items, string text, int index)
+    {
+        if (index == -1) return;
+        for (var i = 0; i < items.Count; i++)
         {
-            for (var i = 0; i < items.Count; i++)
+            var data = items.ElementAt(i);
+
+            if (i != index && !data.Item.Enabled)
             {
-                var data = items.ElementAt(i);
-
-                if (i == 0)
-                {
-                    data.Item.Enabled = false;
-                    data.Item.Description = "Current attachment";
-                    continue;
-                }
-
                 data.Item.Enabled = true;
                 data.Item.Description = $"Price: ${data.Price.ToString()}";
             }
-        }
-
-        public static void SetIndex(IReadOnlyCollection<ItemData> items, string text, int index)
-        {
-            if (index == -1) return;
-            for (var i = 0; i < items.Count; i++)
+            else if (i == index)
             {
-                var data = items.ElementAt(i);
-
-                if (i != index && !data.Item.Enabled)
-                {
-                    data.Item.Enabled = true;
-                    data.Item.Description = $"Price: ${data.Price.ToString()}";
-                }
-                else if (i == index)
-                {
-                    data.Item.Enabled = false;
-                    data.Item.Description = $"Current {text}";
-                }
+                data.Item.Enabled = false;
+                data.Item.Description = $"Current {text}";
             }
         }
+    }
 
-        private void RestartLists()
+    private void RestartLists()
+    {
+        Restart(TintItems);
+        Restart(CamoItems);
+        Restart(CamoColorItems);
+
+        foreach (var attachment in Attachments.Values)
         {
-            Restart(TintItems);
-            Restart(CamoItems);
-            Restart(CamoColorItems);
+            Restart(attachment);
+        }
+    }
 
-            foreach (var attachment in Attachments.Values)
-            {
-                Restart(attachment);
-            }
+    public void LoadAttachments()
+    {
+        RestartLists();
+        var storeRef = LoadoutSaving.GetStoreReference(_weapon);
+
+        if (storeRef == null)
+        {
+            return;
         }
 
-        public void LoadAttachments()
+        foreach (var group in Attachments)
         {
-            RestartLists();
-            var storeRef = LoadoutSaving.GetStoreReference(_weapon);
-
-            if (storeRef == null)
-            {
-                return;
-            }
-
-            foreach (var group in Attachments)
-            {
-                if (!storeRef.Attachments.ContainsKey(group.Key)) continue;
+            if (storeRef.Attachments != null && !storeRef.Attachments.ContainsKey(group.Key)) continue;
                 
-                var savedGroup = storeRef.Attachments[group.Key];
-                var index = group.Value.FindIndex(it => it.Hash == savedGroup.Hash);
-                SetIndex(group.Value, group.Key, index);
-            }
+            var savedGroup = storeRef.Attachments?[group.Key];
+            var index = group.Value.FindIndex(it => savedGroup != null && it.Hash == savedGroup.Hash);
+            SetIndex(group.Value, group.Key, index);
+        }
             
-            if (TintItems.Count > 0)
-            {
-                var index = storeRef.GetTintIndex();
-                SetIndex(TintItems, "Tint", index);
-            }
+        if (TintItems.Count > 0)
+        {
+            var index = storeRef.GetTintIndex();
+            SetIndex(TintItems, "Tint", index);
+        }
 
-            if (CamoItems.Count > 0)
-            {
-                var index = CamoItems.FindIndex(it => it.Hash == storeRef.Camo.Hash);
-                SetIndex(CamoItems, "Livery", index);
-                index = storeRef.GetCamoColor();
-                SetIndex(CamoColorItems, "Livery Color", index);
-            }
+        if (CamoItems.Count > 0)
+        {
+            var index = CamoItems.FindIndex(it => storeRef.Camo != null && it.Hash == storeRef.Camo.Hash);
+            SetIndex(CamoItems, "Livery", index);
+            index = storeRef.GetCamoColor();
+            SetIndex(CamoColorItems, "Livery Color", index);
         }
     }
 }

@@ -6,7 +6,7 @@ namespace LittleJacobMod.Utils
 {
     public static class TintsAndCamos
     {
-        public static List<string> NV2Colors = new List<string>()
+        public static List<string> NV2Colors = new()
         {
             "Black",
             "Sage",
@@ -18,7 +18,7 @@ namespace LittleJacobMod.Utils
             "Desert Digital"
         };
 
-        public static List<string> HelmColors = new List<string>()
+        public static List<string> HelmColors = new()
         {
             "Black",
             "Moss",

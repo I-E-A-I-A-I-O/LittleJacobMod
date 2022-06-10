@@ -1,8 +1,9 @@
-﻿using System;
+﻿namespace LittleJacobMod;
+using System;
 using GTA;
-using LittleJacobMod.Interface;
-using LittleJacobMod.Utils;
-using LittleJacobMod.Saving;
+using Interface;
+using Utils;
+using Saving;
 using GTA.Native;
 using GTA.Math;
 
@@ -10,12 +11,12 @@ public class Main : Script
 {
     private readonly PhoneContact _ifruit;
     private readonly Menu _menu;
-    private Camera _trunkCam;
-    private Camera _faceCam;
-    public static CallMenu CallMenu { get; private set; }
-    public static Camera Camera { get; private set; }
+    private Camera? _trunkCam;
+    private Camera? _faceCam;
+    public static CallMenu? CallMenu { get; private set; }
+    public static Camera? Camera { get; private set; }
     public static bool JacobActive { get; set; }
-    public static LittleJacob LittleJacob { get; set; }
+    public static LittleJacob? LittleJacob { get; set; }
     public static bool TimerStarted { get; set; }
     private static int TimerStart { get; set; }
     private static int TimerCurrent { get; set; }
@@ -31,8 +32,8 @@ public class Main : Script
     private bool _scaleformFading;
     private static bool _scaleformRequested;
     private int _scaleformSt;
-    private static string _scaleformTitle;
-    private static string _scaleformSubtitle;
+    private static string? _scaleformTitle;
+    private static string? _scaleformSubtitle;
     public static bool ScaleformActive { get; private set; }
     private static int _scaleformType;
     private static uint _weaponHash;
@@ -44,12 +45,13 @@ public class Main : Script
         JacobHash = settings.GetValue("Gameplay", "JacobModel", PedHash.Soucent03AMY);
         JacobsCarHash = settings.GetValue("Gameplay", "JacobsCarModel", VehicleHash.Virgo2);
         LoadoutSaving.WeaponsLoaded += LoadoutSaving_WeaponsLoaded;
+        HelmetSaving.HelmetsLoaded += HelmetSavingOnHelmetsLoaded;
         _ifruit = new PhoneContact();
         _menu = new Menu();
         MenuCreated = true;
         CallMenu = new CallMenu();
 
-        Menu.HelmetMenuChanged += (o, e) =>
+        Menu.HelmetMenuChanged += (_, e) =>
         {
             MoveCamera(e ? 1 : 0);
         };
@@ -61,20 +63,28 @@ public class Main : Script
         Aborted += Main_Aborted;
     }
 
-    private void SetScaleformWeaponText(string title, string weaponName, uint weaponHash)
+    private void HelmetSavingOnHelmetsLoaded(object sender, EventArgs e)
+    {
+        _processMenu = false;
+        _menu.ReloadHelmetOptions();
+        GTA.UI.Screen.ShowSubtitle("INVOKEEEEEEEEED HELMETS");
+        _processMenu = true;
+    }
+
+    private void SetScaleformWeaponText(string? title, string? weaponName, uint weaponHash)
     {
         Function.Call(Hash.BEGIN_SCALEFORM_MOVIE_METHOD, _scaleform, "SHOW_WEAPON_PURCHASED");
-        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, title);
-        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, weaponName);
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, title ?? "");
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, weaponName ?? "");
         Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, weaponHash);
         Function.Call(Hash.END_SCALEFORM_MOVIE_METHOD);
     }
     
-    private void SetScaleFormText(string title, string description)
+    private void SetScaleformText(string? title, string? description)
     {
         Function.Call(Hash.BEGIN_SCALEFORM_MOVIE_METHOD, _scaleform, "SHOW_SHARD_CENTERED_TOP_MP_MESSAGE");
-        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, title);
-        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, description);
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, title ?? "");
+        Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_TEXTURE_NAME_STRING, description ?? "");
         Function.Call(Hash.SCALEFORM_MOVIE_METHOD_ADD_PARAM_INT, 5);
         Function.Call(Hash.END_SCALEFORM_MOVIE_METHOD);
     }
@@ -129,10 +139,12 @@ public class Main : Script
             {
                 case 0:
                     RequestScaleform();
-                    SetScaleFormText(_scaleformTitle, _scaleformSubtitle);
+                    if (_scaleformTitle != null && _scaleformSubtitle != null)
+                        SetScaleformText(_scaleformTitle, _scaleformSubtitle);
                     break;
                 case 1:
-                    SetScaleformWeaponText(_scaleformTitle, _scaleformSubtitle, _weaponHash);
+                    if (_scaleformTitle != null && _scaleformSubtitle != null)
+                        SetScaleformWeaponText(_scaleformTitle, _scaleformSubtitle, _weaponHash);
                     break;
             }
             _scaleformRequested = true;
@@ -161,6 +173,7 @@ public class Main : Script
     {
         _processMenu = false;
         _menu.ReloadOptions();
+        GTA.UI.Screen.ShowSubtitle("INVOKEEEEEEEEED");
         _processMenu = true;
     }
 
@@ -191,17 +204,17 @@ public class Main : Script
     {
         if (!JacobActive) return;
         DeleteCameras();
-        LittleJacob.DeleteBlip();
+        LittleJacob?.DeleteBlip();
         Game.Player.Character.CanSwitchWeapons = true;
         Game.Player.Character.Task.ClearAll();
-        LittleJacob.DeleteJacob();
+        LittleJacob?.DeleteJacob();
     }
 
     private void MenuTick(object o, EventArgs e)
     {
         _ifruit.Phone.Update();
-        CallMenu.Pool.Process();
-        CallMenu.ProcessTimer();
+        CallMenu?.Pool.Process();
+        CallMenu?.ProcessTimer();
 
         if (_processMenu)
         {
@@ -213,18 +226,18 @@ public class Main : Script
     {
         PPID = Function.Call<int>(Hash.PLAYER_PED_ID);
 
-        if (!JacobActive)
+        if (!JacobActive || LittleJacob == null)
         {
             return;
         }
 
         //LittleJacob.ProcessVoice();
 
-        if (LittleJacob.Spawned && !LittleJacob.Left)
+        if (LittleJacob.Spawned && !LittleJacob.Left && LittleJacob.Vehicle != null)
         {
-            if (Camera != null && Camera.Handle != 0 && Camera.IsActive)
+            if (Camera != null && Camera.Handle != 0 && Camera.IsActive && _trunkCam != null)
             {
-                Function.Call(Hash.DRAW_LIGHT_WITH_RANGE, LittleJacob.Vehicle.RearPosition.X + (_trunkCam.Direction.X / 2), LittleJacob.Vehicle.RearPosition.Y + (_trunkCam.Direction.Y / 2), LittleJacob.Vehicle.RearPosition.Z + 0.3f, 255, 255, 255, 1.5f, 0.5f);
+                Function.Call(Hash.DRAW_LIGHT_WITH_RANGE, LittleJacob.Vehicle.RearPosition.X + _trunkCam.Direction.X / 2, LittleJacob.Vehicle.RearPosition.Y + _trunkCam.Direction.Y / 2, LittleJacob.Vehicle.RearPosition.Z + 0.3f, 255, 255, 255, 1.5f, 0.5f);
             }
         }
 
@@ -242,7 +255,7 @@ public class Main : Script
                     LittleJacob.DeleteBlip();
                     FreeScaleform();
                     LoadoutSaving.PerformSave(MapperMain.CurrentPed);
-                    HelmetState.Save();
+                    HelmetSaving.Save();
                     break;
                 case false:
                     GTA.UI.Notification.Show(GTA.UI.NotificationIcon.Default, "Little Jacob", "Meetin", "my friend told me the police is after u. we cant meet like this, call me again when you lose them. Peace");
@@ -282,7 +295,7 @@ public class Main : Script
 
         switch (LittleJacob.Spawned)
         {
-            case true when !LittleJacob.Left && LittleJacob.Jacob.IsDead:
+            case true when LittleJacob.Jacob != null && !LittleJacob.Left && LittleJacob.Jacob.IsDead:
             {
                 _menu.Pool.HideAll();
                 DeleteCameras();
@@ -292,7 +305,7 @@ public class Main : Script
                 LittleJacob.DeleteBlip();
                 FreeScaleform();
                 LoadoutSaving.PerformSave(MapperMain.CurrentPed);
-                HelmetState.Save();
+                HelmetSaving.Save();
 
                 if (Function.Call<bool>(Hash.IS_PED_MODEL, PPID, (uint)PedHash.Trevor))
                 {
@@ -353,7 +366,7 @@ public class Main : Script
                     LittleJacob.DeleteBlip();
                     FreeScaleform();
                     LoadoutSaving.PerformSave(MapperMain.CurrentPed);
-                    HelmetState.Save();
+                    HelmetSaving.Save();
                 } else if (LittleJacob.Left && !LittleJacob.IsNearby())
                 {
                     LittleJacob.DeleteJacob();
@@ -367,7 +380,7 @@ public class Main : Script
 
     private void ControlWatch(object o, EventArgs e)
     {
-        if (!JacobActive)
+        if (!JacobActive || LittleJacob == null)
         {
             return;
         }
@@ -381,10 +394,16 @@ public class Main : Script
         var rearPos = Game.Player.Character.RearPosition;
         _faceCam.AttachTo(Game.Player.Character.Bones[Bone.SkelHead], new Vector3(0.25f, 1, 0.7f));
         _faceCam.PointAt(new Vector3(rearPos.X, rearPos.Y, rearPos.Z + 0.7f));
-        _trunkCam.Position = new Vector3(LittleJacob.Vehicle.RearPosition.X, LittleJacob.Vehicle.RearPosition.Y, LittleJacob.Vehicle.RearPosition.Z + 0.6f);
-        _trunkCam.PointAt(LittleJacob.Vehicle.FrontPosition);
-        Camera.Position = _trunkCam.Position;
-        Camera.PointAt(LittleJacob.Vehicle.FrontPosition);
+        
+        if (LittleJacob.Vehicle != null)
+        {
+            _trunkCam.Position = new Vector3(LittleJacob.Vehicle.RearPosition.X, LittleJacob.Vehicle.RearPosition.Y,
+                LittleJacob.Vehicle.RearPosition.Z + 0.6f);
+            _trunkCam.PointAt(LittleJacob.Vehicle.FrontPosition);
+            Camera.Position = _trunkCam.Position;
+            Camera.PointAt(LittleJacob.Vehicle.FrontPosition);
+        }
+
         _faceCam.IsActive = false;
         _trunkCam.IsActive = false;
         MoveCamera(0);
@@ -419,6 +438,6 @@ public class Main : Script
 
     private void MoveCamera(int posIndex)
     {
-        Camera.InterpTo(posIndex == 0 ? _trunkCam : _faceCam, 2000, 1, 1);
+        Camera?.InterpTo(posIndex == 0 ? _trunkCam : _faceCam, 2000, 1, 1);
     }
 }

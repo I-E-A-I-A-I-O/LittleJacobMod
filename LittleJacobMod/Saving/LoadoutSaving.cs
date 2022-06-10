@@ -14,7 +14,7 @@ namespace LittleJacobMod.Saving
     {
         private static readonly List<StoredWeapon> StoredWeapons = new();
         public static bool Busy { get; private set; }
-        public static event EventHandler WeaponsLoaded;
+        public static event EventHandler? WeaponsLoaded;
 
         public static void UpdateWeaponMap(bool updating)
         {
@@ -96,7 +96,7 @@ namespace LittleJacobMod.Saving
             if (weapon != null) weapon.CamoColor = color;
         }
 
-        public static StoredWeapon GetStoreReference(uint hash)
+        public static StoredWeapon? GetStoreReference(uint hash)
         {
             return StoredWeapons.Find(ti => ti.WeaponHash == hash);
         }

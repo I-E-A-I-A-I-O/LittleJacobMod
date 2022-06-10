@@ -18,12 +18,12 @@ namespace LittleJacobMod.Utils.Types
         public uint Hash { get; set; }
 
         [JsonProperty("Tints", Required = Required.Default)]
-        public List<Color> Tints { get; set; }
+        public List<Color>? Tints { get; set; }
 
         [JsonProperty("Camo", Required = Required.Default)]
-        public MultiColorComponent CamoComponents { get; set; }
+        public MultiColorComponent? CamoComponents { get; set; }
 
         [JsonProperty("Attachments", Required = Required.Default)]
-        public List<GroupedComponent> Attachments { get; set; }
+        public List<GroupedComponent>? Attachments { get; set; }
     }
 }

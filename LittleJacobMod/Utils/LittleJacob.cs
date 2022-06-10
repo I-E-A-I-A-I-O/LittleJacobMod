@@ -7,21 +7,22 @@ namespace LittleJacobMod.Utils
 {
     public class LittleJacob
     {
-        private Vehicle vehicle;
-        private Ped jacob;
-        private JacobSpawnpoint jacobSpawnpoint;
-        private bool spawned, left;
-        public bool Spawned => spawned;
-        public bool Left => left;
+        public bool Spawned { get; private set; }
+
+        public bool Left { get; private set; }
+
         public Blip Blip { get; }
-        public Ped Jacob => jacob;
-        public Vehicle Vehicle => vehicle;
-        public JacobSpawnpoint JacobSpawnpoint => jacobSpawnpoint;
-        public static event EventHandler<bool> TrunkStateChanged;
+        public Ped? Jacob { get; private set; }
+
+        public Vehicle? Vehicle { get; private set; }
+
+        public JacobSpawnpoint JacobSpawnpoint { get; private set; }
+
+        public static event EventHandler<bool>? TrunkStateChanged;
 
         public LittleJacob(JacobSpawnpoint jacobSpawnpoint)
         {
-            this.jacobSpawnpoint = jacobSpawnpoint;
+            JacobSpawnpoint = jacobSpawnpoint;
             Blip = World.CreateBlip(jacobSpawnpoint.JacobPosition);
             Blip.Sprite = BlipSprite.Lester;
             Blip.Color = BlipColor.Green;
@@ -38,7 +39,7 @@ namespace LittleJacobMod.Utils
                 Script.Wait(50);
             }
 
-            jacob = World.CreatePed(new Model(Main.JacobHash), jacobSpawnpoint.JacobPosition, jacobSpawnpoint.JacobHeading);
+            Jacob = World.CreatePed(new Model(Main.JacobHash), JacobSpawnpoint.JacobPosition, JacobSpawnpoint.JacobHeading);
 
             Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, (uint)Main.JacobHash);
             Function.Call(Hash.REQUEST_MODEL, (uint)Main.JacobsCarHash);
@@ -48,14 +49,14 @@ namespace LittleJacobMod.Utils
                 Script.Wait(50);
             }
 
-            vehicle = World.CreateVehicle(new Model(Main.JacobsCarHash), jacobSpawnpoint.CarPosition, jacobSpawnpoint.CarHeading);
+            Vehicle = World.CreateVehicle(new Model(Main.JacobsCarHash), JacobSpawnpoint.CarPosition, JacobSpawnpoint.CarHeading);
             Function.Call(Hash.SET_MODEL_AS_NO_LONGER_NEEDED, (uint)Main.JacobsCarHash);
-            jacob.BlockPermanentEvents = true;
-            jacob.Task.StartScenario("WORLD_HUMAN_DRUG_DEALER", 0);
-            vehicle.Mods.InstallModKit();
-            vehicle.Mods.PrimaryColor = VehicleColor.WornDarkRed;
-            vehicle.Mods.SecondaryColor = VehicleColor.WornDarkRed;
-            spawned = true;
+            Jacob.BlockPermanentEvents = true;
+            Jacob.Task.StartScenario("WORLD_HUMAN_DRUG_DEALER", 0);
+            Vehicle.Mods.InstallModKit();
+            Vehicle.Mods.PrimaryColor = VehicleColor.WornDarkRed;
+            Vehicle.Mods.SecondaryColor = VehicleColor.WornDarkRed;
+            Spawned = true;
         }
 
         /*public void ProcessVoice(bool bought = false, bool force = false)
@@ -108,41 +109,42 @@ namespace LittleJacobMod.Utils
             sequence.AddTask.ClearAll();
             sequence.AddTask.CruiseWithVehicle(Vehicle, 100);
             sequence.Close();
-            jacob.Task.PerformSequence(sequence);
+            Jacob?.Task.PerformSequence(sequence);
             sequence.Dispose();
-            left = true;
+            Left = true;
             Timers.RestartOfferSmokeTimer();
         }
 
         public void Terminate()
         {
-            left = true;
+            Left = true;
             Timers.RestartOfferSmokeTimer();
         }
 
         public void DeleteJacob()
         {
-            Jacob.MarkAsNoLongerNeeded();
-            Vehicle.MarkAsNoLongerNeeded();
+            Jacob?.MarkAsNoLongerNeeded();
+            Vehicle?.MarkAsNoLongerNeeded();
         }
 
         public bool IsPlayerInArea()
         {
-            return Game.Player.Character.IsInRange(jacobSpawnpoint.JacobPosition, 80);
+            return Game.Player.Character.IsInRange(JacobSpawnpoint.JacobPosition, 80);
         }
 
         public bool IsNearby()
         {
-            return jacob.IsInRange(Game.Player.Character.Position, 50);
+            return Jacob?.IsInRange(Game.Player.Character.Position, 50) ?? false;
         }
 
         public bool PlayerNearTrunk()
         {
-            return Game.Player.Character.IsInRange(Vehicle.RearPosition, 1.2f);
+            return Vehicle != null && Game.Player.Character.IsInRange(Vehicle.RearPosition, 1.2f);
         }
 
         public void ToggleTrunk()
         {
+            if (Vehicle == null) return;
             var trunk = Vehicle.Doors[VehicleDoorIndex.Trunk];
             if (trunk.IsOpen)
             {
@@ -157,7 +159,7 @@ namespace LittleJacobMod.Utils
 
         public void DeleteBlip()
         {
-            if (Blip == null)
+            if (Blip.Handle == 0)
             {
                 return;
             }
