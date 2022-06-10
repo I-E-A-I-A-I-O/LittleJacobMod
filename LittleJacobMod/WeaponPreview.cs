@@ -215,14 +215,14 @@ internal class WeaponPreview : Script
         if (luxe)
         {
             luxModel = LoadComponentModel(luxeHash);
-            _weaponHandle = Function.Call<Prop>(Hash.CREATE_WEAPON_OBJECT, hash, 1, Main.LittleJacob.Vehicle.RearPosition.X + (Main.Camera.Direction.X / 1.4f), Main.LittleJacob.Vehicle.RearPosition.Y + (Main.Camera.Direction.Y / 1.4f), Main.LittleJacob.Vehicle.RearPosition.Z + 0.15f, true, 1, luxModel, 0, 1);
+            _weaponHandle = Function.Call<Prop>(Hash.CREATE_WEAPON_OBJECT, hash, 1, Main.LittleJacob.Vehicle.RearPosition.X + Main.Camera.Direction.X / 1.4f, Main.LittleJacob.Vehicle.RearPosition.Y + Main.Camera.Direction.Y / 1.4f, Main.LittleJacob.Vehicle.RearPosition.Z + 0.15f, true, 1, luxModel, 0, 1);
             luxOn = true;
         } else
         {
-            _weaponHandle = Function.Call<Prop>(Hash.CREATE_WEAPON_OBJECT, hash, 1, Main.LittleJacob.Vehicle.RearPosition.X + (Main.Camera.Direction.X / 1.4f), Main.LittleJacob.Vehicle.RearPosition.Y + (Main.Camera.Direction.Y / 1.4f), Main.LittleJacob.Vehicle.RearPosition.Z + 0.15f, true, 1, 0);
+            _weaponHandle = Function.Call<Prop>(Hash.CREATE_WEAPON_OBJECT, hash, 1, Main.LittleJacob.Vehicle.RearPosition.X + Main.Camera.Direction.X / 1.4f, Main.LittleJacob.Vehicle.RearPosition.Y + Main.Camera.Direction.Y / 1.4f, Main.LittleJacob.Vehicle.RearPosition.Z + 0.15f, true, 1, 0);
         }
 
-        _weaponHandle.PositionNoOffset = new Vector3(Main.LittleJacob.Vehicle.RearPosition.X + (Main.Camera.Direction.X / 1.2f), Main.LittleJacob.Vehicle.RearPosition.Y + (Main.Camera.Direction.Y / 1.2f), Main.LittleJacob.Vehicle.RearPosition.Z + 0.4f);
+        _weaponHandle.PositionNoOffset = new Vector3(Main.LittleJacob.Vehicle.RearPosition.X + Main.Camera.Direction.X / 1.2f, Main.LittleJacob.Vehicle.RearPosition.Y + Main.Camera.Direction.Y / 1.2f, Main.LittleJacob.Vehicle.RearPosition.Z + 0.4f);
         _weaponHandle.HasGravity = false;
         _weaponHandle.IsCollisionEnabled = false;
         _weaponHandle.Heading = Main.Camera.ForwardVector.ToHeading();

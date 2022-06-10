@@ -8,7 +8,7 @@ namespace LittleJacobMod.Loading
 {
     static internal class Initialize
     {
-        private static List<JacobSpawnpoint> jacobSpawnpoints = new List<JacobSpawnpoint>()
+        private static List<JacobSpawnpoint> jacobSpawnpoints = new()
         {
             new JacobSpawnpoint(new Vector3(1625.764f, 1002.065f, 104.7569f), -163.9208f, new Vector3(1627.689f, 1003.179f, 104.6205f), -14.01786f),
             new JacobSpawnpoint(new Vector3(700.1344f, 222.0037f, 92.46917f), 91.96848f, new Vector3(699.8804f, 219.7696f, 91.87753f), -118.9912f),

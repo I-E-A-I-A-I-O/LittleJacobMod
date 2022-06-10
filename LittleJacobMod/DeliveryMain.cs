@@ -1,4 +1,5 @@
-﻿using System;
+﻿namespace LittleJacobMod;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
@@ -6,8 +7,8 @@ using GTA;
 using GTA.Math;
 using GTA.Native;
 using GTA.UI;
-using LittleJacobMod.Interface;
-using LittleJacobMod.Saving;
+using Interface;
+using Saving;
 
 internal class DeliveryMain : Script
 {
@@ -35,22 +36,22 @@ internal class DeliveryMain : Script
         Other
     }
     public static bool Active { get; private set; }
-    public static event EventHandler OnDeliveryCompleted;
+    public static event EventHandler? OnDeliveryCompleted;
     private readonly RelationshipGroup _neutral;
     private readonly RelationshipGroup _hateCops;
-    private readonly List<int> _peds = new List<int>();
-    private readonly List<int> _vehicles = new List<int>();
+    private readonly List<int> _peds = new();
+    private readonly List<int> _vehicles = new();
     private int _lastSpawn;
     private int _deathToll;
     private readonly int _hate;
     private readonly int _cop;
-    private Blip _routeBlip;
-    private Ped _buyer;
+    private Blip? _routeBlip;
+    private Ped? _buyer;
     private Vector3 _destination;
-    private Vehicle _car;
+    private Vehicle? _car;
     private int _objective;
     private int _blipSt;
-    private Prop _bag;
+    private Prop? _bag;
     private bool _bagTaken;
     private bool _pigFlag;
     private bool _betrayed;
@@ -69,21 +70,21 @@ internal class DeliveryMain : Script
     private uint _pedModel;
     private PedTypes _chaserType;
     private uint _vehicleModel;
-    private readonly Vector3 _dropPoint = new Vector3(6.828116f, -1405.562f, 28.26828f);
+    private readonly Vector3 _dropPoint = new(6.828116f, -1405.562f, 28.26828f);
 
-    private readonly Dictionary<int, Vector3> _badgeSlots = new Dictionary<int, Vector3>
+    private readonly Dictionary<int, Vector3> _badgeSlots = new()
     {
         {0, new Vector3(0.91f, 0.97f, 0)},
         {1, new Vector3(0.91f, 0.918f, 0)}
     };
 
-    private readonly Dictionary<int, Vector3> _contentSlots = new Dictionary<int, Vector3>
+    private readonly Dictionary<int, Vector3> _contentSlots = new()
     {
         {0, new Vector3(0.75f, 0.952f, 0)},
         {1, new Vector3(0.75f, 0.90f, 0)}
     };
 
-    private readonly Dictionary<int, Vector3> _titleSlots = new Dictionary<int, Vector3>
+    private readonly Dictionary<int, Vector3> _titleSlots = new()
     {
         {0, new Vector3(0.855f, 0.96f, 0)},
         {1, new Vector3(0.855f, 0.91f, 0)}
@@ -326,7 +327,7 @@ internal class DeliveryMain : Script
 
     private void SetModels(bool belongs)
     {
-        var buyerModel = Function.Call<uint>(Hash.GET_ENTITY_MODEL, _buyer.Handle);
+        var buyerModel = Function.Call<uint>(Hash.GET_ENTITY_MODEL, _buyer!.Handle);
         _chaserType = ThrowInPool(buyerModel);
 
         if (!belongs)
@@ -483,6 +484,7 @@ internal class DeliveryMain : Script
 
     private void CreateCarBlip()
     {
+        if (_car == null) return;
         _car.AddBlip();
         _car.AttachedBlip.Scale = 0.8f;
         _car.AttachedBlip.Sprite = BlipSprite.Weed;
@@ -605,6 +607,14 @@ internal class DeliveryMain : Script
     
     private void DEL_0()
     {
+        if (_buyer == null || _car == null)
+        {
+            Main.ShowScaleform("~r~Delivery failed", "", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
+            Quit();
+            return;
+        }
+        
         if (_buyer.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Buyer is dead", 0);
@@ -701,6 +711,14 @@ internal class DeliveryMain : Script
 
     private void DEL_1()
     {
+        if (_buyer == null || _car == null)
+        {
+            Main.ShowScaleform("~r~Delivery failed", "", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
+            Quit();
+            return;
+        }
+        
         if (_buyer.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Buyer is dead", 0);
@@ -720,7 +738,7 @@ internal class DeliveryMain : Script
         if (Game.Player.WantedLevel > 0)
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
-            _routeBlip.Delete();
+            _routeBlip?.Delete();
             _objective = 2;
             return;
         }
@@ -737,7 +755,7 @@ internal class DeliveryMain : Script
 
         if (_car.IsInRange(_destination, 5))
         {
-            _routeBlip.Delete();
+            _routeBlip?.Delete();
             var ran = new Random();
 
             if (ran.Next(0, 101) <= DeliverySaving.PoliceChanceLow)
@@ -771,10 +789,13 @@ internal class DeliveryMain : Script
                 Game.Player.Character.Task.LeaveVehicle();
                 _car.Velocity = Vector3.Zero;
                 _car.LockStatus = VehicleLockStatus.PlayerCannotEnter;
-                _bag.AddBlip();
-                _bag.AttachedBlip.Scale = 0.75f;
-                _bag.AttachedBlip.Color = BlipColor.Green;
-                _bag.AttachedBlip.Name = "Money";
+                if (_bag != null)
+                {
+                    _bag.AddBlip();
+                    _bag.AttachedBlip.Scale = 0.75f;
+                    _bag.AttachedBlip.Color = BlipColor.Green;
+                    _bag.AttachedBlip.Name = "Money";
+                }
                 Wait(1000);
                 var sequence = new TaskSequence();
                 sequence.AddTask.ClearAllImmediately();
@@ -790,7 +811,7 @@ internal class DeliveryMain : Script
         if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(-1));
-            _routeBlip.Delete();
+            _routeBlip?.Delete();
             CreateCarBlip();
             _objective = 3;
             return;
@@ -802,6 +823,14 @@ internal class DeliveryMain : Script
 
     private void DEL_2()
     {
+        if (_buyer == null || _car == null)
+        {
+            Main.ShowScaleform("~r~Delivery failed", "", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
+            Quit();
+            return;
+        }
+        
         var farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
 
         if (farAway)
@@ -867,10 +896,13 @@ internal class DeliveryMain : Script
                     Game.Player.Character.Task.LeaveVehicle();
                     _car.Velocity = Vector3.Zero;
                     _car.LockStatus = VehicleLockStatus.PlayerCannotEnter;
-                    _bag.AddBlip();
-                    _bag.AttachedBlip.Scale = 0.75f;
-                    _bag.AttachedBlip.Color = BlipColor.Green;
-                    _bag.AttachedBlip.Name = "Money";
+                    if (_bag != null)
+                    {
+                        _bag.AddBlip();
+                        _bag.AttachedBlip.Scale = 0.75f;
+                        _bag.AttachedBlip.Color = BlipColor.Green;
+                        _bag.AttachedBlip.Name = "Money";
+                    }
                     Wait(1000);
                     var sequence = new TaskSequence();
                     sequence.AddTask.ClearAllImmediately();
@@ -888,6 +920,14 @@ internal class DeliveryMain : Script
 
     private void DEL_3()
     {
+        if (_buyer == null || _car == null)
+        {
+            Main.ShowScaleform("~r~Delivery failed", "", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
+            Quit();
+            return;
+        }
+        
         if (_buyer.IsDead)
         {
             Main.ShowScaleform("~r~Delivery failed", "Buyer is dead", 0);
@@ -934,6 +974,14 @@ internal class DeliveryMain : Script
 
     private void DEL_4()
     {
+        if (_buyer == null || _car == null)
+        {
+            Main.ShowScaleform("~r~Delivery failed", "", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
+            Quit();
+            return;
+        }
+        
         Screen.ShowSubtitle("Take the ~g~money~w~ and leave the area.", 1000);
         var buyerLeft = !_buyer.IsInRange(_destination, 50) || !_buyer.IsInRange(Game.Player.Character.Position, 50);
 
@@ -971,6 +1019,14 @@ internal class DeliveryMain : Script
 
     private void DEL_5()
     {
+        if (_car == null)
+        {
+            Main.ShowScaleform("~r~Delivery failed", "", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
+            Quit();
+            return;
+        }
+        
         var farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
 
         if (farAway)
@@ -1004,6 +1060,14 @@ internal class DeliveryMain : Script
 
     private void DEL_6()
     {
+        if (_car == null)
+        {
+            Main.ShowScaleform("~r~Delivery failed", "", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
+            Quit();
+            return;
+        }
+        
         var farAway = !Game.Player.Character.IsInRange(_car.Position, 100);
 
         if (farAway)
@@ -1057,6 +1121,14 @@ internal class DeliveryMain : Script
 
     private void DEL_7()
     {
+        if (_car == null)
+        {
+            Main.ShowScaleform("~r~Delivery failed", "", 0);
+            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
+            Quit();
+            return;
+        }
+        
         if (_car.IsDead)
         {
             if (_bagTaken)
@@ -1078,7 +1150,7 @@ internal class DeliveryMain : Script
         if (Game.Player.WantedLevel > 0)
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(3));
-            _routeBlip.Delete();
+            _routeBlip?.Delete();
             _objective = 5;
             return;
         }
@@ -1103,7 +1175,7 @@ internal class DeliveryMain : Script
         else if (!Function.Call<bool>(Hash.IS_PED_IN_VEHICLE, Main.PPID, _car.Handle, false))
         {
             Function.Call(Hash.TRIGGER_MUSIC_EVENT, GetEvent(-1));
-            _routeBlip.Delete();
+            _routeBlip?.Delete();
             CreateCarBlip();
             _objective = 6;
         }
@@ -1311,8 +1383,8 @@ internal class DeliveryMain : Script
             }
         }
 
-        if (_car.EngineHealth < _health)
-            _health = _car.EngineHealth;
+        if ((_car?.EngineHealth ?? 0) < _health)
+            _health = _car?.EngineHealth ?? 0;
 
         if (_objective > 0)
         {
@@ -1320,6 +1392,14 @@ internal class DeliveryMain : Script
 
             if (!_bagTaken)
             {
+                if (_car == null || _bag == null)
+                {
+                    Main.ShowScaleform("~r~Delivery failed", "", 0);
+                    Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "ScreenFlash", "MissionFailedSounds", true);
+                    Quit();
+                    return;
+                }
+                
                 var multiplier = _health / 10 * 0.01f;
                 _lockedAt = (int) (_baseReward * multiplier);
 

@@ -14,10 +14,10 @@ namespace LittleJacobMod.Saving.Utils
         public int Ammo { get; set; }
         
         [JsonProperty("Attachments")]
-        public Dictionary<string, LittleJacobMod.Utils.Types.GroupedComponent> Attachments { get; set; }
+        public Dictionary<string, LittleJacobMod.Utils.Types.GroupedComponent>? Attachments { get; set; }
         
         [JsonProperty("Camo")]
-        public LittleJacobMod.Utils.Types.Component Camo { get; set; }
+        public LittleJacobMod.Utils.Types.Component? Camo { get; set; }
 
         [JsonProperty("Tint")] public int Tint { get; set; } = -1;
 

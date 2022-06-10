@@ -1,7 +1,8 @@
-﻿using System;
+﻿namespace LittleJacobMod;
+using System;
 using GTA;
 using GTA.Native;
-using LittleJacobMod.Utils;
+using Utils;
 
 internal class VisionToggleMain : Script
 {

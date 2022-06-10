@@ -23,7 +23,7 @@ namespace LittleJacobMod
             Mm3 = 1290406125
         }
 
-        private readonly List<WeaponHash> _weapons = new List<WeaponHash>()
+        private readonly List<WeaponHash> _weapons = new()
         {
             WeaponHash.AssaultrifleMk2,
             WeaponHash.PumpShotgunMk2,
@@ -53,11 +53,11 @@ namespace LittleJacobMod
 
         public static bool Active { get; private set; }
         public static event EventHandler OnMissionCompleted;
-        private readonly List<int> _peds = new List<int>();
-        private readonly List<int> _vehicles = new List<int>();
-        private readonly List<int> _props = new List<int>();
-        private readonly List<Blip> _blips = new List<Blip>();
-        private readonly List<Vector3> _locations = new List<Vector3>();
+        private readonly List<int> _peds = new();
+        private readonly List<int> _vehicles = new();
+        private readonly List<int> _props = new();
+        private readonly List<Blip> _blips = new();
+        private readonly List<Vector3> _locations = new();
         private SpawnData _data;
         private int _objective;
         private bool _spawned;
