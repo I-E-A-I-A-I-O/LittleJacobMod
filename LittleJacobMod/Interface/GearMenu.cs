@@ -62,19 +62,19 @@ public class GearMenu
                     switch (i)
                     {
                         case 0:
-                            exp = pedType == 0
-                                ? HelmetSaving.State.MpMaleThermalVision
-                                : HelmetSaving.State.MpFemaleThermalVision;
+                            exp = (pedType == 0
+                                ? HelmetSaving.State?.MpMaleThermalVision
+                                : HelmetSaving.State?.MpFemaleThermalVision) ?? false;
                             break;
                         case 1:
-                            exp = pedType == 0
-                                ? HelmetSaving.State.MpMaleNightVision1
-                                : HelmetSaving.State.MpFemaleNightVision1;
+                            exp = (pedType == 0
+                                ? HelmetSaving.State?.MpMaleNightVision1
+                                : HelmetSaving.State?.MpFemaleNightVision1) ?? false;
                             break;
                         case 2:
-                            exp = pedType == 0
-                                ? HelmetSaving.State.MpMaleNightVision2
-                                : HelmetSaving.State.MpFemaleNightVision2;
+                            exp = (pedType == 0
+                                ? HelmetSaving.State?.MpMaleNightVision2
+                                : HelmetSaving.State?.MpFemaleNightVision2) ?? false;
                             break;
                         default:
                             continue;
@@ -100,19 +100,19 @@ public class GearMenu
                 switch (i)
                 {
                     case 0:
-                        exp = pedType == 0
-                            ? HelmetSaving.State.MpMaleThermalVision
-                            : HelmetSaving.State.MpFemaleThermalVision;
+                        exp = (pedType == 0
+                            ? HelmetSaving.State?.MpMaleThermalVision
+                            : HelmetSaving.State?.MpFemaleThermalVision) ?? false;
                         break;
                     case 1:
-                        exp = pedType == 0
-                            ? HelmetSaving.State.MpMaleNightVision1
-                            : HelmetSaving.State.MpFemaleNightVision1;
+                        exp = (pedType == 0
+                            ? HelmetSaving.State?.MpMaleNightVision1
+                            : HelmetSaving.State?.MpFemaleNightVision1) ?? false;
                         break;
                     case 2:
-                        exp = pedType == 0
-                            ? HelmetSaving.State.MpMaleNightVision2
-                            : HelmetSaving.State.MpFemaleNightVision2;
+                        exp = (pedType == 0
+                            ? HelmetSaving.State?.MpMaleNightVision2
+                            : HelmetSaving.State?.MpFemaleNightVision2) ?? false;
                         break;
                     default:
                         continue;
@@ -179,11 +179,22 @@ public class GearMenu
                 _colorsMenu.Items[_propColor].Enabled = true;
                 _colorsMenu.Items[_propColor].Description = "";
                 _propColor = index;
+                _colorsMenu.Items[_propColor].Enabled = false;
+                _colorsMenu.Items[_propColor].Description = "Current Color";
                 GTA.UI.Notification.Show($"~g~{color} equipped!", true);
             };
         }
 
-        _colorsMenu.SelectedIndexChanged += (_, e) => Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmet, e.Index, 1);
+        _colorsMenu.SelectedIndexChanged += (_, e) =>
+        {
+            var item = _colorsMenu.Items[e.Index];
+            var color = colorList.FindIndex(it => it == item.Title);
+
+            if (color == -1) return;
+            
+            Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmet, e.Index, 1);
+        };
+        
         _colorsMenu.Closing += (_, _) =>
         {
             _goingBack = true;
