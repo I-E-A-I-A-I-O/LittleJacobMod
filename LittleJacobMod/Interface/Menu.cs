@@ -33,7 +33,7 @@ public class Menu
     public Menu()
     {
         var baseDir = $"{Directory.GetCurrentDirectory()}\\scripts\\LittleJacobMod\\Weapons";
-        var weapons = FileParser.DesearilizeJsonContents($"{baseDir}\\Json\\Weapons.json");
+        var weapons = FileParser.DesearilizeJsonContents($"{baseDir}\\Json\\Weapons.json") ?? new();
         Mapper.WeaponData = weapons;
         var weaponGroupMenus = new Dictionary<string, NativeMenu>();
         Pool = new ObjectPool();
@@ -71,6 +71,7 @@ public class Menu
 
             _propIndex = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
             _propColor = Function.Call<int>(Hash.GET_PED_PROP_TEXTURE_INDEX, Main.PPID, 0);
+            GTA.UI.Screen.ShowSubtitle($"INDEX {_propIndex} COLOR {_propColor}");
         };
         
         gearMenu.SelectedIndexChanged += (_, args) =>
@@ -79,8 +80,13 @@ public class Menu
 
             if (pedType == -1) return;
 
-            if (args.Index == 0) 
-                Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
+            if (args.Index == 0)
+            {
+                if (_propIndex == -1)
+                    Function.Call(Hash.KNOCK_OFF_PED_PROP, Main.PPID, 0, 1, 0, 0);
+                else
+                    Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
+            }
             else
             {
                 var drawable = GetHelmetCode(pedType, args.Index);
@@ -94,7 +100,12 @@ public class Menu
 
             if (pedType == -1) return;
             
-            Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
+            if (_propIndex == -1)
+                Function.Call(Hash.KNOCK_OFF_PED_PROP, Main.PPID, 0, 1, 0, 0);
+            else
+                Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
+            
+            GTA.UI.Screen.ShowSubtitle($"INDEX {_propIndex} COLOR {_propColor}");
         };
         
         Pool.Add(gearMenu);
@@ -314,8 +325,8 @@ public class Menu
 
     public void ReloadHelmetOptions()
     {
-        _propColor = 0;
-        _propIndex = 0;
+        _propColor = -1;
+        _propIndex = -1;
         var pedType = Main.IsMPped();
         
         switch (pedType)
@@ -490,10 +501,9 @@ public class Menu
             }
 
             var compIndx = pedType == 0 ? code + 1 : code;
-            var helmIndx = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
             var purchased = false;
 
-            if (compIndx != helmIndx)
+            if (compIndx != _propIndex)
             {
                 switch(HelmetType(compIndx, pedType))
                 {
@@ -590,8 +600,9 @@ public class Menu
                         break;
                 }
 
-                _propColor = compIndx - 1 == helmIndx ? Function.Call<int>(Hash.GET_PED_PROP_TEXTURE_INDEX, Main.PPID, compIndx - 1) : 0;
-                Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, compIndx, _propColor, 1);
+                _propColor = 0;
+                _propIndex = compIndx;
+                Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
             }
 
             Game.IsNightVisionActive = false;
@@ -602,7 +613,7 @@ public class Menu
         menu.Closed += (_, _) =>
         {
             var helmIndx = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
-            Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmIndx, _propColor, 1);
+            Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmIndx, _propColor == -1 ? 0 : _propColor, 1);
         };
 
         menu.SelectedIndexChanged += (_, e) =>

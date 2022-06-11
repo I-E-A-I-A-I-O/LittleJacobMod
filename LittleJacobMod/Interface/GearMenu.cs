@@ -1,7 +1,6 @@
 namespace LittleJacobMod.Interface;
 
 using System;
-using System.Linq;
 using Saving;
 using Utils;
 using LemonUI;
@@ -11,13 +10,14 @@ using GTA.Native;
 public class GearMenu
 {
     public ObjectPool Pool { get; }
-    private NativeMenu _mainMenu;
-    private NativeItem _thermalItem;
-    private NativeItem _nightVisionItem1;
-    private NativeItem _nightVisionItem2;
-    private NativeMenu _colorsMenu;
+    private readonly NativeMenu _mainMenu;
+    private readonly NativeItem _thermalItem;
+    private readonly NativeItem _nightVisionItem1;
+    private readonly NativeItem _nightVisionItem2;
+    private readonly NativeMenu _colorsMenu;
     private int _propColor;
     private int _propIndex;
+    private bool _goingBack;
 
     public GearMenu() 
     {
@@ -26,42 +26,104 @@ public class GearMenu
         Pool.Add(_mainMenu);
         _thermalItem = new NativeItem("Thermal Vision Helmet");
         _nightVisionItem1 = new NativeItem("Night Vision Helmet");
-        _nightVisionItem2 = new NativeItem("Tactival Night Vision");
+        _nightVisionItem2 = new NativeItem("Tactical Night Vision");
         _mainMenu.Add(_thermalItem);
         _mainMenu.Add(_nightVisionItem1);
         _mainMenu.Add(_nightVisionItem2);
-        _colorsMenu = new NativeMenu("Helmet Colors", "Helmet Colors");
-        _colorsMenu.NoItemsText = "No colors available.";
+        _colorsMenu = new("Helmet Colors", "Helmet Colors") { NoItemsText = "No colors available." };
         _mainMenu.AddSubMenu(_colorsMenu);
         Pool.Add(_colorsMenu);
         _colorsMenu.Shown += ColorsMenuShown;
 
         _mainMenu.Opening += (_, _) =>
         {
+            if (_goingBack)
+            {
+                _goingBack = false;
+                return;
+            }
+            
             _propIndex = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
             _propColor = Function.Call<int>(Hash.GET_PED_PROP_TEXTURE_INDEX, Main.PPID, 0);
             var index = GetHelmetIndex(_propIndex);
+            var pedType = Main.IsMPped();
 
-            if (index == -1) return;
+            for (int i = 0; i < _mainMenu.Items.Count - 1; i++)
+            {
+                if (i == index)
+                {
+                    _mainMenu.Items[index].Enabled = false;
+                    _mainMenu.Items[index].Description = "Current Helmet";
+                }
+                else
+                {
+                    bool exp;
+                    
+                    switch (i)
+                    {
+                        case 0:
+                            exp = pedType == 0
+                                ? HelmetSaving.State.MpMaleThermalVision
+                                : HelmetSaving.State.MpFemaleThermalVision;
+                            break;
+                        case 1:
+                            exp = pedType == 0
+                                ? HelmetSaving.State.MpMaleNightVision1
+                                : HelmetSaving.State.MpFemaleNightVision1;
+                            break;
+                        case 2:
+                            exp = pedType == 0
+                                ? HelmetSaving.State.MpMaleNightVision2
+                                : HelmetSaving.State.MpFemaleNightVision2;
+                            break;
+                        default:
+                            continue;
+                    }
 
-            _mainMenu.Items[index].Enabled = false;
-            _mainMenu.Items[index].Description = "Current Helmet";
+                    _mainMenu.Items[i].Enabled = exp;
+                    _mainMenu.Items[i].Description = exp ? "" : "Item not owned.";
+                }
+            }
         };
         
         _mainMenu.ItemActivated += (_, args) =>
         {
             var index = _mainMenu.SelectedIndex;
+            if (index == 3) return;
+            var pedType = Main.IsMPped();
 
             for (int i = 0; i < _mainMenu.Items.Count; i++) 
             {
                 if (i == index || i == _mainMenu.Items.Count - 1) continue;
-                _mainMenu.Items[i].Enabled = true;
-                _mainMenu.Items[i].Description = "";
+                bool exp;
+                    
+                switch (i)
+                {
+                    case 0:
+                        exp = pedType == 0
+                            ? HelmetSaving.State.MpMaleThermalVision
+                            : HelmetSaving.State.MpFemaleThermalVision;
+                        break;
+                    case 1:
+                        exp = pedType == 0
+                            ? HelmetSaving.State.MpMaleNightVision1
+                            : HelmetSaving.State.MpFemaleNightVision1;
+                        break;
+                    case 2:
+                        exp = pedType == 0
+                            ? HelmetSaving.State.MpMaleNightVision2
+                            : HelmetSaving.State.MpFemaleNightVision2;
+                        break;
+                    default:
+                        continue;
+                }
+
+                _mainMenu.Items[i].Enabled = exp;
+                _mainMenu.Items[i].Description = exp ? "" : "Item not owned.";
             }
 
             args.Item.Enabled = false;
             args.Item.Description = "Current Helmet";
-            var pedType = Main.IsMPped();
             var helmet = GetHelmetCode(pedType, index);
             _propIndex = helmet;
             _propColor = 0;
@@ -73,6 +135,7 @@ public class GearMenu
             if (args.Index == 3) Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
             else
             {
+                if (!_mainMenu.Items[args.Index].Enabled) return;
                 var pedType = Main.IsMPped();
                 var drawable = GetHelmetCode(pedType, args.Index);
                 Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, drawable, drawable == _propIndex ? _propColor : 0, 1);
@@ -100,8 +163,6 @@ public class GearMenu
             _ => TintsAndCamos.NV2Colors
         };
 
-        if (colorList == null) return;
-
         for (int i = 0; i < colorList.Count; i++)
         {
             if (!HelmetSaving.State.OwnedColors[helmet].Contains(i)) continue;
@@ -123,7 +184,11 @@ public class GearMenu
         }
 
         _colorsMenu.SelectedIndexChanged += (_, e) => Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmet, e.Index, 1);
-        _colorsMenu.Closed += (_, _) => Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmet, _propColor, 1);
+        _colorsMenu.Closing += (_, _) =>
+        {
+            _goingBack = true;
+            Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmet, _propColor, 1);
+        };
     }
 
     public void Open() 

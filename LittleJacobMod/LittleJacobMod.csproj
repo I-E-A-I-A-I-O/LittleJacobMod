@@ -41,8 +41,8 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="iFruitAddon2">
-      <HintPath>..\..\..\..\..\..\..\Users\Jesus\Downloads\iFruitAddon2Update\iFruitAddon2Update.dll</HintPath>
+    <Reference Include="iFruitAddon2Update">
+      <HintPath>..\..\..\..\..\..\..\Program Files\Epic Games\GTAV\Scripts\iFruitAddon2Update.dll</HintPath>
     </Reference>
     <Reference Include="LemonUI.SHVDN3, Version=1.7.0.0, Culture=neutral, processorArchitecture=Amd64">
       <HintPath>..\packages\LemonUI.SHVDN3.1.7.0\lib\net48\LemonUI.SHVDN3.dll</HintPath>

@@ -81,18 +81,17 @@ namespace LittleJacobMod.Saving
                 
                 foreach (var attachment in from attachment in weaponCatalogOption.Attachments where attachment.Hash != (uint)WeaponComponentHash.Invalid where weapon.Attachments != null where weapon.Attachments.ContainsKey(attachment.Group) where attachment.Hash != weapon.Attachments[attachment.Group].Hash where weapon.HasComponent(attachment.Hash) select attachment)
                 {
+                    if (weapon.Attachments == null) break;
                     weapon.Attachments[attachment.Group] = attachment;
                     changes = true;
                 }
 
-                if (weaponCatalogOption.CamoComponents?.Components != null)
+                if (weaponCatalogOption.CamoComponents?.Components == null) continue;
+                foreach (var camo in weaponCatalogOption.CamoComponents.Components.Where(camo => camo.Hash != (uint)WeaponComponentHash.Invalid).Where(camo => weapon.Camo != null && camo.Hash != weapon.Camo.Hash).Where(camo => weapon.HasComponent(camo.Hash)))
                 {
-                    foreach (var camo in from camo in weaponCatalogOption.CamoComponents.Components where camo.Hash != (uint)WeaponComponentHash.Invalid where camo.Hash != weapon.Camo.Hash where weapon.HasComponent(camo.Hash) select camo)
-                    {
-                        weapon.Camo = camo;
-                        weapon.CamoColor = weapon.GetCamoColor();
-                        changes = true;
-                    }
+                    weapon.Camo = camo;
+                    weapon.CamoColor = weapon.GetCamoColor();
+                    changes = true;
                 }
             }
 
