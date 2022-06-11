@@ -71,7 +71,6 @@ public class Menu
 
             _propIndex = Function.Call<int>(Hash.GET_PED_PROP_INDEX, Main.PPID, 0);
             _propColor = Function.Call<int>(Hash.GET_PED_PROP_TEXTURE_INDEX, Main.PPID, 0);
-            GTA.UI.Screen.ShowSubtitle($"INDEX {_propIndex} COLOR {_propColor}");
         };
         
         gearMenu.SelectedIndexChanged += (_, args) =>
@@ -104,8 +103,6 @@ public class Menu
                 Function.Call(Hash.KNOCK_OFF_PED_PROP, Main.PPID, 0, 1, 0, 0);
             else
                 Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
-            
-            GTA.UI.Screen.ShowSubtitle($"INDEX {_propIndex} COLOR {_propColor}");
         };
         
         Pool.Add(gearMenu);
@@ -362,24 +359,28 @@ public class Menu
         {
             switch (pedType)
             {
-                case 0 when helmetColors.Key is not (118 or 116 or 147):
-                case 1 when helmetColors.Key is not (119 or 117 or 148):
+                case 0 when helmetColors.Key is not (119 or 117 or 148):
+                case 1 when helmetColors.Key is not (118 or 116 or 147):
                     continue;
             }
 
-            if (HelmetSaving.State!.OwnedColors == null ||
+            if (HelmetSaving.State?.OwnedColors == null ||
                 !HelmetSaving.State.OwnedColors.ContainsKey(helmetColors.Key))
             {
                 foreach (var color in helmetColors.Value)
                 {
                     color.Description = "Price: $10000";
                 }
+                GTA.UI.Screen.ShowSubtitle($"Key {helmetColors.Key} not saved, skipping...");
+                Script.Wait(100);
                 continue;
             }
 
             for (var i = 0; i < helmetColors.Value.Count; i++)
             {
                 helmetColors.Value[i].Description = HelmetSaving.State.OwnedColors[helmetColors.Key].Contains(i) ? "Select to equip" : "Price $10000";
+                GTA.UI.Screen.ShowSubtitle($"Key {helmetColors.Key} saved, contains {i}? {HelmetSaving.State.OwnedColors[helmetColors.Key].Contains(i)}");
+                Script.Wait(100);
             }
         }
     }
@@ -517,7 +518,6 @@ public class Menu
                                 return;
                             }
                             HelmetSaving.State.MpFemaleThermalVision = true;
-                            GTA.UI.Screen.ShowSubtitle($"THERMAL PURCHASED {HelmetSaving.State.MpFemaleThermalVision}");
                             menu.Description = "Select to equip";
                             Game.Player.Money -= helmPrice;
                             purchased = true;

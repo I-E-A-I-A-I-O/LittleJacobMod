@@ -132,17 +132,28 @@ public class GearMenu
 
         _mainMenu.SelectedIndexChanged += (_, args) =>
         {
-            if (args.Index == 3) Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
-            else
+            if (args.Index == 3 || !_mainMenu.Items[args.Index].Enabled)
             {
-                if (!_mainMenu.Items[args.Index].Enabled) return;
-                var pedType = Main.IsMPped();
-                var drawable = GetHelmetCode(pedType, args.Index);
-                Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, drawable, drawable == _propIndex ? _propColor : 0, 1);
+                if (_propIndex == -1)
+                    Function.Call(Hash.KNOCK_OFF_PED_PROP, Main.PPID, 0, 1, 0, 0);
+                else
+                    Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
+                
+                return;
             }
+            
+            var pedType = Main.IsMPped();
+            var drawable = GetHelmetCode(pedType, args.Index);
+            Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, drawable, drawable == _propIndex ? _propColor : 0, 1);
         };
 
-        _mainMenu.Closed += (_, _) => Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
+        _mainMenu.Closed += (_, _) =>
+        {
+            if (_propIndex == -1)
+                Function.Call(Hash.KNOCK_OFF_PED_PROP, Main.PPID, 0, 1, 0, 0);
+            else
+                Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, _propIndex, _propColor, 1);
+        };
     }
 
     private void ColorsMenuShown(object sender, EventArgs args) 
@@ -167,8 +178,8 @@ public class GearMenu
         {
             if (!HelmetSaving.State.OwnedColors[helmet].Contains(i)) continue;
 
-            var color = colorList[i];
             var index = i;
+            var color = colorList[i];
             NativeItem item = new(color);
             item.Enabled = _propColor != i;
             item.Description = _propColor == i ? "Current Color" : "";
@@ -176,11 +187,20 @@ public class GearMenu
 
             item.Activated += (_, _) =>
             {
-                _colorsMenu.Items[_propColor].Enabled = true;
-                _colorsMenu.Items[_propColor].Description = "";
+                if (_propColor != -1)
+                {
+                    var colorIndex = GetMenuIndex(colorList[_propColor]);
+
+                    if (colorIndex != -1)
+                    {
+                        _colorsMenu.Items[colorIndex].Enabled = true;
+                        _colorsMenu.Items[colorIndex].Description = "";   
+                    }
+                }
+                
                 _propColor = index;
-                _colorsMenu.Items[_propColor].Enabled = false;
-                _colorsMenu.Items[_propColor].Description = "Current Color";
+                item.Enabled = false;
+                item.Description = "Current Color";
                 GTA.UI.Notification.Show($"~g~{color} equipped!", true);
             };
         }
@@ -192,7 +212,7 @@ public class GearMenu
 
             if (color == -1) return;
             
-            Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmet, e.Index, 1);
+            Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmet, color, 1);
         };
         
         _colorsMenu.Closing += (_, _) =>
@@ -233,6 +253,16 @@ public class GearMenu
         }
     }
 
+    private int GetMenuIndex(string colorName)
+    {
+        for (var i = 0; i < _colorsMenu.Items.Count; i++)
+        {
+            if (_colorsMenu.Items[i].Title == colorName) return i;
+        }
+
+        return -1;
+    }
+    
     private int GetHelmetCode(int pedType, int index)
     {
         return index switch

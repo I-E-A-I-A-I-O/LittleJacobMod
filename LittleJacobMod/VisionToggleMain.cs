@@ -43,6 +43,10 @@ internal class VisionToggleMain : Script
         {
             if (IsOffHelmet(helmIndx, pedType) && CanActivate())
             {
+                Game.Player.Character.Task.PlayAnimation("anim@mp_helmets@on_foot", "goggles_down", 8f, -8f, -1, AnimationFlags.UpperBodyOnly, 0f);
+                Wait(500);
+                Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmIndx - 1, helmColor, 1);
+                
                 if (HelmetType(helmIndx, pedType) == 1)
                 {
                     Game.IsNightVisionActive = true;
@@ -50,8 +54,7 @@ internal class VisionToggleMain : Script
                 {
                     Game.IsThermalVisionActive = true;
                 }
-
-                Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmIndx - 1, helmColor, 1);
+                
                 return;
             }
 
@@ -66,6 +69,8 @@ internal class VisionToggleMain : Script
                     Game.IsThermalVisionActive = false;
                 }
 
+                Game.Player.Character.Task.PlayAnimation("anim@mp_helmets@on_foot", "goggles_up", 8f, -8f, -1, AnimationFlags.UpperBodyOnly, 0f);
+                Wait(500);
                 Function.Call(Hash.SET_PED_PROP_INDEX, Main.PPID, 0, helmIndx + 1, helmColor, 1);
                 return;
             }
