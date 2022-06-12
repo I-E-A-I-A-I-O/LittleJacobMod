@@ -142,7 +142,7 @@ public class Menu
             }
             Game.Player.Money -= 3000;
             Game.Player.Character.Armor = 100;
-            GTA.UI.Notification.Show("~r~Armor purchased!", true);
+            GTA.UI.Notification.Show("~g~Armor purchased!", true);
         };
 
         foreach (var weapon in weapons)
