@@ -5,16 +5,14 @@ using LittleJacobMod.Utils.Types;
 
 namespace LittleJacobMod.Utils
 {
-    internal class FileParser
+    internal static class FileParser
     {
-        public static List<Weapon>? DesearilizeJsonContents(string path)
+        public static List<Weapon>? DeserializeJsonContents(string path)
         {
             var contents = File.ReadAllText(path);
             var weapons = JsonConvert.DeserializeObject<List<Weapon>>(contents);
 
-            if (weapons != null) return weapons;
-
-            return null;
+            return weapons ?? null;
         }
     }
 }

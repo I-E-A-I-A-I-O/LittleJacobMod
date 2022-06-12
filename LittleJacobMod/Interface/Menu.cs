@@ -33,7 +33,7 @@ public class Menu
     public Menu()
     {
         var baseDir = $"{Directory.GetCurrentDirectory()}\\scripts\\LittleJacobMod\\Weapons";
-        var weapons = FileParser.DesearilizeJsonContents($"{baseDir}\\Json\\Weapons.json") ?? new();
+        var weapons = FileParser.DeserializeJsonContents($"{baseDir}\\Weapons.json") ?? new();
         Mapper.WeaponData = weapons;
         var weaponGroupMenus = new Dictionary<string, NativeMenu>();
         Pool = new ObjectPool();
