@@ -29,11 +29,15 @@ namespace LittleJacobMod.Saving
                 storedWeapon.Ammo = Function.Call<int>(Hash.GET_AMMO_IN_PED_WEAPON, Main.PPID, weapon.Hash);
                 storedWeapon.Attachments = new Dictionary<string, GroupedComponent>();
 
-                foreach (var attachment in weapon.Attachments.Where(attachment => attachment.Hash != (uint)WeaponComponentHash.Invalid).Where(attachment => storedWeapon.HasComponent(attachment.Hash)))
-                {
-                    if (storedWeapon.Attachments.ContainsKey(attachment.Group)) storedWeapon.Attachments[attachment.Group] = attachment;
-                    else storedWeapon.Attachments.Add(attachment.Group, attachment);
-                }
+                if (weapon.Attachments != null)
+                    foreach (var attachment in weapon.Attachments
+                                 .Where(attachment => attachment.Hash != (uint)WeaponComponentHash.Invalid)
+                                 .Where(attachment => storedWeapon.HasComponent(attachment.Hash)))
+                    {
+                        if (storedWeapon.Attachments.ContainsKey(attachment.Group))
+                            storedWeapon.Attachments[attachment.Group] = attachment;
+                        else storedWeapon.Attachments.Add(attachment.Group, attachment);
+                    }
 
                 if (weapon.CamoComponents != null)
                 {
